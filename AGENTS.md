@@ -395,3 +395,9 @@ Use TDD for production behavior changes.
 - Do not introduce new libraries without explaining the need.
 - Do not commit generated secrets, local database files, build outputs, or IDE-specific noise.
 - Update this file when the actual architecture intentionally diverges from these defaults.
+
+## Agent Coordination Rules
+
+- When an agent finishes assigned work, it must update the Trello card and send a completion message back to the Project Manager session.
+- When an agent is blocked, it must update the Trello card and send a blocked message back to the Project Manager session instead of waiting silently.
+- Completion or blocked messages must include the Trello card link, final status, important output, verification performed, blockers or gaps, and the recommended next owner.
