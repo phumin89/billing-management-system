@@ -23,8 +23,17 @@ jobs:
       - name: Restore
         run: dotnet restore BillingManagement.slnx
 
-      - name: Build
+      - name: Frontend build
+        run: dotnet build src/BillingManagement.Client/BillingManagement.Client.csproj --configuration Release --no-restore
+
+      - name: Frontend tests (not configured)
+        run: echo "No frontend test project exists yet. Add one under tests/ when frontend test coverage is introduced."
+
+      - name: Backend/full solution build
         run: dotnet build BillingManagement.slnx --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test BillingManagement.slnx --configuration Release --no-build --verbosity normal
+      - name: Backend unit tests
+        run: dotnet test tests/BillingManagement.UnitTests/BillingManagement.UnitTests.csproj --configuration Release --no-build --verbosity normal
+
+      - name: Integration tests
+        run: dotnet test tests/BillingManagement.IntegrationTests/BillingManagement.IntegrationTests.csproj --configuration Release --no-build --verbosity normal
