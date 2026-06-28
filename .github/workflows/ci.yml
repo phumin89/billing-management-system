@@ -1,4 +1,4 @@
-name: CI
+name: Frontend and Backend Validation
 
 on:
   pull_request:
