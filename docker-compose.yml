@@ -6,22 +6,22 @@ services:
     ports:
       - "5080:80"
     depends_on:
-      - backend
+      - api
 
-  backend:
+  api:
     build:
       context: .
       dockerfile: src/BillingManagement.Api/Dockerfile
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: "Server=database,1433;Database=BillingManagement;User Id=sa;Password=${BMS_DB_PASSWORD:-Billing_dev_2026!};TrustServerCertificate=True;MultipleActiveResultSets=True"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=BillingManagement;User Id=sa;Password=${BMS_DB_PASSWORD:-Billing_dev_2026!};TrustServerCertificate=True;MultipleActiveResultSets=True"
     ports:
       - "5081:8080"
     depends_on:
-      - database
+      - sqlserver
 
-  database:
+  sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
@@ -39,9 +39,9 @@ services:
       - tools
     environment:
       DOTNET_ENVIRONMENT: Development
-      ConnectionStrings__DefaultConnection: "Server=database,1433;Database=BillingManagement;User Id=sa;Password=${BMS_DB_PASSWORD:-Billing_dev_2026!};TrustServerCertificate=True;MultipleActiveResultSets=True"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=BillingManagement;User Id=sa;Password=${BMS_DB_PASSWORD:-Billing_dev_2026!};TrustServerCertificate=True;MultipleActiveResultSets=True"
     depends_on:
-      - database
+      - sqlserver
 
 volumes:
   billingmanagement-sqlserver:

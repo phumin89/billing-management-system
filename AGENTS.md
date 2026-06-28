@@ -389,6 +389,7 @@ Use TDD for production behavior changes.
 - Always use PONYTAIL: prefer the simplest working solution, avoid speculative abstractions, avoid unnecessary dependencies, and keep diffs small.
 - Always use CAVEMAN: write direct, plain, terse implementation notes and avoid inflated explanations.
 - Before implementation work, create or switch to a feature branch that starts with the card number, for example `#BMS-123-short-description`.
+- When implementation work finishes, push the card branch and create a ready-for-review pull request before starting another implementation card.
 - Keep changes small and scoped to the requested work.
 - Follow existing project conventions once files exist.
 - Do not introduce new libraries without explaining the need.
