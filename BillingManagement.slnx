@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BillingManagement.Api/BillingManagement.Api.csproj" />
+    <Project Path="src/BillingManagement.Application.Abstractions/BillingManagement.Application.Abstractions.csproj" />
+    <Project Path="src/BillingManagement.Application/BillingManagement.Application.csproj" />
+    <Project Path="src/BillingManagement.Client/BillingManagement.Client.csproj" />
+    <Project Path="src/BillingManagement.Contracts/BillingManagement.Contracts.csproj" />
+    <Project Path="src/BillingManagement.Domain/BillingManagement.Domain.csproj" />
+    <Project Path="src/BillingManagement.Infrastructure/BillingManagement.Infrastructure.csproj" />
+    <Project Path="src/BillingManagement.Migrator/BillingManagement.Migrator.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BillingManagement.IntegrationTests/BillingManagement.IntegrationTests.csproj" />
+    <Project Path="tests/BillingManagement.UnitTests/BillingManagement.UnitTests.csproj" />
+  </Folder>
+</Solution>

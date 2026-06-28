@@ -51,7 +51,7 @@ tests/
 docker/
   sqlserver/                                    # SQL Server local development assets if needed
 docker-compose.yml
-BillingManagement.sln
+BillingManagement.slnx
 ```
 
 Do not create extra projects beyond this list without a clear reason.

@@ -122,4 +122,3 @@ migrator
 - Use interfaces for cross-project boundaries or multiple implementations, not every class.
 - Use TDD for production behavior changes.
 - Generated code, pure configuration, Docker files, and documentation-only edits do not need TDD.
-

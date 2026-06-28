@@ -21,7 +21,7 @@
 
 ## File Structure
 
-- Create `BillingManagement.sln`.
+- Create `BillingManagement.slnx`.
 - Create projects under `src/`.
 - Create test projects under `tests/`.
 - Create Docker files for `client`, `backend`, `database`, and `migrator` local development.
@@ -57,7 +57,7 @@ Expected: commit succeeds.
 ### Task 2: Scaffold Solution And Projects
 
 **Files:**
-- Create: `BillingManagement.sln`
+- Create: `BillingManagement.slnx`
 - Create: `src/BillingManagement.Client/BillingManagement.Client.csproj`
 - Create: `src/BillingManagement.Api/BillingManagement.Api.csproj`
 - Create: `src/BillingManagement.Contracts/BillingManagement.Contracts.csproj`
@@ -158,4 +158,3 @@ Expected: test run succeeds.
 Run: `git status --short`
 
 Expected: only intended scaffold files are changed.
-

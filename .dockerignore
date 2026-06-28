@@ -1,0 +1,16 @@
+.git/
+.vs/
+.vscode/
+.idea/
+docs/
+tests/**/bin/
+tests/**/obj/
+src/**/bin/
+src/**/obj/
+bin/
+obj/
+TestResults/
+coverage/
+*.user
+*.suo
+
