@@ -233,6 +233,53 @@ Use Blazor WebAssembly SPA as a separate client project. Do not put server-side 
 - Prefer explicit transactions for multi-step writes that must succeed or fail together.
 - Use `IDbContextFactory<TContext>` only when the execution model requires it, such as long-lived Blazor component scopes or background work.
 
+## Billing History And Snapshot Guidance
+
+Use document snapshots for billing history.
+
+When a billing document is issued, copy the customer and pricing details needed to reproduce that document into the document itself. Do not rely only on current `Customer`, `Product`, or `Address` records for old invoices, receipts, quotations, credit notes, or tax documents.
+
+Example:
+
+```text
+Customer
+  Id
+  Name
+  CurrentBillingAddress
+
+Invoice
+  Id
+  CustomerId
+  CustomerNameSnapshot
+  BillingAddressSnapshot
+  TaxIdSnapshot
+  IssuedAt
+```
+
+If the customer later changes address, old invoices must still print the old address from `BillingAddressSnapshot`.
+
+Snapshot these values when they appear on issued documents:
+
+- customer display name
+- billing address
+- tax id
+- branch information
+- contact name, email, or phone when printed on the document
+- item description
+- unit price
+- discount
+- tax rate
+- currency and exchange rate
+
+Do not build generic entity versioning first. Add `CustomerVersion`, `AddressVersion`, audit log tables, or full revision history only when there is a concrete need to query or display change history outside issued documents.
+
+Soft delete, audit fields, and optimistic concurrency are still useful:
+
+- use soft delete for recoverable user mistakes
+- use `CreatedAt`, `UpdatedAt`, and `DeletedAt` on persisted records where useful
+- use row version/concurrency tokens for records users can edit
+- use snapshots for historical document correctness
+
 ## CQRS-Ready Guidance
 
 Design application features around use cases:
