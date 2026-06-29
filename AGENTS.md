@@ -392,6 +392,7 @@ Use TDD for production behavior changes.
 - Trello card numbers come from the `Card Numbers by Reenhanced` Power-Up, which agents may not be able to read directly. Before routing a card to Developer, PM/BA must copy the visible Power-Up number into the card title as `#BMS-123 Task name`.
 - Before implementation work, create or switch to a feature branch that starts with the `#BMS-123` number in the Trello card title, for example `#BMS-123-short-description`. Do not infer, renumber, or replace the Trello card number from the URL slug, Trello short id, or sequence gaps. If the title does not contain `#BMS-123`, stop and ask PM before branching.
 - Implementation work must happen in the main local repository checkout on a local ticket branch unless the user explicitly approves a Codex worktree. Do not use Codex worktrees for implementation by default, because the user reviews in Visual Studio.
+- For implementation verification, always use Docker Compose when the change affects app runtime, UI, API, database, migrations, or local service wiring. If Docker is unavailable, report it as a blocker/gap instead of silently skipping it.
 - When implementation work finishes, push the card branch and create a ready-for-review pull request before starting another implementation card.
 - Keep changes small and scoped to the requested work.
 - Follow existing project conventions once files exist.
