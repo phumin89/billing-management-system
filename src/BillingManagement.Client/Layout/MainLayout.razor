@@ -1,10 +1,47 @@
 @inherits LayoutComponentBase
 
-<div class="app-layout">
-    <nav class="top-nav">
-        <a href="/">Billing Management</a>
-        <a href="/company-profile">Company profile</a>
-    </nav>
+<div class="app-shell @(collapsed ? "is-collapsed" : string.Empty)">
+    <aside class="sidebar" aria-label="Primary navigation">
+        <div class="sidebar-top">
+            <a class="brand" href="/" aria-label="Billing Management">
+                <span class="brand-mark">BM</span>
+                <span class="sidebar-text">Billing</span>
+            </a>
 
-    @Body
+            <button class="sidebar-toggle" type="button" @onclick="Toggle" aria-label="Toggle sidebar" aria-expanded="@(!collapsed)">
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+
+        <nav class="nav-list" aria-label="Primary">
+            <a class="nav-item" href="#customers" title="Customers">
+                <span class="nav-icon">C</span>
+                <span class="sidebar-text">Customers</span>
+            </a>
+            <a class="nav-item" href="#quotations" title="Quotations">
+                <span class="nav-icon">Q</span>
+                <span class="sidebar-text">Quotations</span>
+            </a>
+            <a class="nav-item" href="#invoices" title="Invoices">
+                <span class="nav-icon">I</span>
+                <span class="sidebar-text">Invoices</span>
+            </a>
+        </nav>
+
+        <a class="company-link" href="/company-profile" title="Company profile">
+            <span class="company-avatar">Co</span>
+            <span class="sidebar-text">Company profile</span>
+        </a>
+    </aside>
+
+    <main class="content-shell">
+        @Body
+    </main>
 </div>
+
+@code {
+    private bool collapsed;
+
+    private void Toggle() => collapsed = !collapsed;
+}
