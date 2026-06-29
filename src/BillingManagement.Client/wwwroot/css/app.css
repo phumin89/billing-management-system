@@ -237,29 +237,29 @@ input {
 
 .app-shell {
     min-height: 100vh;
-    display: grid;
-    grid-template-columns: 292px 1fr;
     background: #f5f6f8;
-    transition: grid-template-columns 300ms ease;
-}
-
-.app-shell.is-collapsed {
-    grid-template-columns: 88px 1fr;
 }
 
 .sidebar {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    z-index: 10;
+    width: 316px;
     height: 100vh;
     display: flex;
     flex-direction: column;
     margin: 0;
-    padding: 24px 14px 14px;
+    padding: 28px 14px 14px;
     overflow: hidden;
     background: #ffffff;
     border-right: 1px solid #e2e8f0;
     box-sizing: border-box;
-    transition: padding 300ms ease;
+    transition: width 300ms ease, padding 300ms ease;
+}
+
+.app-shell.is-collapsed .sidebar {
+    width: 112px;
 }
 
 .sidebar-top {
@@ -270,7 +270,7 @@ input {
     gap: 12px;
     min-height: 48px;
     margin-bottom: 30px;
-    padding: 0 50px 0 12px;
+    padding: 0 12px;
 }
 
 .brand,
@@ -283,6 +283,7 @@ input {
     color: #1f2933;
     text-decoration: none;
     border-radius: 12px;
+    transition: gap 300ms ease;
 }
 
 .brand {
@@ -295,7 +296,7 @@ input {
 
 .sidebar-text {
     display: inline-block;
-    max-width: 180px;
+    max-width: 190px;
     overflow: hidden;
     white-space: nowrap;
     opacity: 1;
@@ -323,25 +324,47 @@ input {
 }
 
 .nav-list {
+    position: relative;
     display: grid;
     gap: 8px;
     padding: 0 2px;
 }
 
+.nav-indicator {
+    position: absolute;
+    top: 0;
+    left: 2px;
+    right: 2px;
+    z-index: 0;
+    height: 54px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    pointer-events: none;
+    transition: transform 300ms ease;
+}
+
+.nav-list.nav-active-quotations .nav-indicator {
+    transform: translateY(62px);
+}
+
+.nav-list.nav-active-invoices .nav-indicator {
+    transform: translateY(124px);
+}
+
 .nav-item {
+    position: relative;
+    z-index: 1;
     min-height: 54px;
     padding: 0 14px;
     color: #374151;
     font-size: 16px;
     font-weight: 600;
-    transition: background 300ms ease, color 300ms ease;
+    background: transparent;
+    transition: background 160ms ease, color 160ms ease, gap 300ms ease;
 }
 
 .nav-item.active {
     color: #0f172a;
-    background: linear-gradient(90deg, #edf5ff 0%, #dcecff 45%, #f8fbff 70%, #edf5ff 100%);
-    background-size: 240% 100%;
-    animation: active-flow 2.8s linear infinite;
 }
 
 .nav-item:hover,
@@ -350,22 +373,6 @@ input {
 .company-link:focus-visible {
     background: #f1f5f9;
     outline: none;
-}
-
-.nav-item.active:hover,
-.nav-item.active:focus-visible {
-    background: linear-gradient(90deg, #edf5ff 0%, #dcecff 45%, #f8fbff 70%, #edf5ff 100%);
-    background-size: 240% 100%;
-}
-
-@keyframes active-flow {
-    from {
-        background-position: 0 0;
-    }
-
-    to {
-        background-position: 240% 0;
-    }
 }
 
 .nav-icon {
@@ -431,26 +438,25 @@ input {
 
 .sidebar-toggle {
     position: absolute;
-    right: 10px;
-    top: 7px;
+    right: -31px;
+    top: 6px;
     flex: 0 0 34px;
     width: 34px;
     height: 34px;
     display: grid;
     place-items: center;
     padding: 0;
-    color: #1f2937;
-    background: #f8fafc;
-    border: 1px solid #dbe3ee;
+    color: #ffffff;
+    background: #1a73e8;
+    border: 0;
     border-radius: 999px;
-    box-shadow: none;
+    box-shadow: 0 8px 18px rgba(26, 115, 232, 0.32);
     cursor: pointer;
 }
 
 .sidebar-toggle:hover,
 .sidebar-toggle:focus-visible {
-    color: #0f172a;
-    background: #eef4fb;
+    background: #155fc0;
     outline: none;
 }
 
@@ -460,7 +466,6 @@ input {
 }
 
 .app-shell.is-collapsed .sidebar-top {
-    min-height: 94px;
     padding: 0;
     justify-content: center;
 }
@@ -481,13 +486,13 @@ input {
     padding: 0;
 }
 
-.app-shell.is-collapsed .company-link {
-    min-height: 62px;
+.app-shell.is-collapsed .nav-indicator {
+    left: 0;
+    right: 0;
 }
 
-.app-shell.is-collapsed .sidebar-toggle {
-    right: 27px;
-    top: 56px;
+.app-shell.is-collapsed .company-link {
+    min-height: 62px;
 }
 
 .app-shell.is-collapsed .sidebar-toggle svg {
@@ -496,25 +501,26 @@ input {
 
 .content-shell {
     min-width: 0;
+    margin-left: 316px;
     padding: 32px 40px;
 }
 
 @media (max-width: 720px) {
-    .app-shell,
-    .app-shell.is-collapsed {
-        grid-template-columns: 1fr;
-    }
-
     .sidebar {
         position: static;
+        width: auto;
         height: auto;
-        margin: 12px;
         padding: 12px;
         flex-direction: row;
         align-items: center;
         gap: 12px;
         overflow-x: auto;
-        border-radius: 14px;
+        border-right: 0;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .app-shell.is-collapsed .sidebar {
+        width: auto;
     }
 
     .sidebar-top,
@@ -528,11 +534,20 @@ input {
         gap: 6px;
     }
 
+    .nav-indicator {
+        display: none;
+    }
+
+    .nav-item.active {
+        background: #f1f5f9;
+    }
+
     .sidebar-toggle {
         display: none;
     }
 
     .content-shell {
+        margin-left: 0;
         padding: 16px;
     }
 }
