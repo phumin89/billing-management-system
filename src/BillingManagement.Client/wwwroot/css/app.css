@@ -462,7 +462,7 @@ input {
 .sidebar-toggle {
     position: absolute;
     right: -32px;
-    top: 6px;
+    top: 38px;
     z-index: 2;
     flex: 0 0 34px;
     width: 34px;
