@@ -387,9 +387,10 @@ Use TDD for production behavior changes.
 ## Development Rules
 
 - Always use PONYTAIL: prefer the simplest working solution, avoid speculative abstractions, avoid unnecessary dependencies, and keep diffs small.
-- Always use CAVEMAN Max: write the shortest direct status and implementation notes that still preserve necessary facts.
-- All agents must use PONYTAIL and CAVEMAN Max to reduce overbuilding and token/credit usage.
-- Before implementation work, create or switch to a feature branch that starts with the Trello `Card Number` custom field when present, for example `#BMS-123-short-description`. Do not infer, renumber, or replace the Trello card number from the card title, URL slug, or sequence gaps.
+- Always use CAVEMAN ultra: write the shortest direct status and implementation notes that still preserve necessary facts.
+- All agents must use PONYTAIL and CAVEMAN ultra to reduce overbuilding and token/credit usage.
+- Trello card numbers come from the `Card Numbers by Reenhanced` Power-Up, which agents may not be able to read directly. Before routing a card to Developer, PM/BA must copy the visible Power-Up number into the card title as `#BMS-123 Task name`.
+- Before implementation work, create or switch to a feature branch that starts with the `#BMS-123` number in the Trello card title, for example `#BMS-123-short-description`. Do not infer, renumber, or replace the Trello card number from the URL slug, Trello short id, or sequence gaps. If the title does not contain `#BMS-123`, stop and ask PM before branching.
 - Implementation work must happen in the main local repository checkout on a local ticket branch unless the user explicitly approves a Codex worktree. Do not use Codex worktrees for implementation by default, because the user reviews in Visual Studio.
 - When implementation work finishes, push the card branch and create a ready-for-review pull request before starting another implementation card.
 - Keep changes small and scoped to the requested work.
@@ -406,7 +407,7 @@ Use TDD for production behavior changes.
 - Developer owns implementation only after PM routes an approved card to Developer. Developer must not start BA/Design/QA work or start another card while one implementation card is active.
 - QA owns verification, test notes, regression risk, and accept/reject outcome. QA does not implement fixes unless PM explicitly routes a fix card.
 - One card has one active owner at a time. Other agents may comment, but they must not move the card or start work without PM routing.
-- Handoff rule: every agent must end with a Trello comment and PM callback that states final status, output, verification, blockers/gaps, and recommended next owner.
+- Handoff rule: every agent must end with a Trello comment and PM callback that states final status, output, verification, blockers/gaps, recommended next owner, and explicit confirmation that PONYTAIL plus CAVEMAN ultra were used.
 - When an agent finishes assigned work, it must update the Trello card and send a completion message back to the Project Manager session.
 - When an agent is blocked, it must update the Trello card and send a blocked message back to the Project Manager session instead of waiting silently.
 - Completion or blocked messages must include the Trello card link, final status, important output, verification performed, blockers or gaps, and the recommended next owner.
