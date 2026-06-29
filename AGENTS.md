@@ -387,8 +387,10 @@ Use TDD for production behavior changes.
 ## Development Rules
 
 - Always use PONYTAIL: prefer the simplest working solution, avoid speculative abstractions, avoid unnecessary dependencies, and keep diffs small.
-- Always use CAVEMAN: write direct, plain, terse implementation notes and avoid inflated explanations.
-- Before implementation work, create or switch to a feature branch that starts with the card number, for example `#BMS-123-short-description`.
+- Always use CAVEMAN Max: write the shortest direct status and implementation notes that still preserve necessary facts.
+- All agents must use PONYTAIL and CAVEMAN Max to reduce overbuilding and token/credit usage.
+- Before implementation work, create or switch to a feature branch that starts with the Trello `Card Number` custom field when present, for example `#BMS-123-short-description`. Do not infer, renumber, or replace the Trello card number from the card title, URL slug, or sequence gaps.
+- Implementation work must happen in the main local repository checkout on a local ticket branch unless the user explicitly approves a Codex worktree. Do not use Codex worktrees for implementation by default, because the user reviews in Visual Studio.
 - When implementation work finishes, push the card branch and create a ready-for-review pull request before starting another implementation card.
 - Keep changes small and scoped to the requested work.
 - Follow existing project conventions once files exist.
