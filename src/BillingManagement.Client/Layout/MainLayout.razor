@@ -3,7 +3,8 @@
 @inject NavigationManager Navigation
 
 <div class="app-shell @(collapsed ? "is-collapsed" : string.Empty)">
-    <aside class="sidebar" aria-label="Primary navigation">
+    <aside class="@($"sidebar active-{activeNav}")" aria-label="Primary navigation">
+        <span class="sidebar-indicator" aria-hidden="true"></span>
         <div class="sidebar-top">
             <a class="brand" href="/" aria-label="Billing Management">
                 <span class="brand-mark">BM</span>
@@ -17,8 +18,7 @@
             </button>
         </div>
 
-        <nav class="@($"nav-list nav-active-{activeNav}")" aria-label="Primary">
-            <span class="nav-indicator" aria-hidden="true"></span>
+        <nav class="nav-list" aria-label="Primary">
             <a class="@NavClass(NavCustomers)" href="#customers" title="Customers" aria-current="@AriaCurrent(NavCustomers)" @onclick="() => SetActive(NavCustomers)">
                 <span class="nav-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24">
@@ -45,7 +45,7 @@
             </a>
         </nav>
 
-        <a class="company-link" href="/company-profile" title="Company profile">
+        <a class="@CompanyClass" href="/company-profile" title="Company profile" aria-current="@AriaCurrent(NavCompany)" @onclick="() => SetActive(NavCompany)">
             <span class="company-avatar" aria-hidden="true">BM</span>
             <span class="company-copy sidebar-text">
                 <span>Company profile</span>
@@ -63,6 +63,7 @@
     private const string NavCustomers = "customers";
     private const string NavQuotations = "quotations";
     private const string NavInvoices = "invoices";
+    private const string NavCompany = "company";
 
     private bool collapsed;
     private string activeNav = NavCustomers;
@@ -81,6 +82,8 @@
 
     private string NavClass(string item) => activeNav == item ? "nav-item active" : "nav-item";
 
+    private string CompanyClass => activeNav == NavCompany ? "company-link active" : "company-link";
+
     private string? AriaCurrent(string item) => activeNav == item ? "page" : null;
 
     private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs args)
@@ -89,10 +92,17 @@
         _ = InvokeAsync(StateHasChanged);
     }
 
-    private static string GetActiveNav(string uri)
+    private string GetActiveNav(string uri)
     {
-        var hashIndex = uri.IndexOf('#');
-        var hash = hashIndex >= 0 ? uri[(hashIndex + 1)..] : string.Empty;
+        var relative = Navigation.ToBaseRelativePath(uri);
+        var hashIndex = relative.IndexOf('#');
+        var path = (hashIndex >= 0 ? relative[..hashIndex] : relative).TrimEnd('/');
+        var hash = hashIndex >= 0 ? relative[(hashIndex + 1)..] : string.Empty;
+
+        if (path.Equals("company-profile", StringComparison.OrdinalIgnoreCase))
+        {
+            return NavCompany;
+        }
 
         return hash switch
         {
