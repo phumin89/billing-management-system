@@ -461,8 +461,8 @@ input {
 
 .sidebar-toggle {
     position: absolute;
-    right: -17px;
-    top: 34px;
+    right: -32px;
+    top: 6px;
     z-index: 2;
     flex: 0 0 34px;
     width: 34px;
@@ -496,11 +496,17 @@ input {
 .app-shell.is-collapsed .brand,
 .app-shell.is-collapsed .nav-item,
 .app-shell.is-collapsed .company-link {
+    justify-content: center;
     gap: 0;
+}
+
+.app-shell.is-collapsed .nav-item {
+    padding: 0;
 }
 
 .app-shell.is-collapsed .company-link {
     min-height: 62px;
+    padding: 8px 0;
 }
 
 .app-shell.is-collapsed .sidebar-toggle svg {
