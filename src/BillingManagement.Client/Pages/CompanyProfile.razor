@@ -1,211 +1,247 @@
 @page "/company-profile"
-@using BillingManagement.Client.OwnerCompanyProfiles
-@using BillingManagement.Contracts.OwnerCompanyProfiles
-@inject OwnerCompanyProfileClient Client
 
 <PageTitle>Company profile</PageTitle>
 
-<main class="page-shell">
-    <header class="page-header">
+<main class="company-profile-page">
+    <header class="company-page-header">
         <div>
+            <p class="company-page-kicker">Owner company</p>
             <h1>Company profile</h1>
-            <p>This information appears on quotation and invoice headers.</p>
+            <p>Seller information used later on quotation and invoice document headers.</p>
+        </div>
+        <div class="profile-state-switcher" aria-label="Review state">
+            <button class="@StateButtonClass("empty")" type="button" data-profile-state="empty" @onclick="ShowEmpty">Empty</button>
+            <button class="@StateButtonClass("existing")" type="button" data-profile-state="existing" @onclick="ShowExisting">Existing</button>
+            <button class="@StateButtonClass("form")" type="button" data-profile-state="form" @onclick="ShowCreate">Create/Edit</button>
+            <button class="@StateButtonClass("delete")" type="button" data-profile-state="delete" @onclick="ShowDelete">Delete</button>
         </div>
     </header>
 
-    @if (isLoading)
+    @if (reviewState == ProfileReviewState.Empty)
     {
-        <p>Loading company profile...</p>
-    }
-    else if (profile is not null)
-    {
-        <section class="panel">
-            <div class="success-banner">Company profile saved.</div>
-            <dl class="profile-list">
-                <dt>Company name</dt>
-                <dd>@profile.CompanyName</dd>
-                <dt>Address</dt>
-                <dd>@profile.AddressLine1 @profile.AddressLine2, @profile.City @profile.PostalCode, @profile.Country</dd>
-                <dt>Tax ID</dt>
-                <dd>@Display(profile.TaxId)</dd>
-                <dt>Phone</dt>
-                <dd>@Display(profile.Phone)</dd>
-                <dt>Email</dt>
-                <dd>@Display(profile.Email)</dd>
-                <dt>Website</dt>
-                <dd>@Display(profile.Website)</dd>
-                <dt>Logo reference</dt>
-                <dd>@Display(profile.LogoReference)</dd>
-                <dt>Registration number</dt>
-                <dd>@Display(profile.RegistrationNumber)</dd>
-            </dl>
+        <section class="company-card company-empty-card" data-profile-view="empty">
+            <div>
+                <h2>No company profile yet</h2>
+                <p>Add company details so document headers show the correct seller information.</p>
+            </div>
+            <button class="company-primary-button" type="button" @onclick="ShowCreate">Create company profile</button>
         </section>
     }
-    else if (!showForm)
+    else if (reviewState == ProfileReviewState.Existing)
     {
-        <section class="panel empty-state">
-            <p>Add your company details so quotations and invoices show the correct seller information.</p>
-            <button class="primary-button" type="button" @onclick="() => showForm = true">Create company profile</button>
+        <section class="company-card" data-profile-view="existing">
+            <div class="company-card-header">
+                <div>
+                    <h2>@sample.CompanyName</h2>
+                    <p>Primary owner company profile.</p>
+                </div>
+                <div class="company-actions">
+                    <button class="company-secondary-button" type="button" @onclick="ShowEdit">Update</button>
+                    <button class="company-danger-button" type="button" @onclick="ShowDelete">Delete</button>
+                </div>
+            </div>
+
+            <dl class="company-summary-grid">
+                <div class="full">
+                    <dt>Address</dt>
+                    <dd>@sample.AddressLine1, @sample.AddressLine2, @sample.City, @sample.PostalCode, @sample.Country</dd>
+                </div>
+                <div>
+                    <dt>Tax ID</dt>
+                    <dd>@sample.TaxId</dd>
+                </div>
+                <div>
+                    <dt>Phone</dt>
+                    <dd>@sample.Phone</dd>
+                </div>
+                <div>
+                    <dt>Email</dt>
+                    <dd>@sample.Email</dd>
+                </div>
+                <div>
+                    <dt>Website</dt>
+                    <dd>@sample.Website</dd>
+                </div>
+                <div class="full">
+                    <dt>Logo/reference</dt>
+                    <dd>@sample.LogoReference</dd>
+                </div>
+                <div class="full">
+                    <dt>Registration/business reference</dt>
+                    <dd>@sample.RegistrationReference</dd>
+                </div>
+            </dl>
         </section>
     }
     else
     {
-        <EditForm Model="request" OnValidSubmit="Save">
-            <DataAnnotationsValidator />
-
-            @if (!string.IsNullOrWhiteSpace(errorMessage))
-            {
-                <div class="error-banner">@errorMessage</div>
-            }
-
-            <ValidationSummary />
-
-            <section class="form-section">
-                <h2>Company identity</h2>
-                <label>
-                    Company name
-                    <InputText @bind-Value="request.CompanyName" />
-                    <ValidationMessage For="() => request.CompanyName" />
-                    @FieldError(nameof(request.CompanyName))
-                </label>
-                <label>
-                    Tax ID
-                    <InputText @bind-Value="request.TaxId" />
-                </label>
-                <label>
-                    Registration number / business reference
-                    <InputText @bind-Value="request.RegistrationNumber" />
-                </label>
-            </section>
-
-            <section class="form-section">
-                <h2>Address</h2>
-                <label>
-                    Address line 1
-                    <InputText @bind-Value="request.AddressLine1" />
-                    <ValidationMessage For="() => request.AddressLine1" />
-                    @FieldError(nameof(request.AddressLine1))
-                </label>
-                <label>
-                    Address line 2
-                    <InputText @bind-Value="request.AddressLine2" />
-                </label>
-                <label>
-                    City / province / state
-                    <InputText @bind-Value="request.City" />
-                    <ValidationMessage For="() => request.City" />
-                    @FieldError(nameof(request.City))
-                </label>
-                <label>
-                    Postal code
-                    <InputText @bind-Value="request.PostalCode" />
-                    <ValidationMessage For="() => request.PostalCode" />
-                    @FieldError(nameof(request.PostalCode))
-                </label>
-                <label>
-                    Country
-                    <InputText @bind-Value="request.Country" />
-                    <ValidationMessage For="() => request.Country" />
-                    @FieldError(nameof(request.Country))
-                </label>
-            </section>
-
-            <section class="form-section">
-                <h2>Contact</h2>
-                <label>
-                    Phone
-                    <InputText @bind-Value="request.Phone" />
-                </label>
-                <label>
-                    Email
-                    <InputText @bind-Value="request.Email" />
-                    <ValidationMessage For="() => request.Email" />
-                    @FieldError(nameof(request.Email))
-                </label>
-                <label>
-                    Website
-                    <InputText @bind-Value="request.Website" />
-                </label>
-            </section>
-
-            <section class="form-section">
-                <h2>Document assets/references</h2>
-                <label>
-                    Logo reference/upload placeholder
-                    <InputText @bind-Value="request.LogoReference" />
-                </label>
-            </section>
-
-            <div class="form-actions">
-                <button class="primary-button" type="submit" disabled="@isSaving">
-                    @(isSaving ? "Saving..." : "Save company profile")
-                </button>
+        <section class="company-card" data-profile-view="form">
+            <div class="company-card-header">
+                <div>
+                    <h2>@(isEditMode ? "Update company profile" : "Create company profile")</h2>
+                    <p>Fields marked with * are required.</p>
+                </div>
             </div>
-        </EditForm>
+
+            <form class="company-form" @onsubmit="ShowExisting" @onsubmit:preventDefault>
+                <div class="company-form-grid">
+                    <div class="company-field full">
+                        <label for="company-name">Company name*</label>
+                        <input id="company-name" name="company-name" value="@FormValue(sample.CompanyName)" placeholder="Acme Co., Ltd." />
+                    </div>
+                    <div class="company-field full">
+                        <label for="address-line-1">Address line 1*</label>
+                        <input id="address-line-1" name="address-line-1" value="@FormValue(sample.AddressLine1)" placeholder="Street address" />
+                    </div>
+                    <div class="company-field full">
+                        <label for="address-line-2">Address line 2</label>
+                        <input id="address-line-2" name="address-line-2" value="@FormValue(sample.AddressLine2)" placeholder="Suite, floor, building" />
+                    </div>
+                    <div class="company-field">
+                        <label for="city">City / province / state*</label>
+                        <input id="city" name="city" value="@FormValue(sample.City)" placeholder="Bangkok" />
+                    </div>
+                    <div class="company-field">
+                        <label for="postal-code">Postal code*</label>
+                        <input id="postal-code" name="postal-code" value="@FormValue(sample.PostalCode)" placeholder="10110" />
+                    </div>
+                    <div class="company-field">
+                        <label for="country">Country*</label>
+                        <input id="country" name="country" value="@FormValue(sample.Country)" placeholder="Thailand" />
+                    </div>
+                    <div class="company-field">
+                        <label for="tax-id">Tax ID</label>
+                        <input id="tax-id" name="tax-id" value="@FormValue(sample.TaxId)" placeholder="0105558123456" />
+                    </div>
+                    <div class="company-field">
+                        <label for="phone">Phone</label>
+                        <input id="phone" name="phone" value="@FormValue(sample.Phone)" placeholder="+66 2 555 0100" />
+                    </div>
+                    <div class="company-field">
+                        <label for="email">Email</label>
+                        <input id="email" name="email" value="@FormValue(sample.Email)" placeholder="billing@example.com" />
+                    </div>
+                    <div class="company-field">
+                        <label for="website">Website</label>
+                        <input id="website" name="website" value="@FormValue(sample.Website)" placeholder="https://example.com" />
+                    </div>
+                    <div class="company-field full">
+                        <label for="logo-reference">Logo/reference placeholder</label>
+                        <input id="logo-reference" name="logo-reference" value="@FormValue(sample.LogoReference)" placeholder="Logo file name or asset reference" />
+                    </div>
+                    <div class="company-field full">
+                        <label for="registration-reference">Registration/business reference</label>
+                        <input id="registration-reference" name="registration-reference" value="@FormValue(sample.RegistrationReference)" placeholder="Business registration reference" />
+                    </div>
+                </div>
+
+                <div class="company-form-actions">
+                    <button class="company-secondary-button" type="button" @onclick="ShowExisting">Cancel</button>
+                    <button class="company-primary-button" type="submit">Preview profile</button>
+                </div>
+            </form>
+        </section>
+    }
+
+    @if (showDeleteSnackbar)
+    {
+        <div class="company-snackbar" role="status" data-profile-view="delete">
+            <p>Delete this company profile?</p>
+            <div class="company-snackbar-actions">
+                <button type="button" @onclick="ShowExisting">Cancel</button>
+                <button type="button" class="danger" @onclick="ConfirmDelete">Delete</button>
+            </div>
+        </div>
     }
 </main>
 
 @code {
-    private readonly CreateOwnerCompanyProfileRequest request = new();
-    private OwnerCompanyProfileResponse? profile;
-    private IReadOnlyDictionary<string, string[]> apiErrors = new Dictionary<string, string[]>();
-    private bool isLoading = true;
-    private bool isSaving;
-    private bool showForm;
-    private string? errorMessage;
+    private ProfileReviewState reviewState = ProfileReviewState.Empty;
+    private bool isEditMode;
+    private bool showDeleteSnackbar;
 
-    protected override async Task OnInitializedAsync()
+    private readonly CompanyProfileSample sample = new(
+        "Acme Operations Co., Ltd.",
+        "99 Rama IX Road",
+        "12th Floor, Unit 1204",
+        "Bangkok",
+        "10310",
+        "Thailand",
+        "0105558123456",
+        "+66 2 555 0100",
+        "billing@acme.example",
+        "https://acme.example",
+        "acme-logo.png",
+        "DBD registration 0105558123456");
+
+    private void ShowEmpty()
     {
-        profile = await Client.Get();
-        isLoading = false;
+        reviewState = ProfileReviewState.Empty;
+        isEditMode = false;
+        showDeleteSnackbar = false;
     }
 
-    private async Task Save()
+    private void ShowExisting()
     {
-        isSaving = true;
-        errorMessage = null;
-        apiErrors = new Dictionary<string, string[]>();
-
-        try
-        {
-            var result = await Client.Create(request);
-            if (result.Succeeded)
-            {
-                profile = result.Profile;
-                showForm = false;
-            }
-            else
-            {
-                apiErrors = result.Errors;
-                errorMessage = "Fix the highlighted fields and try again.";
-            }
-        }
-        catch (HttpRequestException)
-        {
-            errorMessage = "Company profile could not be saved. Try again.";
-        }
-        finally
-        {
-            isSaving = false;
-        }
+        reviewState = ProfileReviewState.Existing;
+        isEditMode = false;
+        showDeleteSnackbar = false;
     }
 
-    private RenderFragment FieldError(string fieldName) => builder =>
+    private void ShowCreate()
     {
-        if (!apiErrors.TryGetValue(fieldName, out var messages))
-        {
-            return;
-        }
+        reviewState = ProfileReviewState.Form;
+        isEditMode = false;
+        showDeleteSnackbar = false;
+    }
 
-        foreach (var message in messages)
-        {
-            builder.OpenElement(0, "div");
-            builder.AddAttribute(1, "class", "validation-message");
-            builder.AddContent(2, message);
-            builder.CloseElement();
-        }
-    };
+    private void ShowEdit()
+    {
+        reviewState = ProfileReviewState.Form;
+        isEditMode = true;
+        showDeleteSnackbar = false;
+    }
 
-    private static string Display(string? value) =>
-        string.IsNullOrWhiteSpace(value) ? "Not provided" : value;
+    private void ShowDelete()
+    {
+        reviewState = ProfileReviewState.Existing;
+        isEditMode = false;
+        showDeleteSnackbar = true;
+    }
+
+    private void ConfirmDelete() => ShowEmpty();
+
+    private string StateButtonClass(string key) => ActiveStateKey == key ? "active" : string.Empty;
+
+    private string ActiveStateKey => showDeleteSnackbar
+        ? "delete"
+        : reviewState switch
+        {
+            ProfileReviewState.Existing => "existing",
+            ProfileReviewState.Form => "form",
+            _ => "empty"
+        };
+
+    private string FormValue(string value) => isEditMode ? value : string.Empty;
+
+    private enum ProfileReviewState
+    {
+        Empty,
+        Existing,
+        Form
+    }
+
+    private sealed record CompanyProfileSample(
+        string CompanyName,
+        string AddressLine1,
+        string AddressLine2,
+        string City,
+        string PostalCode,
+        string Country,
+        string TaxId,
+        string Phone,
+        string Email,
+        string Website,
+        string LogoReference,
+        string RegistrationReference);
 }
