@@ -1,4 +1,5 @@
 @page "/company-profile"
+@inject NavigationManager Navigation
 
 <PageTitle>Company profile</PageTitle>
 
@@ -8,12 +9,6 @@
             <p class="company-page-kicker">Owner company</p>
             <h1>Company profile</h1>
             <p>Seller information used later on quotation and invoice document headers.</p>
-        </div>
-        <div class="profile-state-switcher" aria-label="Review state">
-            <button class="@StateButtonClass("empty")" type="button" data-profile-state="empty" @onclick="ShowEmpty">Empty</button>
-            <button class="@StateButtonClass("existing")" type="button" data-profile-state="existing" @onclick="ShowExisting">Existing</button>
-            <button class="@StateButtonClass("form")" type="button" data-profile-state="form" @onclick="ShowCreate">Create/Edit</button>
-            <button class="@StateButtonClass("delete")" type="button" data-profile-state="delete" @onclick="ShowDelete">Delete</button>
         </div>
     </header>
 
@@ -174,6 +169,43 @@
         "acme-logo.png",
         "DBD registration 0105558123456");
 
+    protected override void OnInitialized() => ApplyRequestedState();
+
+    private void ApplyRequestedState()
+    {
+        var uri = new Uri(Navigation.Uri);
+        foreach (var pair in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = pair.Split('=', 2);
+            if (!parts[0].Equals("state", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            ShowState(parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : string.Empty);
+            return;
+        }
+    }
+
+    private void ShowState(string state)
+    {
+        switch (state.ToLowerInvariant())
+        {
+            case "existing":
+                ShowExisting();
+                break;
+            case "form":
+                ShowCreate();
+                break;
+            case "delete":
+                ShowDelete();
+                break;
+            default:
+                ShowEmpty();
+                break;
+        }
+    }
+
     private void ShowEmpty()
     {
         reviewState = ProfileReviewState.Empty;
@@ -210,17 +242,6 @@
     }
 
     private void ConfirmDelete() => ShowEmpty();
-
-    private string StateButtonClass(string key) => ActiveStateKey == key ? "active" : string.Empty;
-
-    private string ActiveStateKey => showDeleteSnackbar
-        ? "delete"
-        : reviewState switch
-        {
-            ProfileReviewState.Existing => "existing",
-            ProfileReviewState.Form => "form",
-            _ => "empty"
-        };
 
     private string FormValue(string value) => isEditMode ? value : string.Empty;
 

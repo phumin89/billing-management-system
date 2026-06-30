@@ -604,32 +604,6 @@ input {
     line-height: 1.45;
 }
 
-.profile-state-switcher {
-    flex: 0 0 auto;
-    display: inline-flex;
-    gap: 4px;
-    padding: 4px;
-    background: #ffffff;
-    border: 1px solid #dddddd;
-    border-radius: 10px;
-}
-
-.profile-state-switcher button {
-    min-height: 34px;
-    padding: 0 12px;
-    color: #333840;
-    background: transparent;
-    border: 0;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.profile-state-switcher button.active {
-    color: #ffffff;
-    background: #181d26;
-}
 
 .company-card {
     padding: 24px;
@@ -823,11 +797,6 @@ input {
     .company-snackbar {
         align-items: stretch;
         flex-direction: column;
-    }
-
-    .profile-state-switcher {
-        width: 100%;
-        overflow-x: auto;
     }
 
     .company-summary-grid,
