@@ -140,10 +140,10 @@
 
     @if (showDeleteSnackbar)
     {
-        <div class="company-snackbar" role="status" data-profile-view="delete">
+        <div class="@SnackbarClass" role="status" data-profile-view="delete">
             <p>Delete this company profile?</p>
             <div class="company-snackbar-actions">
-                <button type="button" @onclick="ShowExisting">Cancel</button>
+                <button type="button" @onclick="CloseDeleteSnackbar">Cancel</button>
                 <button type="button" class="danger" @onclick="ConfirmDelete">Delete</button>
             </div>
         </div>
@@ -154,6 +154,7 @@
     private ProfileReviewState reviewState = ProfileReviewState.Empty;
     private bool isEditMode;
     private bool showDeleteSnackbar;
+    private bool snackbarClosing;
 
     private readonly CompanyProfileSample sample = new(
         "Acme Operations Co., Ltd.",
@@ -238,10 +239,28 @@
     {
         reviewState = ProfileReviewState.Existing;
         isEditMode = false;
+        snackbarClosing = false;
         showDeleteSnackbar = true;
     }
 
-    private void ConfirmDelete() => ShowEmpty();
+    private string SnackbarClass => snackbarClosing ? "company-snackbar is-closing" : "company-snackbar";
+
+    private async Task CloseDeleteSnackbar() => await DismissSnackbar(ShowExisting);
+
+    private async Task ConfirmDelete() => await DismissSnackbar(ShowEmpty);
+
+    private async Task DismissSnackbar(Action afterClose)
+    {
+        if (snackbarClosing)
+        {
+            return;
+        }
+
+        snackbarClosing = true;
+        await Task.Delay(220);
+        afterClose();
+        snackbarClosing = false;
+    }
 
     private string FormValue(string value) => isEditMode ? value : string.Empty;
 
