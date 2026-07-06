@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace BillingManagement.Client.Pages;
+namespace BillingManagement.Client.Pages.CompanyProfile;
 
 public partial class CompanyProfile
 {
@@ -119,25 +119,4 @@ public partial class CompanyProfile
     }
 
     private string FormValue(string value) => isEditMode ? value : string.Empty;
-
-    private enum ProfileReviewState
-    {
-        Empty,
-        Existing,
-        Form
-    }
-
-    private sealed record CompanyProfileSample(
-        string CompanyName,
-        string AddressLine1,
-        string AddressLine2,
-        string City,
-        string PostalCode,
-        string Country,
-        string TaxId,
-        string Phone,
-        string Email,
-        string Website,
-        string LogoReference,
-        string RegistrationReference);
 }

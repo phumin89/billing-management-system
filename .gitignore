@@ -7,4 +7,4 @@ obj/
 TestResults/
 coverage/
 .idea/
-
+*.razor.css

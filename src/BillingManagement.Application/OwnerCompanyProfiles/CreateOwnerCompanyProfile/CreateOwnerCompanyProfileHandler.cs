@@ -17,7 +17,7 @@ public sealed class CreateOwnerCompanyProfileHandler(
             return CreateOwnerCompanyProfileResult.Failed(errors);
         }
 
-        if (await store.Get(cancellationToken) is not null)
+        if (await store.GetAsync(cancellationToken) is not null)
         {
             return CreateOwnerCompanyProfileResult.Failed(new Dictionary<string, string[]>
             {

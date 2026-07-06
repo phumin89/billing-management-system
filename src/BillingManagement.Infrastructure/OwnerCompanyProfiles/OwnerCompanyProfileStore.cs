@@ -7,7 +7,7 @@ namespace BillingManagement.Infrastructure.OwnerCompanyProfiles;
 public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContext)
     : IOwnerCompanyProfileStore
 {
-    public async Task<OwnerCompanyProfileRecord?> Get(CancellationToken cancellationToken = default)
+    public async Task<OwnerCompanyProfileRecord?> GetAsync(CancellationToken cancellationToken = default)
     {
         var profile = await dbContext.OwnerCompanyProfiles
             .AsNoTracking()
