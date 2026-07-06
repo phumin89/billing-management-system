@@ -401,6 +401,21 @@ Use TDD for production behavior changes.
 - Do not commit generated secrets, local database files, build outputs, or IDE-specific noise.
 - Update this file when the actual architecture intentionally diverges from these defaults.
 
+## Token And Credit Saving Rules
+
+- Work one card at a time. Do not refine or route more than one future card ahead while the current implementation path is blocked.
+- If a card lacks visible `#BMS-xxxx`, add one blocker comment, move/leave it blocked, and stop work on that card until the title is fixed. Do not keep refining dependent cards to fill time.
+- Avoid broad Trello lane reads. Prefer direct card URLs. Read full board/list only when choosing the next card or auditing workflow state.
+- Keep Trello comments short: maximum 10 lines unless the card is a BA spec. Link PRs and mention decisive evidence only; do not paste full callbacks.
+- Keep PM callbacks short: status, link, blocker/next owner. Do not repeat full Trello comments in chat.
+- Keep QA evidence capped: PASS/FAIL plus up to 8 high-signal bullets. Use detailed logs only for failures or disputed visual issues.
+- Keep BA output scoped to the requested card. Do not create large backlog splits unless PM asks or the current card is too large to implement safely.
+- Keep Designer handoffs compact. Use screenshots or Figma links when available; otherwise list only states, layout, fields, and blockers.
+- Use command summaries, not raw logs, in callbacks. Include exact error lines only when they explain a failure.
+- Cache known board/list IDs, thread IDs, and repeated card links in the PM session instead of rediscovering them.
+- Do not ask other agents to repeat information already present in the latest callback or Trello comment.
+- Stop when meaningful progress is blocked; do not burn tokens on low-value backlog grooming.
+
 ## Agent Coordination Rules
 
 - Project Manager owns routing, priority, approval, and cross-agent handoff. PM does not implement feature code unless explicitly asked.
