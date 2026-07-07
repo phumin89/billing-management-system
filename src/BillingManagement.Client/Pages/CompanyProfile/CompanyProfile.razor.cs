@@ -30,10 +30,10 @@ public partial class CompanyProfile
 
     private void ApplyRequestedState()
     {
-        Uri uri = new(this.Navigation.Uri);
-        foreach (string pair in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        var uri = new Uri(this.Navigation.Uri);
+        foreach (var pair in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
         {
-            string[] parts = pair.Split('=', 2);
+            var parts = pair.Split('=', 2);
             if (!parts[0].Equals("state", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
