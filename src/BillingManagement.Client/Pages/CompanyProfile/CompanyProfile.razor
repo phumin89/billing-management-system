@@ -97,57 +97,57 @@
                 <div class="company-form-grid">
                     <div class="company-field full">
                         <label for="company-name">Company name*</label>
-                        <input id="company-name" name="company-name" @bind="form.CompanyName" placeholder="Acme Co., Ltd." />
+                        <input id="company-name" name="company-name" @bind="form.CompanyName" @bind:event="oninput" placeholder="Acme Co., Ltd." />
                         <span>@FieldError(nameof(form.CompanyName))</span>
                     </div>
                     <div class="company-field full">
                         <label for="address-line-1">Address line 1*</label>
-                        <input id="address-line-1" name="address-line-1" @bind="form.AddressLine1" placeholder="Street address" />
+                        <input id="address-line-1" name="address-line-1" @bind="form.AddressLine1" @bind:event="oninput" placeholder="Street address" />
                         <span>@FieldError(nameof(form.AddressLine1))</span>
                     </div>
                     <div class="company-field full">
                         <label for="address-line-2">Address line 2</label>
-                        <input id="address-line-2" name="address-line-2" @bind="form.AddressLine2" placeholder="Suite, floor, building" />
+                        <input id="address-line-2" name="address-line-2" @bind="form.AddressLine2" @bind:event="oninput" placeholder="Suite, floor, building" />
                     </div>
                     <div class="company-field">
                         <label for="city">City / province / state*</label>
-                        <input id="city" name="city" @bind="form.CityProvinceState" placeholder="Bangkok" />
+                        <input id="city" name="city" @bind="form.CityProvinceState" @bind:event="oninput" placeholder="Bangkok" />
                         <span>@FieldError(nameof(form.CityProvinceState))</span>
                     </div>
                     <div class="company-field">
                         <label for="postal-code">Postal code*</label>
-                        <input id="postal-code" name="postal-code" @bind="form.PostalCode" placeholder="10110" />
+                        <input id="postal-code" name="postal-code" @bind="form.PostalCode" @bind:event="oninput" placeholder="10110" />
                         <span>@FieldError(nameof(form.PostalCode))</span>
                     </div>
                     <div class="company-field">
                         <label for="country">Country*</label>
-                        <input id="country" name="country" @bind="form.Country" placeholder="Thailand" />
+                        <input id="country" name="country" @bind="form.Country" @bind:event="oninput" placeholder="Thailand" />
                         <span>@FieldError(nameof(form.Country))</span>
                     </div>
                     <div class="company-field">
                         <label for="tax-id">Tax ID</label>
-                        <input id="tax-id" name="tax-id" @bind="form.TaxId" placeholder="0105558123456" />
+                        <input id="tax-id" name="tax-id" @bind="form.TaxId" @bind:event="oninput" placeholder="0105558123456" />
                     </div>
                     <div class="company-field">
                         <label for="phone">Phone</label>
-                        <input id="phone" name="phone" @bind="form.Phone" placeholder="+66 2 555 0100" />
+                        <input id="phone" name="phone" @bind="form.Phone" @bind:event="oninput" placeholder="+66 2 555 0100" />
                     </div>
                     <div class="company-field">
                         <label for="email">Email</label>
-                        <input id="email" name="email" @bind="form.Email" placeholder="billing@example.com" />
+                        <input id="email" name="email" @bind="form.Email" @bind:event="oninput" placeholder="billing@example.com" />
                         <span>@FieldError(nameof(form.Email))</span>
                     </div>
                     <div class="company-field">
                         <label for="website">Website</label>
-                        <input id="website" name="website" @bind="form.Website" placeholder="https://example.com" />
+                        <input id="website" name="website" @bind="form.Website" @bind:event="oninput" placeholder="https://example.com" />
                     </div>
                     <div class="company-field full">
                         <label for="logo-reference">Logo/reference placeholder</label>
-                        <input id="logo-reference" name="logo-reference" @bind="form.LogoReference" placeholder="Logo file name or asset reference" />
+                        <input id="logo-reference" name="logo-reference" @bind="form.LogoReference" @bind:event="oninput" placeholder="Logo file name or asset reference" />
                     </div>
                     <div class="company-field full">
                         <label for="registration-reference">Registration/business reference</label>
-                        <input id="registration-reference" name="registration-reference" @bind="form.RegistrationNumber" placeholder="Business registration reference" />
+                        <input id="registration-reference" name="registration-reference" @bind="form.RegistrationNumber" @bind:event="oninput" placeholder="Business registration reference" />
                     </div>
                 </div>
 
