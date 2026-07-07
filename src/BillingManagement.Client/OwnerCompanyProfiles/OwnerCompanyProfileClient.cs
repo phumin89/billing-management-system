@@ -8,7 +8,7 @@ public sealed class OwnerCompanyProfileClient(HttpClient httpClient)
 {
     public async Task<OwnerCompanyProfileResponse?> Get(CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage response = await httpClient.GetAsync("api/owner-company-profile", cancellationToken);
+        var response = await httpClient.GetAsync("api/owner-company-profile", cancellationToken);
         if (response.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
@@ -23,14 +23,14 @@ public sealed class OwnerCompanyProfileClient(HttpClient httpClient)
         CreateOwnerCompanyProfileRequest request,
         CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage response = await httpClient.PostAsJsonAsync("api/owner-company-profile", request, cancellationToken);
+        var response = await httpClient.PostAsJsonAsync("api/owner-company-profile", request, cancellationToken);
         if (response.IsSuccessStatusCode)
         {
-            OwnerCompanyProfileResponse? profile = await response.Content.ReadFromJsonAsync<OwnerCompanyProfileResponse>(cancellationToken);
+            var profile = await response.Content.ReadFromJsonAsync<OwnerCompanyProfileResponse>(cancellationToken);
             return SaveOwnerCompanyProfileResult.Success(profile!);
         }
 
-        ValidationProblemResponse? problem = await response.Content.ReadFromJsonAsync<ValidationProblemResponse>(cancellationToken);
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemResponse>(cancellationToken);
 
         return SaveOwnerCompanyProfileResult.Failed(problem?.Errors ?? []);
     }
