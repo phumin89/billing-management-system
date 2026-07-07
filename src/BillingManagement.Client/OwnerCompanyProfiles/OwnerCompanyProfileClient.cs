@@ -23,16 +23,37 @@ public sealed class OwnerCompanyProfileClient(HttpClient httpClient)
         CreateOwnerCompanyProfileRequest request,
         CancellationToken cancellationToken = default)
     {
-        var response = await httpClient.PostAsJsonAsync("api/owner-company-profile", request, cancellationToken);
+        HttpResponseMessage response;
+        try
+        {
+            response = await httpClient.PostAsJsonAsync("api/owner-company-profile", request, cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            return SaveOwnerCompanyProfileResult.Failed(
+                new Dictionary<string, string[]>(),
+                "Could not save company profile. Check the API connection and try again.");
+        }
+
         if (response.IsSuccessStatusCode)
         {
             var profile = await response.Content.ReadFromJsonAsync<OwnerCompanyProfileResponse>(cancellationToken);
             return SaveOwnerCompanyProfileResult.Success(profile!);
         }
 
-        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemResponse>(cancellationToken);
+        if (response.StatusCode is HttpStatusCode.BadRequest)
+        {
+            var problem = await response.Content.ReadFromJsonAsync<ValidationProblemResponse>(cancellationToken);
+            return SaveOwnerCompanyProfileResult.Failed(
+                problem?.Errors ?? [],
+                problem?.Errors.ContainsKey("Profile") == true
+                    ? "Company profile already exists. Refresh the page to view it."
+                    : null);
+        }
 
-        return SaveOwnerCompanyProfileResult.Failed(problem?.Errors ?? []);
+        return SaveOwnerCompanyProfileResult.Failed(
+            new Dictionary<string, string[]>(),
+            "Could not save company profile. Try again.");
     }
 
     private sealed class ValidationProblemResponse
