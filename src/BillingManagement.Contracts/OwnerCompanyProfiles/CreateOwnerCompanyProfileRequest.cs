@@ -13,7 +13,7 @@ public sealed class CreateOwnerCompanyProfileRequest
     public string? AddressLine2 { get; set; }
 
     [Required(ErrorMessage = "City / province / state is required.")]
-    public string? City { get; set; }
+    public string? CityProvinceState { get; set; }
 
     [Required(ErrorMessage = "Postal code is required.")]
     public string? PostalCode { get; set; }

@@ -30,7 +30,7 @@ public sealed class OwnerCompanyProfileController(
             request.CompanyName ?? string.Empty,
             request.AddressLine1 ?? string.Empty,
             request.AddressLine2,
-            request.City ?? string.Empty,
+            request.CityProvinceState ?? string.Empty,
             request.PostalCode ?? string.Empty,
             request.Country ?? string.Empty,
             request.TaxId,
