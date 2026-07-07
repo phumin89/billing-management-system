@@ -6,7 +6,7 @@ namespace BillingManagement.Infrastructure;
 public sealed class BillingManagementDbContext(DbContextOptions<BillingManagementDbContext> options)
     : DbContext(options)
 {
-    public DbSet<OwnerCompanyProfile> OwnerCompanyProfiles => Set<OwnerCompanyProfile>();
+    public DbSet<OwnerCompanyProfile> OwnerCompanyProfiles => this.Set<OwnerCompanyProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

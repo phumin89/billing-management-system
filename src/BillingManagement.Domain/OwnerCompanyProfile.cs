@@ -21,19 +21,19 @@ public sealed class OwnerCompanyProfile
         string? logoReference,
         string? registrationNumber)
     {
-        Id = id;
-        CompanyName = companyName;
-        AddressLine1 = addressLine1;
-        AddressLine2 = addressLine2;
-        City = city;
-        PostalCode = postalCode;
-        Country = country;
-        TaxId = taxId;
-        Phone = phone;
-        Email = email;
-        Website = website;
-        LogoReference = logoReference;
-        RegistrationNumber = registrationNumber;
+        this.Id = id;
+        this.CompanyName = companyName;
+        this.AddressLine1 = addressLine1;
+        this.AddressLine2 = addressLine2;
+        this.City = city;
+        this.PostalCode = postalCode;
+        this.Country = country;
+        this.TaxId = taxId;
+        this.Phone = phone;
+        this.Email = email;
+        this.Website = website;
+        this.LogoReference = logoReference;
+        this.RegistrationNumber = registrationNumber;
     }
 
     public Guid Id { get; private set; }

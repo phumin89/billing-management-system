@@ -8,11 +8,11 @@ public sealed class BillingManagementDbContextFactory
 {
     public BillingManagementDbContext CreateDbContext(string[] args)
     {
-        var connectionString =
+        string connectionString =
             Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") ??
             "Server=localhost,14333;Database=BillingManagement;User Id=sa;Password=Billing_dev_2026!;TrustServerCertificate=True;MultipleActiveResultSets=True";
 
-        var options = new DbContextOptionsBuilder<BillingManagementDbContext>()
+        DbContextOptions<BillingManagementDbContext> options = new DbContextOptionsBuilder<BillingManagementDbContext>()
             .UseSqlServer(connectionString)
             .Options;
 

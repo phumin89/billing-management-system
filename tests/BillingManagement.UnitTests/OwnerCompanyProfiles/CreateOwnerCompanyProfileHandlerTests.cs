@@ -8,9 +8,9 @@ public class CreateOwnerCompanyProfileHandlerTests
     [Fact]
     public async Task Handle_rejects_missing_required_fields()
     {
-        var handler = new CreateOwnerCompanyProfileHandler(new InMemoryOwnerCompanyProfileStore());
+        CreateOwnerCompanyProfileHandler handler = new(new InMemoryOwnerCompanyProfileStore());
 
-        var result = await handler.Handle(new CreateOwnerCompanyProfileCommand(
+        CreateOwnerCompanyProfileResult result = await handler.Handle(new CreateOwnerCompanyProfileCommand(
             CompanyName: " ",
             AddressLine1: "",
             AddressLine2: null,
@@ -35,10 +35,10 @@ public class CreateOwnerCompanyProfileHandlerTests
     [Fact]
     public async Task Handle_creates_owner_company_profile()
     {
-        var store = new InMemoryOwnerCompanyProfileStore();
-        var handler = new CreateOwnerCompanyProfileHandler(store);
+        InMemoryOwnerCompanyProfileStore store = new();
+        CreateOwnerCompanyProfileHandler handler = new(store);
 
-        var result = await handler.Handle(ValidCommand());
+        CreateOwnerCompanyProfileResult result = await handler.Handle(ValidCommand());
 
         Assert.True(result.Succeeded);
         Assert.NotNull(result.Profile);
@@ -51,11 +51,11 @@ public class CreateOwnerCompanyProfileHandlerTests
     [Fact]
     public async Task Handle_rejects_second_owner_company_profile()
     {
-        var store = new InMemoryOwnerCompanyProfileStore();
-        var handler = new CreateOwnerCompanyProfileHandler(store);
+        InMemoryOwnerCompanyProfileStore store = new();
+        CreateOwnerCompanyProfileHandler handler = new(store);
         await handler.Handle(ValidCommand());
 
-        var result = await handler.Handle(ValidCommand());
+        CreateOwnerCompanyProfileResult result = await handler.Handle(ValidCommand());
 
         Assert.False(result.Succeeded);
         Assert.Contains("Owner company profile already exists.", result.Errors["Profile"]);
@@ -81,11 +81,11 @@ public class CreateOwnerCompanyProfileHandlerTests
         public OwnerCompanyProfileRecord? Profile { get; private set; }
 
         public Task<OwnerCompanyProfileRecord?> GetAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(Profile);
+            Task.FromResult(this.Profile);
 
         public Task Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
         {
-            Profile = profile;
+            this.Profile = profile;
             return Task.CompletedTask;
         }
     }

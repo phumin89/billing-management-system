@@ -394,6 +394,7 @@ Use TDD for production behavior changes.
 - Before implementation work, create or switch to a feature branch that starts with the visible `#BMS-123` number in the Trello card title, for example `#BMS-123-short-description`. Do not infer, renumber, or replace the Trello card number from the URL slug, Trello short id, or sequence gaps. If the title does not contain `#BMS-123`, stop and ask PM before branching.
 - Implementation work must happen in the main local repository checkout on a local ticket branch unless the user explicitly approves a Codex worktree. Do not use Codex worktrees for implementation by default, because the user reviews in Visual Studio.
 - Runtime, UI, API, database, migration, or service wiring work must verify with Docker Compose. UI work also needs a browser check; visual changes need screenshot evidence. If Docker is unavailable, report it as a blocker/gap instead of silently skipping it.
+- C# style changes must pass `dotnet format BillingManagement.slnx --verify-no-changes`.
 - When implementation work finishes, push the card branch and create a ready-for-review pull request, not a draft, before starting another implementation card.
 - Use one C# type per `.cs` file: one class, record, struct, interface, or enum. No nested helper types unless private and tiny.
 - Blazor `.razor` files should be markup. Move non-trivial state, handlers, mapping, and API calls into `.razor.cs` partial classes.

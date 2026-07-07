@@ -9,7 +9,7 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
 {
     public async Task<OwnerCompanyProfileRecord?> GetAsync(CancellationToken cancellationToken = default)
     {
-        var profile = await dbContext.OwnerCompanyProfiles
+        OwnerCompanyProfile? profile = await dbContext.OwnerCompanyProfiles
             .AsNoTracking()
             .OrderBy(ownerProfile => ownerProfile.CompanyName)
             .FirstOrDefaultAsync(cancellationToken);

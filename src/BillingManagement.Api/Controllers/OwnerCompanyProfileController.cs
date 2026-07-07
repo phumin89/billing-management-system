@@ -16,9 +16,9 @@ public sealed class OwnerCompanyProfileController(
     [HttpGet]
     public async Task<ActionResult<OwnerCompanyProfileResponse>> Get(CancellationToken cancellationToken)
     {
-        var profile = await getHandler.Handle(new GetOwnerCompanyProfileQuery(), cancellationToken);
+        OwnerCompanyProfileRecord? profile = await getHandler.Handle(new GetOwnerCompanyProfileQuery(), cancellationToken);
 
-        return profile is null ? NotFound() : Ok(ToResponse(profile));
+        return profile is null ? this.NotFound() : this.Ok(ToResponse(profile));
     }
 
     [HttpPost]
@@ -26,7 +26,7 @@ public sealed class OwnerCompanyProfileController(
         CreateOwnerCompanyProfileRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await createHandler.Handle(new CreateOwnerCompanyProfileCommand(
+        CreateOwnerCompanyProfileResult result = await createHandler.Handle(new CreateOwnerCompanyProfileCommand(
             request.CompanyName ?? string.Empty,
             request.AddressLine1 ?? string.Empty,
             request.AddressLine2,
@@ -42,15 +42,15 @@ public sealed class OwnerCompanyProfileController(
 
         if (!result.Succeeded)
         {
-            foreach (var error in result.Errors)
+            foreach (KeyValuePair<string, string[]> error in result.Errors)
             {
-                ModelState.AddModelError(error.Key, string.Join(" ", error.Value));
+                this.ModelState.AddModelError(error.Key, string.Join(" ", error.Value));
             }
 
-            return ValidationProblem(ModelState);
+            return this.ValidationProblem(this.ModelState);
         }
 
-        return CreatedAtAction(nameof(Get), ToResponse(result.Profile!));
+        return this.CreatedAtAction(nameof(Get), ToResponse(result.Profile!));
     }
 
     private static OwnerCompanyProfileResponse ToResponse(OwnerCompanyProfileRecord profile) =>
