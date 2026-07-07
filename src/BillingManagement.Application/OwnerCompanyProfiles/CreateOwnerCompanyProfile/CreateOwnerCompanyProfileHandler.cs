@@ -11,7 +11,7 @@ public sealed class CreateOwnerCompanyProfileHandler(
         CreateOwnerCompanyProfileCommand command,
         CancellationToken cancellationToken = default)
     {
-        var errors = Validate(command);
+        Dictionary<string, string[]> errors = Validate(command);
         if (errors.Count > 0)
         {
             return CreateOwnerCompanyProfileResult.Failed(errors);
@@ -25,7 +25,7 @@ public sealed class CreateOwnerCompanyProfileHandler(
             });
         }
 
-        var profile = new OwnerCompanyProfileRecord(
+        OwnerCompanyProfileRecord profile = new(
             Guid.NewGuid(),
             command.CompanyName.Trim(),
             command.AddressLine1.Trim(),
@@ -47,7 +47,7 @@ public sealed class CreateOwnerCompanyProfileHandler(
 
     private static Dictionary<string, string[]> Validate(CreateOwnerCompanyProfileCommand command)
     {
-        var errors = new Dictionary<string, string[]>();
+        Dictionary<string, string[]> errors = [];
         AddRequired(errors, nameof(command.CompanyName), command.CompanyName, "Company name is required.");
         AddRequired(errors, nameof(command.AddressLine1), command.AddressLine1, "Address line 1 is required.");
         AddRequired(errors, nameof(command.City), command.City, "City / province / state is required.");

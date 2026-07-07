@@ -26,20 +26,20 @@ public partial class CompanyProfile
         "acme-logo.png",
         "DBD registration 0105558123456");
 
-    protected override void OnInitialized() => ApplyRequestedState();
+    protected override void OnInitialized() => this.ApplyRequestedState();
 
     private void ApplyRequestedState()
     {
-        var uri = new Uri(Navigation.Uri);
-        foreach (var pair in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        Uri uri = new(this.Navigation.Uri);
+        foreach (string pair in uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
         {
-            var parts = pair.Split('=', 2);
+            string[] parts = pair.Split('=', 2);
             if (!parts[0].Equals("state", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
-            ShowState(parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : string.Empty);
+            this.ShowState(parts.Length > 1 ? Uri.UnescapeDataString(parts[1]) : string.Empty);
             return;
         }
     }
@@ -49,74 +49,74 @@ public partial class CompanyProfile
         switch (state.ToLowerInvariant())
         {
             case "existing":
-                ShowExisting();
+                this.ShowExisting();
                 break;
             case "form":
-                ShowCreate();
+                this.ShowCreate();
                 break;
             case "delete":
-                ShowDelete();
+                this.ShowDelete();
                 break;
             default:
-                ShowEmpty();
+                this.ShowEmpty();
                 break;
         }
     }
 
     private void ShowEmpty()
     {
-        reviewState = ProfileReviewState.Empty;
-        isEditMode = false;
-        showDeleteSnackbar = false;
+        this.reviewState = ProfileReviewState.Empty;
+        this.isEditMode = false;
+        this.showDeleteSnackbar = false;
     }
 
     private void ShowExisting()
     {
-        reviewState = ProfileReviewState.Existing;
-        isEditMode = false;
-        showDeleteSnackbar = false;
+        this.reviewState = ProfileReviewState.Existing;
+        this.isEditMode = false;
+        this.showDeleteSnackbar = false;
     }
 
     private void ShowCreate()
     {
-        reviewState = ProfileReviewState.Form;
-        isEditMode = false;
-        showDeleteSnackbar = false;
+        this.reviewState = ProfileReviewState.Form;
+        this.isEditMode = false;
+        this.showDeleteSnackbar = false;
     }
 
     private void ShowEdit()
     {
-        reviewState = ProfileReviewState.Form;
-        isEditMode = true;
-        showDeleteSnackbar = false;
+        this.reviewState = ProfileReviewState.Form;
+        this.isEditMode = true;
+        this.showDeleteSnackbar = false;
     }
 
     private void ShowDelete()
     {
-        reviewState = ProfileReviewState.Existing;
-        isEditMode = false;
-        snackbarClosing = false;
-        showDeleteSnackbar = true;
+        this.reviewState = ProfileReviewState.Existing;
+        this.isEditMode = false;
+        this.snackbarClosing = false;
+        this.showDeleteSnackbar = true;
     }
 
-    private string SnackbarClass => snackbarClosing ? "company-snackbar is-closing" : "company-snackbar";
+    private string SnackbarClass => this.snackbarClosing ? "company-snackbar is-closing" : "company-snackbar";
 
-    private async Task CloseDeleteSnackbar() => await DismissSnackbar(ShowExisting);
+    private async Task CloseDeleteSnackbar() => await this.DismissSnackbar(this.ShowExisting);
 
-    private async Task ConfirmDelete() => await DismissSnackbar(ShowEmpty);
+    private async Task ConfirmDelete() => await this.DismissSnackbar(this.ShowEmpty);
 
     private async Task DismissSnackbar(Action afterClose)
     {
-        if (snackbarClosing)
+        if (this.snackbarClosing)
         {
             return;
         }
 
-        snackbarClosing = true;
+        this.snackbarClosing = true;
         await Task.Delay(220);
         afterClose();
-        snackbarClosing = false;
+        this.snackbarClosing = false;
     }
 
-    private string FormValue(string value) => isEditMode ? value : string.Empty;
+    private string FormValue(string value) => this.isEditMode ? value : string.Empty;
 }
