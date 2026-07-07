@@ -44,7 +44,10 @@ public sealed class OwnerCompanyProfileController(
         {
             foreach (var error in result.Errors)
             {
-                this.ModelState.AddModelError(error.Key, string.Join(" ", error.Value));
+                var key = error.Key == nameof(CreateOwnerCompanyProfileCommand.City)
+                    ? nameof(CreateOwnerCompanyProfileRequest.CityProvinceState)
+                    : error.Key;
+                this.ModelState.AddModelError(key, string.Join(" ", error.Value));
             }
 
             return this.ValidationProblem(this.ModelState);
