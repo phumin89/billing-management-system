@@ -5,7 +5,7 @@ public sealed record OwnerCompanyProfileResponse(
     string CompanyName,
     string AddressLine1,
     string? AddressLine2,
-    string City,
+    string CityProvinceState,
     string PostalCode,
     string Country,
     string? TaxId,
