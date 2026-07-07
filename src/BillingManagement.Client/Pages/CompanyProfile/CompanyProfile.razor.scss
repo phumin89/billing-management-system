@@ -1,0 +1,266 @@
+.company-profile-page {
+  max-width: 1040px;
+  margin: 0 auto;
+  color: #181d26;
+}
+
+.company-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.company-page-header h1 {
+  margin: 0 0 8px;
+  color: #181d26;
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+.company-page-header p:not(.company-page-kicker) {
+  max-width: 620px;
+  margin: 0;
+  color: #41454d;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.company-page-kicker {
+  margin: 0 0 8px;
+  color: #41454d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.company-card {
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+}
+.company-card h2 {
+  margin: 0 0 8px;
+  color: #181d26;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+.company-card p {
+  margin: 0;
+  color: #41454d;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.company-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.company-empty-card {
+  min-height: 260px;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 20px;
+}
+
+.company-actions,
+.company-form-actions,
+.company-snackbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.company-primary-button,
+.company-secondary-button,
+.company-danger-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 18px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.company-primary-button {
+  color: #ffffff;
+  background: #181d26;
+  border: 1px solid #181d26;
+}
+
+.company-secondary-button {
+  color: #181d26;
+  background: #ffffff;
+  border: 1px solid #dddddd;
+}
+
+.company-danger-button {
+  color: #aa2d00;
+  background: #ffffff;
+  border: 1px solid #aa2d00;
+}
+
+.company-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 24px;
+  margin: 0;
+}
+.company-summary-grid div.full {
+  grid-column: 1/-1;
+}
+.company-summary-grid dt {
+  margin: 0 0 6px;
+  color: #41454d;
+  font-size: 13px;
+  font-weight: 600;
+}
+.company-summary-grid dd {
+  margin: 0;
+  color: #181d26;
+  font-size: 16px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.company-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 16px;
+  row-gap: 20px;
+}
+
+.company-field.full {
+  grid-column: 1/-1;
+}
+.company-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333840;
+  font-size: 14px;
+  font-weight: 600;
+}
+.company-field input {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  color: #181d26;
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+  font: inherit;
+}
+.company-field input:focus {
+  border-color: #458fff;
+  outline: none;
+}
+
+.company-form-actions {
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.company-snackbar {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 40;
+  width: min(420px, 100vw - 48px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  color: #ffffff;
+  background: #181d26;
+  border-radius: 10px;
+  box-shadow: 0 18px 40px rgba(24, 29, 38, 0.2);
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  animation: company-snackbar-enter 220ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  will-change: opacity, transform;
+}
+.company-snackbar.is-closing {
+  animation: company-snackbar-exit 200ms ease-in forwards;
+}
+.company-snackbar p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.company-snackbar button {
+  min-height: 36px;
+  padding: 0 12px;
+  color: #181d26;
+  background: #ffffff;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.company-snackbar button.danger {
+  color: #ffffff;
+  background: #aa2d00;
+}
+
+@keyframes company-snackbar-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes company-snackbar-exit {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .company-snackbar,
+  .company-snackbar.is-closing {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+@media (max-width: 820px) {
+  .company-page-header,
+  .company-card-header,
+  .company-snackbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .company-summary-grid,
+  .company-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .company-actions,
+  .company-form-actions,
+  .company-snackbar-actions {
+    justify-content: stretch;
+  }
+  .company-actions > *,
+  .company-form-actions > *,
+  .company-snackbar-actions > * {
+    flex: 1 1 auto;
+  }
+}

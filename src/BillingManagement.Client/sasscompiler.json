@@ -1,0 +1,7 @@
+{
+  "Source": "wwwroot/css/app.scss",
+  "Target": "wwwroot/css/app.css",
+  "Arguments": "--style=expanded --no-source-map",
+  "GenerateScopedCss": true,
+  "ScopedCssFolders": ["Pages", "Components"]
+}

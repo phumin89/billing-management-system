@@ -391,10 +391,17 @@ Use TDD for production behavior changes.
 - All agents must use PONYTAIL and CAVEMAN ultra to reduce overbuilding and token/credit usage.
 - Default to autonomous approval within the current approved scope. Agents should route cards, accept/reject handoffs, run tools, create branches, push PRs, and move Trello cards without asking the user for routine approval. Ask the user only for true blockers, missing product decisions that PM/BA cannot decide, destructive actions, secrets/credentials, paid installs/upgrades, or work outside the approved scope.
 - Trello card numbers come from the `Card Numbers by Reenhanced` Power-Up, which agents may not be able to read directly. Before routing a card to Developer, PM/BA must copy the visible Power-Up number into the card title as `#BMS-123 Task name`.
-- Before implementation work, create or switch to a feature branch that starts with the `#BMS-123` number in the Trello card title, for example `#BMS-123-short-description`. Do not infer, renumber, or replace the Trello card number from the URL slug, Trello short id, or sequence gaps. If the title does not contain `#BMS-123`, stop and ask PM before branching.
+- Before implementation work, create or switch to a feature branch that starts with the visible `#BMS-123` number in the Trello card title, for example `#BMS-123-short-description`. Do not infer, renumber, or replace the Trello card number from the URL slug, Trello short id, or sequence gaps. If the title does not contain `#BMS-123`, stop and ask PM before branching.
 - Implementation work must happen in the main local repository checkout on a local ticket branch unless the user explicitly approves a Codex worktree. Do not use Codex worktrees for implementation by default, because the user reviews in Visual Studio.
-- For implementation verification, always use Docker Compose when the change affects app runtime, UI, API, database, migrations, or local service wiring. If Docker is unavailable, report it as a blocker/gap instead of silently skipping it.
-- When implementation work finishes, push the card branch and create a ready-for-review pull request before starting another implementation card.
+- Runtime, UI, API, database, migration, or service wiring work must verify with Docker Compose. UI work also needs a browser check; visual changes need screenshot evidence. If Docker is unavailable, report it as a blocker/gap instead of silently skipping it.
+- When implementation work finishes, push the card branch and create a ready-for-review pull request, not a draft, before starting another implementation card.
+- Use one C# type per `.cs` file: one class, record, struct, interface, or enum. No nested helper types unless private and tiny.
+- Blazor `.razor` files should be markup. Move non-trivial state, handlers, mapping, and API calls into `.razor.cs` partial classes.
+- Pages and components should use feature folders under `Pages/<Feature>` or `Components/<Feature>` once a feature has more than one UI file. Keep routes stable.
+- Prefer SCSS source for app styling. Generated CSS must be committed or built deterministically in Docker and CI; no local-only generation.
+- Preserve the architecture boundaries in this file.
+- Keep diffs scoped to the card. Avoid unrelated formatting, renames, dependency bumps, generated files, or cleanup.
+- QA UI verification must use real browser and screenshot evidence; DOM-only checks are not enough.
 - Keep changes small and scoped to the requested work.
 - Follow existing project conventions once files exist.
 - Do not introduce new libraries without explaining the need.

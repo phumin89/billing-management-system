@@ -80,7 +80,7 @@ public class CreateOwnerCompanyProfileHandlerTests
     {
         public OwnerCompanyProfileRecord? Profile { get; private set; }
 
-        public Task<OwnerCompanyProfileRecord?> Get(CancellationToken cancellationToken = default) =>
+        public Task<OwnerCompanyProfileRecord?> GetAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(Profile);
 
         public Task Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)

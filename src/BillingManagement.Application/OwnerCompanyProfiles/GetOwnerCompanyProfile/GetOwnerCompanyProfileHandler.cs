@@ -10,5 +10,5 @@ public sealed class GetOwnerCompanyProfileHandler(
     public Task<OwnerCompanyProfileRecord?> Handle(
         GetOwnerCompanyProfileQuery query,
         CancellationToken cancellationToken = default) =>
-        store.Get(cancellationToken);
+        store.GetAsync(cancellationToken);
 }
