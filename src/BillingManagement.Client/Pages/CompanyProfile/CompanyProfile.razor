@@ -10,7 +10,16 @@
         </div>
     </header>
 
-    @if (reviewState == ProfileReviewState.Empty)
+    @if (isLoading)
+    {
+        <section class="company-card company-empty-card">
+            <div>
+                <h2>Loading company profile</h2>
+                <p>Checking saved seller information.</p>
+            </div>
+        </section>
+    }
+    else if (reviewState == ProfileReviewState.Empty)
     {
         <section class="company-card company-empty-card" data-profile-view="empty">
             <div>
@@ -25,43 +34,46 @@
         <section class="company-card" data-profile-view="existing">
             <div class="company-card-header">
                 <div>
-                    <h2>@sample.CompanyName</h2>
+                    <h2>@DisplayProfile.CompanyName</h2>
                     <p>Primary owner company profile.</p>
                 </div>
-                <div class="company-actions">
-                    <button class="company-secondary-button" type="button" @onclick="ShowEdit">Update</button>
-                    <button class="company-danger-button" type="button" @onclick="ShowDelete">Delete</button>
-                </div>
+                @if (profile is null)
+                {
+                    <div class="company-actions">
+                        <button class="company-secondary-button" type="button" @onclick="ShowEdit">Update</button>
+                        <button class="company-danger-button" type="button" @onclick="ShowDelete">Delete</button>
+                    </div>
+                }
             </div>
 
             <dl class="company-summary-grid">
                 <div class="full">
                     <dt>Address</dt>
-                    <dd>@sample.AddressLine1, @sample.AddressLine2, @sample.City, @sample.PostalCode, @sample.Country</dd>
+                    <dd>@DisplayProfile.AddressLine1, @DisplayProfile.AddressLine2, @DisplayProfile.CityProvinceState, @DisplayProfile.PostalCode, @DisplayProfile.Country</dd>
                 </div>
                 <div>
                     <dt>Tax ID</dt>
-                    <dd>@sample.TaxId</dd>
+                    <dd>@DisplayProfile.TaxId</dd>
                 </div>
                 <div>
                     <dt>Phone</dt>
-                    <dd>@sample.Phone</dd>
+                    <dd>@DisplayProfile.Phone</dd>
                 </div>
                 <div>
                     <dt>Email</dt>
-                    <dd>@sample.Email</dd>
+                    <dd>@DisplayProfile.Email</dd>
                 </div>
                 <div>
                     <dt>Website</dt>
-                    <dd>@sample.Website</dd>
+                    <dd>@DisplayProfile.Website</dd>
                 </div>
                 <div class="full">
                     <dt>Logo/reference</dt>
-                    <dd>@sample.LogoReference</dd>
+                    <dd>@DisplayProfile.LogoReference</dd>
                 </div>
                 <div class="full">
                     <dt>Registration/business reference</dt>
-                    <dd>@sample.RegistrationReference</dd>
+                    <dd>@DisplayProfile.RegistrationNumber</dd>
                 </div>
             </dl>
         </section>
@@ -76,61 +88,74 @@
                 </div>
             </div>
 
-            <form class="company-form" @onsubmit="ShowExisting" @onsubmit:preventDefault>
+            @if (!string.IsNullOrWhiteSpace(statusMessage))
+            {
+                <p role="alert">@statusMessage</p>
+            }
+
+            <form class="company-form" @onsubmit="CreateProfile" @onsubmit:preventDefault>
                 <div class="company-form-grid">
                     <div class="company-field full">
                         <label for="company-name">Company name*</label>
-                        <input id="company-name" name="company-name" value="@FormValue(sample.CompanyName)" placeholder="Acme Co., Ltd." />
+                        <input id="company-name" name="company-name" @bind="form.CompanyName" placeholder="Acme Co., Ltd." />
+                        <span>@FieldError(nameof(form.CompanyName))</span>
                     </div>
                     <div class="company-field full">
                         <label for="address-line-1">Address line 1*</label>
-                        <input id="address-line-1" name="address-line-1" value="@FormValue(sample.AddressLine1)" placeholder="Street address" />
+                        <input id="address-line-1" name="address-line-1" @bind="form.AddressLine1" placeholder="Street address" />
+                        <span>@FieldError(nameof(form.AddressLine1))</span>
                     </div>
                     <div class="company-field full">
                         <label for="address-line-2">Address line 2</label>
-                        <input id="address-line-2" name="address-line-2" value="@FormValue(sample.AddressLine2)" placeholder="Suite, floor, building" />
+                        <input id="address-line-2" name="address-line-2" @bind="form.AddressLine2" placeholder="Suite, floor, building" />
                     </div>
                     <div class="company-field">
                         <label for="city">City / province / state*</label>
-                        <input id="city" name="city" value="@FormValue(sample.City)" placeholder="Bangkok" />
+                        <input id="city" name="city" @bind="form.CityProvinceState" placeholder="Bangkok" />
+                        <span>@FieldError(nameof(form.CityProvinceState))</span>
                     </div>
                     <div class="company-field">
                         <label for="postal-code">Postal code*</label>
-                        <input id="postal-code" name="postal-code" value="@FormValue(sample.PostalCode)" placeholder="10110" />
+                        <input id="postal-code" name="postal-code" @bind="form.PostalCode" placeholder="10110" />
+                        <span>@FieldError(nameof(form.PostalCode))</span>
                     </div>
                     <div class="company-field">
                         <label for="country">Country*</label>
-                        <input id="country" name="country" value="@FormValue(sample.Country)" placeholder="Thailand" />
+                        <input id="country" name="country" @bind="form.Country" placeholder="Thailand" />
+                        <span>@FieldError(nameof(form.Country))</span>
                     </div>
                     <div class="company-field">
                         <label for="tax-id">Tax ID</label>
-                        <input id="tax-id" name="tax-id" value="@FormValue(sample.TaxId)" placeholder="0105558123456" />
+                        <input id="tax-id" name="tax-id" @bind="form.TaxId" placeholder="0105558123456" />
                     </div>
                     <div class="company-field">
                         <label for="phone">Phone</label>
-                        <input id="phone" name="phone" value="@FormValue(sample.Phone)" placeholder="+66 2 555 0100" />
+                        <input id="phone" name="phone" @bind="form.Phone" placeholder="+66 2 555 0100" />
                     </div>
                     <div class="company-field">
                         <label for="email">Email</label>
-                        <input id="email" name="email" value="@FormValue(sample.Email)" placeholder="billing@example.com" />
+                        <input id="email" name="email" @bind="form.Email" placeholder="billing@example.com" />
+                        <span>@FieldError(nameof(form.Email))</span>
                     </div>
                     <div class="company-field">
                         <label for="website">Website</label>
-                        <input id="website" name="website" value="@FormValue(sample.Website)" placeholder="https://example.com" />
+                        <input id="website" name="website" @bind="form.Website" placeholder="https://example.com" />
                     </div>
                     <div class="company-field full">
                         <label for="logo-reference">Logo/reference placeholder</label>
-                        <input id="logo-reference" name="logo-reference" value="@FormValue(sample.LogoReference)" placeholder="Logo file name or asset reference" />
+                        <input id="logo-reference" name="logo-reference" @bind="form.LogoReference" placeholder="Logo file name or asset reference" />
                     </div>
                     <div class="company-field full">
                         <label for="registration-reference">Registration/business reference</label>
-                        <input id="registration-reference" name="registration-reference" value="@FormValue(sample.RegistrationReference)" placeholder="Business registration reference" />
+                        <input id="registration-reference" name="registration-reference" @bind="form.RegistrationNumber" placeholder="Business registration reference" />
                     </div>
                 </div>
 
                 <div class="company-form-actions">
-                    <button class="company-secondary-button" type="button" @onclick="ShowExisting">Cancel</button>
-                    <button class="company-primary-button" type="submit">Preview profile</button>
+                    <button class="company-secondary-button" type="button" disabled="@isSubmitting" @onclick="ShowExisting">Cancel</button>
+                    <button class="company-primary-button" type="submit" disabled="@isSubmitting">
+                        @(isSubmitting ? "Saving..." : "Create company profile")
+                    </button>
                 </div>
             </form>
         </section>
