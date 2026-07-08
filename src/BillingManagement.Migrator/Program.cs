@@ -1,4 +1,6 @@
 using BillingManagement.Infrastructure;
+using BillingManagement.Migrator;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 var connectionString =
@@ -10,4 +12,12 @@ var options = new DbContextOptionsBuilder<BillingManagementDbContext>()
     .Options;
 
 await using var dbContext = new BillingManagementDbContext(options);
-await dbContext.Database.MigrateAsync();
+
+try
+{
+    await dbContext.Database.MigrateAsync();
+}
+catch (SqlException exception) when (SqlServerMigrationErrors.IsDatabaseAlreadyExists(exception))
+{
+    await dbContext.Database.MigrateAsync();
+}
