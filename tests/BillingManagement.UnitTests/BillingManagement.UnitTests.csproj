@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\BillingManagement.Migrator\BillingManagement.Migrator.csproj" />
     <ProjectReference Include="..\..\src\BillingManagement.Application\BillingManagement.Application.csproj" />
     <ProjectReference Include="..\..\src\BillingManagement.Domain\BillingManagement.Domain.csproj" />
   </ItemGroup>
