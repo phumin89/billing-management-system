@@ -16,7 +16,7 @@ public sealed class BillingManagementDbContext(DbContextOptions<BillingManagemen
             entity.Property(profile => profile.CompanyName).HasMaxLength(200).IsRequired();
             entity.Property(profile => profile.AddressLine1).HasMaxLength(300).IsRequired();
             entity.Property(profile => profile.AddressLine2).HasMaxLength(300);
-            entity.Property(profile => profile.City).HasMaxLength(150).IsRequired();
+            entity.Property(profile => profile.CityProvinceState).HasMaxLength(150).IsRequired();
             entity.Property(profile => profile.PostalCode).HasMaxLength(50).IsRequired();
             entity.Property(profile => profile.Country).HasMaxLength(100).IsRequired();
             entity.Property(profile => profile.TaxId).HasMaxLength(100);

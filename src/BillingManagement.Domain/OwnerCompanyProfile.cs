@@ -11,7 +11,7 @@ public sealed class OwnerCompanyProfile
         string companyName,
         string addressLine1,
         string? addressLine2,
-        string city,
+        string cityProvinceState,
         string postalCode,
         string country,
         string? taxId,
@@ -25,7 +25,7 @@ public sealed class OwnerCompanyProfile
         this.CompanyName = companyName;
         this.AddressLine1 = addressLine1;
         this.AddressLine2 = addressLine2;
-        this.City = city;
+        this.CityProvinceState = cityProvinceState;
         this.PostalCode = postalCode;
         this.Country = country;
         this.TaxId = taxId;
@@ -44,7 +44,7 @@ public sealed class OwnerCompanyProfile
 
     public string? AddressLine2 { get; private set; }
 
-    public string City { get; private set; } = string.Empty;
+    public string CityProvinceState { get; private set; } = string.Empty;
 
     public string PostalCode { get; private set; } = string.Empty;
 
@@ -67,7 +67,7 @@ public sealed class OwnerCompanyProfile
         string companyName,
         string addressLine1,
         string? addressLine2,
-        string city,
+        string cityProvinceState,
         string postalCode,
         string country,
         string? taxId,
@@ -81,7 +81,7 @@ public sealed class OwnerCompanyProfile
             companyName,
             addressLine1,
             addressLine2,
-            city,
+            cityProvinceState,
             postalCode,
             country,
             taxId,

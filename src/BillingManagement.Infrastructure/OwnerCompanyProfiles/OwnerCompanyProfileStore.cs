@@ -43,7 +43,7 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
             profile.CompanyName,
             profile.AddressLine1,
             profile.AddressLine2,
-            profile.City,
+            profile.CityProvinceState,
             profile.PostalCode,
             profile.Country,
             profile.TaxId,
