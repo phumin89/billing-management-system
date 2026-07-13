@@ -90,4 +90,32 @@ public sealed class OwnerCompanyProfile
             website,
             logoReference,
             registrationNumber);
+
+    public void Update(
+        string companyName,
+        string addressLine1,
+        string? addressLine2,
+        string cityProvinceState,
+        string postalCode,
+        string country,
+        string? taxId,
+        string? phone,
+        string? email,
+        string? website,
+        string? logoReference,
+        string? registrationNumber)
+    {
+        this.CompanyName = companyName;
+        this.AddressLine1 = addressLine1;
+        this.AddressLine2 = addressLine2;
+        this.CityProvinceState = cityProvinceState;
+        this.PostalCode = postalCode;
+        this.Country = country;
+        this.TaxId = taxId;
+        this.Phone = phone;
+        this.Email = email;
+        this.Website = website;
+        this.LogoReference = logoReference;
+        this.RegistrationNumber = registrationNumber;
+    }
 }

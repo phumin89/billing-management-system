@@ -88,5 +88,11 @@ public class CreateOwnerCompanyProfileHandlerTests
             this.Profile = profile;
             return Task.CompletedTask;
         }
+
+        public Task<bool> Update(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
+        {
+            this.Profile = profile;
+            return Task.FromResult(true);
+        }
     }
 }
