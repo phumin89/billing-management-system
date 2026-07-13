@@ -1,3 +1,4 @@
+using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProfile;
@@ -10,9 +11,8 @@ namespace BillingManagement.Api.Controllers;
 [ApiController]
 [Route("api/owner-company-profile")]
 public sealed class OwnerCompanyProfileController(
-    CreateOwnerCompanyProfileHandler createHandler,
-    GetOwnerCompanyProfileHandler getHandler,
-    UpdateOwnerCompanyProfileHandler updateHandler)
+    ICommandDispatcher commandDispatcher,
+    GetOwnerCompanyProfileHandler getHandler)
     : ControllerBase
 {
     [HttpGet]
@@ -28,7 +28,8 @@ public sealed class OwnerCompanyProfileController(
         CreateOwnerCompanyProfileRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await createHandler.Handle(new CreateOwnerCompanyProfileCommand(
+        var dispatchResult = await commandDispatcher.Send<CreateOwnerCompanyProfileCommand, CreateOwnerCompanyProfileResult>(
+            new CreateOwnerCompanyProfileCommand(
             request.CompanyName ?? string.Empty,
             request.AddressLine1 ?? string.Empty,
             request.AddressLine2,
@@ -42,13 +43,17 @@ public sealed class OwnerCompanyProfileController(
             request.LogoReference,
             request.RegistrationNumber), cancellationToken);
 
+        if (!dispatchResult.IsValid)
+        {
+            this.AddErrors(dispatchResult.ValidationErrors);
+            return this.ValidationProblem(this.ModelState);
+        }
+
+        var result = dispatchResult.Result!;
+
         if (!result.Succeeded)
         {
-            foreach (var error in result.Errors)
-            {
-                this.ModelState.AddModelError(error.Key, string.Join(" ", error.Value));
-            }
-
+            this.AddErrors(result.Errors);
             return this.ValidationProblem(this.ModelState);
         }
 
@@ -60,7 +65,8 @@ public sealed class OwnerCompanyProfileController(
         UpdateOwnerCompanyProfileRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await updateHandler.Handle(new UpdateOwnerCompanyProfileCommand(
+        var dispatchResult = await commandDispatcher.Send<UpdateOwnerCompanyProfileCommand, UpdateOwnerCompanyProfileResult>(
+            new UpdateOwnerCompanyProfileCommand(
             request.CompanyName ?? string.Empty,
             request.AddressLine1 ?? string.Empty,
             request.AddressLine2,
@@ -74,6 +80,14 @@ public sealed class OwnerCompanyProfileController(
             request.LogoReference,
             request.RegistrationNumber), cancellationToken);
 
+        if (!dispatchResult.IsValid)
+        {
+            this.AddErrors(dispatchResult.ValidationErrors);
+            return this.ValidationProblem(this.ModelState);
+        }
+
+        var result = dispatchResult.Result!;
+
         if (result.NotFound)
         {
             return this.NotFound();
@@ -81,11 +95,7 @@ public sealed class OwnerCompanyProfileController(
 
         if (!result.Succeeded)
         {
-            foreach (var error in result.Errors)
-            {
-                this.ModelState.AddModelError(error.Key, string.Join(" ", error.Value));
-            }
-
+            this.AddErrors(result.Errors);
             return this.ValidationProblem(this.ModelState);
         }
 
@@ -107,4 +117,15 @@ public sealed class OwnerCompanyProfileController(
             profile.Website,
             profile.LogoReference,
             profile.RegistrationNumber);
+
+    private void AddErrors(IReadOnlyDictionary<string, string[]> errors)
+    {
+        foreach (var error in errors)
+        {
+            foreach (var message in error.Value)
+            {
+                this.ModelState.AddModelError(error.Key, message);
+            }
+        }
+    }
 }
