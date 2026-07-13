@@ -5,6 +5,16 @@ namespace BillingManagement.UnitTests.Validation;
 public sealed class ValidationDictionaryExtensionsTests
 {
     [Fact]
+    public void AddEmail_rejects_incomplete_address()
+    {
+        var errors = new Dictionary<string, string[]>();
+
+        errors.AddEmail("Email", "a@");
+
+        Assert.Equal(["Email format is invalid."], errors["Email"]);
+    }
+
+    [Fact]
     public void Extensions_accumulate_required_length_and_email_errors()
     {
         var errors = new Dictionary<string, string[]>();

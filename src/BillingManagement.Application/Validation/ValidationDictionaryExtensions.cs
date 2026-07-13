@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace BillingManagement.Application.Validation;
 
 public static class ValidationDictionaryExtensions
@@ -33,7 +35,7 @@ public static class ValidationDictionaryExtensions
         string message = "Email format is invalid.")
     {
         if (!string.IsNullOrWhiteSpace(value) &&
-            !value.Contains('@', StringComparison.Ordinal))
+            !new EmailAddressAttribute().IsValid(value.Trim()))
         {
             errors.AddError(fieldName, message);
         }

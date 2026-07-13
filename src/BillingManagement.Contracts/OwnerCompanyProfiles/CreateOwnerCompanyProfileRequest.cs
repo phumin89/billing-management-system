@@ -25,7 +25,6 @@ public sealed class CreateOwnerCompanyProfileRequest
 
     public string? Phone { get; set; }
 
-    [EmailAddress(ErrorMessage = "Email format is invalid.")]
     public string? Email { get; set; }
 
     public string? Website { get; set; }
