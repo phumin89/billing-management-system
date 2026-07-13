@@ -18,7 +18,7 @@ public sealed class UpdateOwnerCompanyProfileHandler(
             return UpdateOwnerCompanyProfileResult.Missing();
         }
 
-        var ownerCompanyProfile = OwnerCompanyProfile.Create(
+        var ownerCompanyProfile = OwnerCompanyProfile.Rehydrate(
             existingProfile.Id,
             command.CompanyName,
             command.AddressLine1,

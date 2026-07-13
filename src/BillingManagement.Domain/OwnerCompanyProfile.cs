@@ -2,20 +2,6 @@ namespace BillingManagement.Domain;
 
 public sealed class OwnerCompanyProfile
 {
-    public const int CompanyNameMaxLength = 200;
-    public const int AddressLine1MaxLength = 300;
-    public const int AddressLine2MaxLength = 300;
-    public const int CityProvinceStateMaxLength = 150;
-    public const int PostalCodeMaxLength = 50;
-    public const int CountryMaxLength = 100;
-    public const int TaxIdMaxLength = 100;
-    public const int PhoneMaxLength = 100;
-    public const int EmailMaxLength = 254;
-    public const int WebsiteMaxLength = 300;
-    public const int LogoReferenceMaxLength = 500;
-    public const int RegistrationNumberMaxLength = 100;
-    public const byte SingletonKeyValue = 1;
-
     private OwnerCompanyProfile()
     {
     }
@@ -43,8 +29,6 @@ public sealed class OwnerCompanyProfile
 
     public Guid Id { get; private set; }
 
-    public byte SingletonKey { get; private set; } = SingletonKeyValue;
-
     public string CompanyName { get; private set; } = string.Empty;
 
     public string AddressLine1 { get; private set; } = string.Empty;
@@ -70,7 +54,6 @@ public sealed class OwnerCompanyProfile
     public string? RegistrationNumber { get; private set; }
 
     public static OwnerCompanyProfile Create(
-        Guid id,
         string companyName,
         string addressLine1,
         string? addressLine2,
@@ -84,6 +67,41 @@ public sealed class OwnerCompanyProfile
         string? logoReference,
         string? registrationNumber) =>
         new(
+            Guid.NewGuid(),
+            companyName,
+            addressLine1,
+            addressLine2,
+            cityProvinceState,
+            postalCode,
+            country,
+            taxId,
+            phone,
+            email,
+            website,
+            logoReference,
+            registrationNumber);
+
+    public static OwnerCompanyProfile Rehydrate(
+        Guid id,
+        string companyName,
+        string addressLine1,
+        string? addressLine2,
+        string cityProvinceState,
+        string postalCode,
+        string country,
+        string? taxId,
+        string? phone,
+        string? email,
+        string? website,
+        string? logoReference,
+        string? registrationNumber)
+    {
+        if (id == Guid.Empty)
+        {
+            throw new ArgumentException("Persisted ID cannot be empty.", nameof(id));
+        }
+
+        return new(
             id,
             companyName,
             addressLine1,
@@ -97,6 +115,7 @@ public sealed class OwnerCompanyProfile
             website,
             logoReference,
             registrationNumber);
+    }
 
     public void Update(
         string companyName,
@@ -131,26 +150,26 @@ public sealed class OwnerCompanyProfile
         string? logoReference,
         string? registrationNumber)
     {
-        var normalizedCompanyName = NormalizeRequired(companyName, CompanyNameMaxLength, nameof(companyName));
-        var normalizedAddressLine1 = NormalizeRequired(addressLine1, AddressLine1MaxLength, nameof(addressLine1));
-        var normalizedAddressLine2 = NormalizeOptional(addressLine2, AddressLine2MaxLength, nameof(addressLine2));
+        var normalizedCompanyName = NormalizeRequired(companyName, OwnerCompanyProfileConstraints.CompanyNameMaxLength, nameof(companyName));
+        var normalizedAddressLine1 = NormalizeRequired(addressLine1, OwnerCompanyProfileConstraints.AddressLine1MaxLength, nameof(addressLine1));
+        var normalizedAddressLine2 = NormalizeOptional(addressLine2, OwnerCompanyProfileConstraints.AddressLine2MaxLength, nameof(addressLine2));
         var normalizedCityProvinceState = NormalizeRequired(
             cityProvinceState,
-            CityProvinceStateMaxLength,
+            OwnerCompanyProfileConstraints.CityProvinceStateMaxLength,
             nameof(cityProvinceState));
-        var normalizedPostalCode = NormalizeRequired(postalCode, PostalCodeMaxLength, nameof(postalCode));
-        var normalizedCountry = NormalizeRequired(country, CountryMaxLength, nameof(country));
-        var normalizedTaxId = NormalizeOptional(taxId, TaxIdMaxLength, nameof(taxId));
-        var normalizedPhone = NormalizeOptional(phone, PhoneMaxLength, nameof(phone));
-        var normalizedEmail = NormalizeOptional(email, EmailMaxLength, nameof(email));
-        var normalizedWebsite = NormalizeOptional(website, WebsiteMaxLength, nameof(website));
+        var normalizedPostalCode = NormalizeRequired(postalCode, OwnerCompanyProfileConstraints.PostalCodeMaxLength, nameof(postalCode));
+        var normalizedCountry = NormalizeRequired(country, OwnerCompanyProfileConstraints.CountryMaxLength, nameof(country));
+        var normalizedTaxId = NormalizeOptional(taxId, OwnerCompanyProfileConstraints.TaxIdMaxLength, nameof(taxId));
+        var normalizedPhone = NormalizeOptional(phone, OwnerCompanyProfileConstraints.PhoneMaxLength, nameof(phone));
+        var normalizedEmail = NormalizeOptional(email, OwnerCompanyProfileConstraints.EmailMaxLength, nameof(email));
+        var normalizedWebsite = NormalizeOptional(website, OwnerCompanyProfileConstraints.WebsiteMaxLength, nameof(website));
         var normalizedLogoReference = NormalizeOptional(
             logoReference,
-            LogoReferenceMaxLength,
+            OwnerCompanyProfileConstraints.LogoReferenceMaxLength,
             nameof(logoReference));
         var normalizedRegistrationNumber = NormalizeOptional(
             registrationNumber,
-            RegistrationNumberMaxLength,
+            OwnerCompanyProfileConstraints.RegistrationNumberMaxLength,
             nameof(registrationNumber));
 
         this.CompanyName = normalizedCompanyName;
