@@ -24,15 +24,20 @@ public sealed class OwnerCompanyProfileStoreTests
                 context.Database.ExecuteSqlRawAsync(InsertSql("Other Co", "NULL")));
             Assert.Contains(duplicate.Number, new[] { 2601, 2627 });
 
-            var requiredBlank = await Assert.ThrowsAsync<SqlException>(() =>
-                context.Database.ExecuteSqlRawAsync(
-                    "UPDATE [OwnerCompanyProfiles] SET [CompanyName] = N' ';"));
-            Assert.Equal(547, requiredBlank.Number);
+            string[] whitespaceValues = [" ", "\t", "\n", "\r", "\v", "\f", "\u00a0", "\t\r\n\u00a0"];
 
-            var optionalBlank = await Assert.ThrowsAsync<SqlException>(() =>
-                context.Database.ExecuteSqlRawAsync(
-                    "UPDATE [OwnerCompanyProfiles] SET [AddressLine2] = N'  ';"));
-            Assert.Equal(547, optionalBlank.Number);
+            foreach (var whitespace in whitespaceValues)
+            {
+                var requiredBlank = await Assert.ThrowsAsync<SqlException>(() =>
+                    context.Database.ExecuteSqlInterpolatedAsync(
+                        $"UPDATE [OwnerCompanyProfiles] SET [CompanyName] = {whitespace};"));
+                Assert.Equal(547, requiredBlank.Number);
+
+                var optionalBlank = await Assert.ThrowsAsync<SqlException>(() =>
+                    context.Database.ExecuteSqlInterpolatedAsync(
+                        $"UPDATE [OwnerCompanyProfiles] SET [AddressLine2] = {whitespace};"));
+                Assert.Equal(547, optionalBlank.Number);
+            }
         }
         finally
         {

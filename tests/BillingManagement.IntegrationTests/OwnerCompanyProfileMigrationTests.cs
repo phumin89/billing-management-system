@@ -22,14 +22,17 @@ public sealed class OwnerCompanyProfileMigrationTests
                      [PostalCode], [Country], [TaxId], [Phone], [Email], [Website],
                      [LogoReference], [RegistrationNumber])
                 VALUES
-                    (NEWID(), N'  Acme Co  ', N'  1 Main Street  ', N'   ', N'  Bangkok  ',
-                     N'  10110  ', N'  Thailand  ', N'  TAX-1  ', N' ', NULL, NULL, NULL, NULL);
+                    (NEWID(), NCHAR(9) + N'Acme' + NCHAR(9) + N'Co' + NCHAR(160),
+                     NCHAR(10) + N'1 Main Street' + NCHAR(13), NCHAR(9),
+                     NCHAR(11) + N'Bangkok' + NCHAR(12), NCHAR(13) + N'10110' + NCHAR(10),
+                     NCHAR(160) + N'Thailand' + NCHAR(9), NCHAR(160) + N'TAX-1' + NCHAR(13),
+                     NCHAR(10), NCHAR(13), NCHAR(160), NCHAR(11), NCHAR(12));
                 """);
 
             await context.Database.MigrateAsync();
             var profile = await context.OwnerCompanyProfiles.SingleAsync();
 
-            Assert.Equal("Acme Co", profile.CompanyName);
+            Assert.Equal("Acme\tCo", profile.CompanyName);
             Assert.Equal("1 Main Street", profile.AddressLine1);
             Assert.Null(profile.AddressLine2);
             Assert.Equal("Bangkok", profile.CityProvinceState);
@@ -37,6 +40,10 @@ public sealed class OwnerCompanyProfileMigrationTests
             Assert.Equal("Thailand", profile.Country);
             Assert.Equal("TAX-1", profile.TaxId);
             Assert.Null(profile.Phone);
+            Assert.Null(profile.Email);
+            Assert.Null(profile.Website);
+            Assert.Null(profile.LogoReference);
+            Assert.Null(profile.RegistrationNumber);
         }
         finally
         {
@@ -56,7 +63,7 @@ public sealed class OwnerCompanyProfileMigrationTests
             await context.Database.ExecuteSqlRawAsync("""
                 INSERT INTO [OwnerCompanyProfiles]
                     ([Id], [CompanyName], [AddressLine1], [CityProvinceState], [PostalCode], [Country])
-                VALUES (NEWID(), N'  ', N'Address', N'Bangkok', N'10110', N'Thailand');
+                VALUES (NEWID(), NCHAR(9) + NCHAR(13) + NCHAR(160), N'Address', N'Bangkok', N'10110', N'Thailand');
                 """);
 
             var exception = await Assert.ThrowsAsync<SqlException>(() => context.Database.MigrateAsync());

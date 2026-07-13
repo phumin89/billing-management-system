@@ -7,62 +7,67 @@ namespace BillingManagement.Infrastructure.Migrations
     /// <inheritdoc />
     public partial class HardenOwnerCompanyPersistenceInvariants : Migration
     {
+        private const string SqlWhitespaceCharacters =
+            "N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160)";
+
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql("""
+                DECLARE @Whitespace nvarchar(7) = N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160);
+
                 IF (SELECT COUNT_BIG(*) FROM [OwnerCompanyProfiles]) > 1
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: more than one profile exists. Remove duplicates before retrying.', 1;
 
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([CompanyName]))) = 0)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [CompanyName])) = 0)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: CompanyName contains blank values. Remove blank values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([AddressLine1]))) = 0)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [AddressLine1])) = 0)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: AddressLine1 contains blank values. Remove blank values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([CityProvinceState]))) = 0)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [CityProvinceState])) = 0)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: CityProvinceState contains blank values. Remove blank values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([PostalCode]))) = 0)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [PostalCode])) = 0)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: PostalCode contains blank values. Remove blank values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([Country]))) = 0)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [Country])) = 0)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: Country contains blank values. Remove blank values before retrying.', 1;
 
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([CompanyName]))) > 200)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [CompanyName])) > 200)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: CompanyName exceeds 200 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([AddressLine1]))) > 300)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [AddressLine1])) > 300)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: AddressLine1 exceeds 300 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([AddressLine2]))) > 300)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [AddressLine2])) > 300)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: AddressLine2 exceeds 300 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([CityProvinceState]))) > 150)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [CityProvinceState])) > 150)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: CityProvinceState exceeds 150 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([PostalCode]))) > 50)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [PostalCode])) > 50)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: PostalCode exceeds 50 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([Country]))) > 100)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [Country])) > 100)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: Country exceeds 100 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([TaxId]))) > 100)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [TaxId])) > 100)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: TaxId exceeds 100 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([Phone]))) > 100)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [Phone])) > 100)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: Phone exceeds 100 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([Email]))) > 254)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [Email])) > 254)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: Email exceeds 254 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([Website]))) > 300)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [Website])) > 300)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: Website exceeds 300 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([LogoReference]))) > 500)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [LogoReference])) > 500)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: LogoReference exceeds 500 characters. Shorten invalid values before retrying.', 1;
-                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(LTRIM(RTRIM([RegistrationNumber]))) > 100)
+                IF EXISTS (SELECT 1 FROM [OwnerCompanyProfiles] WHERE LEN(TRIM(@Whitespace FROM [RegistrationNumber])) > 100)
                     THROW 51000, 'OwnerCompanyProfiles migration blocked: RegistrationNumber exceeds 100 characters. Shorten invalid values before retrying.', 1;
 
                 UPDATE [OwnerCompanyProfiles]
-                SET [CompanyName] = LTRIM(RTRIM([CompanyName])),
-                    [AddressLine1] = LTRIM(RTRIM([AddressLine1])),
-                    [AddressLine2] = NULLIF(LTRIM(RTRIM([AddressLine2])), ''),
-                    [CityProvinceState] = LTRIM(RTRIM([CityProvinceState])),
-                    [PostalCode] = LTRIM(RTRIM([PostalCode])),
-                    [Country] = LTRIM(RTRIM([Country])),
-                    [TaxId] = NULLIF(LTRIM(RTRIM([TaxId])), ''),
-                    [Phone] = NULLIF(LTRIM(RTRIM([Phone])), ''),
-                    [Email] = NULLIF(LTRIM(RTRIM([Email])), ''),
-                    [Website] = NULLIF(LTRIM(RTRIM([Website])), ''),
-                    [LogoReference] = NULLIF(LTRIM(RTRIM([LogoReference])), ''),
-                    [RegistrationNumber] = NULLIF(LTRIM(RTRIM([RegistrationNumber])), '');
+                SET [CompanyName] = TRIM(@Whitespace FROM [CompanyName]),
+                    [AddressLine1] = TRIM(@Whitespace FROM [AddressLine1]),
+                    [AddressLine2] = NULLIF(TRIM(@Whitespace FROM [AddressLine2]), ''),
+                    [CityProvinceState] = TRIM(@Whitespace FROM [CityProvinceState]),
+                    [PostalCode] = TRIM(@Whitespace FROM [PostalCode]),
+                    [Country] = TRIM(@Whitespace FROM [Country]),
+                    [TaxId] = NULLIF(TRIM(@Whitespace FROM [TaxId]), ''),
+                    [Phone] = NULLIF(TRIM(@Whitespace FROM [Phone]), ''),
+                    [Email] = NULLIF(TRIM(@Whitespace FROM [Email]), ''),
+                    [Website] = NULLIF(TRIM(@Whitespace FROM [Website]), ''),
+                    [LogoReference] = NULLIF(TRIM(@Whitespace FROM [LogoReference]), ''),
+                    [RegistrationNumber] = NULLIF(TRIM(@Whitespace FROM [RegistrationNumber]), '');
                 """);
 
             migrationBuilder.AddColumn<byte>(
@@ -81,52 +86,52 @@ namespace BillingManagement.Infrastructure.Migrations
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_AddressLine1_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "LEN(LTRIM(RTRIM([AddressLine1]))) > 0");
+                sql: RequiredNotBlank("AddressLine1"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_AddressLine2_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "[AddressLine2] IS NULL OR LEN(LTRIM(RTRIM([AddressLine2]))) > 0");
+                sql: OptionalNotBlank("AddressLine2"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_CityProvinceState_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "LEN(LTRIM(RTRIM([CityProvinceState]))) > 0");
+                sql: RequiredNotBlank("CityProvinceState"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_CompanyName_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "LEN(LTRIM(RTRIM([CompanyName]))) > 0");
+                sql: RequiredNotBlank("CompanyName"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_Country_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "LEN(LTRIM(RTRIM([Country]))) > 0");
+                sql: RequiredNotBlank("Country"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_Email_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "[Email] IS NULL OR LEN(LTRIM(RTRIM([Email]))) > 0");
+                sql: OptionalNotBlank("Email"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_LogoReference_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "[LogoReference] IS NULL OR LEN(LTRIM(RTRIM([LogoReference]))) > 0");
+                sql: OptionalNotBlank("LogoReference"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_Phone_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "[Phone] IS NULL OR LEN(LTRIM(RTRIM([Phone]))) > 0");
+                sql: OptionalNotBlank("Phone"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_PostalCode_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "LEN(LTRIM(RTRIM([PostalCode]))) > 0");
+                sql: RequiredNotBlank("PostalCode"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_RegistrationNumber_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "[RegistrationNumber] IS NULL OR LEN(LTRIM(RTRIM([RegistrationNumber]))) > 0");
+                sql: OptionalNotBlank("RegistrationNumber"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_SingletonKey",
@@ -136,12 +141,12 @@ namespace BillingManagement.Infrastructure.Migrations
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_TaxId_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "[TaxId] IS NULL OR LEN(LTRIM(RTRIM([TaxId]))) > 0");
+                sql: OptionalNotBlank("TaxId"));
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_OwnerCompanyProfiles_Website_NotBlank",
                 table: "OwnerCompanyProfiles",
-                sql: "[Website] IS NULL OR LEN(LTRIM(RTRIM([Website]))) > 0");
+                sql: OptionalNotBlank("Website"));
         }
 
         /// <inheritdoc />
@@ -207,5 +212,11 @@ namespace BillingManagement.Infrastructure.Migrations
                 name: "SingletonKey",
                 table: "OwnerCompanyProfiles");
         }
+
+        private static string RequiredNotBlank(string columnName) =>
+            $"LEN(TRIM({SqlWhitespaceCharacters} FROM [{columnName}])) > 0";
+
+        private static string OptionalNotBlank(string columnName) =>
+            $"[{columnName}] IS NULL OR {RequiredNotBlank(columnName)}";
     }
 }

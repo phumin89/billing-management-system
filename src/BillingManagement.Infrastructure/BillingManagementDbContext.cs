@@ -6,6 +6,9 @@ namespace BillingManagement.Infrastructure;
 public sealed class BillingManagementDbContext(DbContextOptions<BillingManagementDbContext> options)
     : DbContext(options)
 {
+    private const string SqlWhitespaceCharacters =
+        "N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160)";
+
     public DbSet<OwnerCompanyProfile> OwnerCompanyProfiles => this.Set<OwnerCompanyProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -15,18 +18,18 @@ public sealed class BillingManagementDbContext(DbContextOptions<BillingManagemen
             entity.ToTable(table =>
             {
                 table.HasCheckConstraint("CK_OwnerCompanyProfiles_SingletonKey", "[SingletonKey] = 1");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_CompanyName_NotBlank", "LEN(LTRIM(RTRIM([CompanyName]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_AddressLine1_NotBlank", "LEN(LTRIM(RTRIM([AddressLine1]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_CityProvinceState_NotBlank", "LEN(LTRIM(RTRIM([CityProvinceState]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_PostalCode_NotBlank", "LEN(LTRIM(RTRIM([PostalCode]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_Country_NotBlank", "LEN(LTRIM(RTRIM([Country]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_AddressLine2_NotBlank", "[AddressLine2] IS NULL OR LEN(LTRIM(RTRIM([AddressLine2]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_TaxId_NotBlank", "[TaxId] IS NULL OR LEN(LTRIM(RTRIM([TaxId]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_Phone_NotBlank", "[Phone] IS NULL OR LEN(LTRIM(RTRIM([Phone]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_Email_NotBlank", "[Email] IS NULL OR LEN(LTRIM(RTRIM([Email]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_Website_NotBlank", "[Website] IS NULL OR LEN(LTRIM(RTRIM([Website]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_LogoReference_NotBlank", "[LogoReference] IS NULL OR LEN(LTRIM(RTRIM([LogoReference]))) > 0");
-                table.HasCheckConstraint("CK_OwnerCompanyProfiles_RegistrationNumber_NotBlank", "[RegistrationNumber] IS NULL OR LEN(LTRIM(RTRIM([RegistrationNumber]))) > 0");
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_CompanyName_NotBlank", RequiredNotBlank("CompanyName"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_AddressLine1_NotBlank", RequiredNotBlank("AddressLine1"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_CityProvinceState_NotBlank", RequiredNotBlank("CityProvinceState"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_PostalCode_NotBlank", RequiredNotBlank("PostalCode"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_Country_NotBlank", RequiredNotBlank("Country"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_AddressLine2_NotBlank", OptionalNotBlank("AddressLine2"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_TaxId_NotBlank", OptionalNotBlank("TaxId"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_Phone_NotBlank", OptionalNotBlank("Phone"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_Email_NotBlank", OptionalNotBlank("Email"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_Website_NotBlank", OptionalNotBlank("Website"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_LogoReference_NotBlank", OptionalNotBlank("LogoReference"));
+                table.HasCheckConstraint("CK_OwnerCompanyProfiles_RegistrationNumber_NotBlank", OptionalNotBlank("RegistrationNumber"));
             });
             entity.HasKey(profile => profile.Id);
             entity.HasIndex(profile => profile.SingletonKey).IsUnique();
@@ -45,4 +48,10 @@ public sealed class BillingManagementDbContext(DbContextOptions<BillingManagemen
             entity.Property(profile => profile.RegistrationNumber).HasMaxLength(100);
         });
     }
+
+    private static string RequiredNotBlank(string columnName) =>
+        $"LEN(TRIM({SqlWhitespaceCharacters} FROM [{columnName}])) > 0";
+
+    private static string OptionalNotBlank(string columnName) =>
+        $"[{columnName}] IS NULL OR {RequiredNotBlank(columnName)}";
 }

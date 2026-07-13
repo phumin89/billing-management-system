@@ -96,31 +96,31 @@ namespace BillingManagement.Infrastructure.Migrations
 
                     b.ToTable("OwnerCompanyProfiles", t =>
                         {
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_AddressLine1_NotBlank", "LEN(LTRIM(RTRIM([AddressLine1]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_AddressLine1_NotBlank", "LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [AddressLine1])) > 0");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_AddressLine2_NotBlank", "[AddressLine2] IS NULL OR LEN(LTRIM(RTRIM([AddressLine2]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_AddressLine2_NotBlank", "[AddressLine2] IS NULL OR LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [AddressLine2])) > 0");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_CityProvinceState_NotBlank", "LEN(LTRIM(RTRIM([CityProvinceState]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_CityProvinceState_NotBlank", "LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [CityProvinceState])) > 0");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_CompanyName_NotBlank", "LEN(LTRIM(RTRIM([CompanyName]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_CompanyName_NotBlank", "LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [CompanyName])) > 0");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_Country_NotBlank", "LEN(LTRIM(RTRIM([Country]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_Country_NotBlank", "LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [Country])) > 0");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_Email_NotBlank", "[Email] IS NULL OR LEN(LTRIM(RTRIM([Email]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_Email_NotBlank", "[Email] IS NULL OR LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [Email])) > 0");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_LogoReference_NotBlank", "[LogoReference] IS NULL OR LEN(LTRIM(RTRIM([LogoReference]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_LogoReference_NotBlank", "[LogoReference] IS NULL OR LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [LogoReference])) > 0");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_Phone_NotBlank", "[Phone] IS NULL OR LEN(LTRIM(RTRIM([Phone]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_Phone_NotBlank", "[Phone] IS NULL OR LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [Phone])) > 0");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_PostalCode_NotBlank", "LEN(LTRIM(RTRIM([PostalCode]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_PostalCode_NotBlank", "LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [PostalCode])) > 0");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_RegistrationNumber_NotBlank", "[RegistrationNumber] IS NULL OR LEN(LTRIM(RTRIM([RegistrationNumber]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_RegistrationNumber_NotBlank", "[RegistrationNumber] IS NULL OR LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [RegistrationNumber])) > 0");
 
                             t.HasCheckConstraint("CK_OwnerCompanyProfiles_SingletonKey", "[SingletonKey] = 1");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_TaxId_NotBlank", "[TaxId] IS NULL OR LEN(LTRIM(RTRIM([TaxId]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_TaxId_NotBlank", "[TaxId] IS NULL OR LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [TaxId])) > 0");
 
-                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_Website_NotBlank", "[Website] IS NULL OR LEN(LTRIM(RTRIM([Website]))) > 0");
+                            t.HasCheckConstraint("CK_OwnerCompanyProfiles_Website_NotBlank", "[Website] IS NULL OR LEN(TRIM(N' ' + NCHAR(9) + NCHAR(10) + NCHAR(11) + NCHAR(12) + NCHAR(13) + NCHAR(160) FROM [Website])) > 0");
                         });
                 });
 #pragma warning restore 612, 618
