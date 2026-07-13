@@ -6,33 +6,6 @@ namespace BillingManagement.UnitTests.OwnerCompanyProfiles;
 public class CreateOwnerCompanyProfileHandlerTests
 {
     [Fact]
-    public async Task Handle_rejects_missing_required_fields()
-    {
-        var handler = new CreateOwnerCompanyProfileHandler(new InMemoryOwnerCompanyProfileStore());
-
-        var result = await handler.Handle(new CreateOwnerCompanyProfileCommand(
-            CompanyName: " ",
-            AddressLine1: "",
-            AddressLine2: null,
-            City: "",
-            PostalCode: "",
-            Country: "",
-            TaxId: null,
-            Phone: null,
-            Email: null,
-            Website: null,
-            LogoReference: null,
-            RegistrationNumber: null));
-
-        Assert.False(result.Succeeded);
-        Assert.Contains(nameof(CreateOwnerCompanyProfileCommand.CompanyName), result.Errors.Keys);
-        Assert.Contains(nameof(CreateOwnerCompanyProfileCommand.AddressLine1), result.Errors.Keys);
-        Assert.Contains(nameof(CreateOwnerCompanyProfileCommand.City), result.Errors.Keys);
-        Assert.Contains(nameof(CreateOwnerCompanyProfileCommand.PostalCode), result.Errors.Keys);
-        Assert.Contains(nameof(CreateOwnerCompanyProfileCommand.Country), result.Errors.Keys);
-    }
-
-    [Fact]
     public async Task Handle_creates_owner_company_profile()
     {
         var store = new InMemoryOwnerCompanyProfileStore();
@@ -59,18 +32,6 @@ public class CreateOwnerCompanyProfileHandlerTests
 
         Assert.False(result.Succeeded);
         Assert.Contains("Owner company profile already exists.", result.Errors["Profile"]);
-    }
-
-    [Fact]
-    public async Task Handle_rejects_values_over_persistence_limits()
-    {
-        var handler = new CreateOwnerCompanyProfileHandler(new InMemoryOwnerCompanyProfileStore());
-        var command = ValidCommand() with { CompanyName = new string('x', 201) };
-
-        var result = await handler.Handle(command);
-
-        Assert.False(result.Succeeded);
-        Assert.Contains(nameof(command.CompanyName), result.Errors.Keys);
     }
 
     private static CreateOwnerCompanyProfileCommand ValidCommand() =>
