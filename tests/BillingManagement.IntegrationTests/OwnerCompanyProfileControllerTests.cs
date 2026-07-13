@@ -105,16 +105,63 @@ public sealed class OwnerCompanyProfileControllerTests
         };
         var dispatcher = new StubCommandDispatcher(
             CommandDispatchResult<CreateOwnerCompanyProfileResult>.Invalid(errors));
-        var controller = new OwnerCompanyProfileController(
-            dispatcher,
-            new GetOwnerCompanyProfileHandler(new StubStore()));
+        var controller = CreateController(dispatcher, new StubStore());
 
         var response = await controller.Create(new CreateOwnerCompanyProfileRequest(), default);
 
         Assert.IsType<CreateOwnerCompanyProfileCommand>(dispatcher.Command);
-        var objectResult = Assert.IsType<ObjectResult>(response.Result);
-        var problem = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
-        Assert.Equal(errors["CompanyName"], problem.Errors["CompanyName"]);
+        AssertValidationProblem(response.Result, errors);
+    }
+
+    [Fact]
+    public async Task Update_dispatches_command_and_preserves_validation_problem_details()
+    {
+        var errors = new Dictionary<string, string[]>
+        {
+            ["Email"] = ["Email format is invalid."]
+        };
+        var dispatcher = new StubCommandDispatcher(
+            CommandDispatchResult<UpdateOwnerCompanyProfileResult>.Invalid(errors));
+        var controller = CreateController(dispatcher, new StubStore(ExistingProfile()));
+
+        var response = await controller.Update(new UpdateOwnerCompanyProfileRequest(), default);
+
+        Assert.IsType<UpdateOwnerCompanyProfileCommand>(dispatcher.Command);
+        AssertValidationProblem(response.Result, errors);
+    }
+
+    [Fact]
+    public async Task Create_preserves_handler_validation_problem_details()
+    {
+        var errors = new Dictionary<string, string[]>
+        {
+            ["Profile"] = ["Owner company profile already exists."]
+        };
+        var dispatcher = new StubCommandDispatcher(
+            CommandDispatchResult<CreateOwnerCompanyProfileResult>.Success(
+                CreateOwnerCompanyProfileResult.Failed(errors)));
+        var controller = CreateController(dispatcher, new StubStore(ExistingProfile()));
+
+        var response = await controller.Create(ValidCreateRequest("billing@example.com"), default);
+
+        AssertValidationProblem(response.Result, errors);
+    }
+
+    [Fact]
+    public async Task Update_preserves_handler_validation_problem_details()
+    {
+        var errors = new Dictionary<string, string[]>
+        {
+            ["Profile"] = ["Owner company profile could not be updated."]
+        };
+        var dispatcher = new StubCommandDispatcher(
+            CommandDispatchResult<UpdateOwnerCompanyProfileResult>.Success(
+                UpdateOwnerCompanyProfileResult.Failed(errors)));
+        var controller = CreateController(dispatcher, new StubStore(ExistingProfile()));
+
+        var response = await controller.Update(ValidUpdateRequest("billing@example.com"), default);
+
+        AssertValidationProblem(response.Result, errors);
     }
 
     private sealed class StubCommandDispatcher(object response) : ICommandDispatcher
@@ -140,6 +187,25 @@ public sealed class OwnerCompanyProfileControllerTests
         return new OwnerCompanyProfileController(
             provider.GetRequiredService<ICommandDispatcher>(),
             provider.GetRequiredService<GetOwnerCompanyProfileHandler>())
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { RequestServices = provider }
+            }
+        };
+    }
+
+    private static OwnerCompanyProfileController CreateController(
+        ICommandDispatcher dispatcher,
+        StubStore store)
+    {
+        var provider = new ServiceCollection()
+            .AddControllers()
+            .Services
+            .BuildServiceProvider();
+        return new OwnerCompanyProfileController(
+            dispatcher,
+            new GetOwnerCompanyProfileHandler(store))
         {
             ControllerContext = new ControllerContext
             {
@@ -217,6 +283,21 @@ public sealed class OwnerCompanyProfileControllerTests
         var problem = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
         Assert.Equal(400, problem.Status);
         Assert.Equal(["Email format is invalid."], problem.Errors["Email"]);
+    }
+
+    private static void AssertValidationProblem(
+        ActionResult? result,
+        IReadOnlyDictionary<string, string[]> expectedErrors)
+    {
+        var objectResult = Assert.IsType<BadRequestObjectResult>(result);
+        var problem = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
+        Assert.Equal(400, problem.Status);
+        Assert.Equal(expectedErrors.Keys, problem.Errors.Keys);
+
+        foreach (var error in expectedErrors)
+        {
+            Assert.Equal(error.Value, problem.Errors[error.Key]);
+        }
     }
 
     private sealed class StubStore(OwnerCompanyProfileRecord? profile = null) : IOwnerCompanyProfileStore

@@ -45,7 +45,7 @@ public sealed class OwnerCompanyProfileController(
 
         if (!dispatchResult.IsValid)
         {
-            this.AddErrors(dispatchResult.ValidationErrors);
+            this.ModelState.AddErrors(dispatchResult.ValidationErrors);
             return this.ValidationProblem(this.ModelState);
         }
 
@@ -53,7 +53,7 @@ public sealed class OwnerCompanyProfileController(
 
         if (!result.Succeeded)
         {
-            this.AddErrors(result.Errors);
+            this.ModelState.AddErrors(result.Errors);
             return this.ValidationProblem(this.ModelState);
         }
 
@@ -82,7 +82,7 @@ public sealed class OwnerCompanyProfileController(
 
         if (!dispatchResult.IsValid)
         {
-            this.AddErrors(dispatchResult.ValidationErrors);
+            this.ModelState.AddErrors(dispatchResult.ValidationErrors);
             return this.ValidationProblem(this.ModelState);
         }
 
@@ -95,7 +95,7 @@ public sealed class OwnerCompanyProfileController(
 
         if (!result.Succeeded)
         {
-            this.AddErrors(result.Errors);
+            this.ModelState.AddErrors(result.Errors);
             return this.ValidationProblem(this.ModelState);
         }
 
@@ -118,14 +118,4 @@ public sealed class OwnerCompanyProfileController(
             profile.LogoReference,
             profile.RegistrationNumber);
 
-    private void AddErrors(IReadOnlyDictionary<string, string[]> errors)
-    {
-        foreach (var error in errors)
-        {
-            foreach (var message in error.Value)
-            {
-                this.ModelState.AddModelError(error.Key, message);
-            }
-        }
-    }
 }
