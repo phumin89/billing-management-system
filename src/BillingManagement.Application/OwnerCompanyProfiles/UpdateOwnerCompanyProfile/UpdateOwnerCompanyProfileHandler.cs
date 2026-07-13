@@ -1,5 +1,6 @@
 using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
+using BillingManagement.Domain;
 
 namespace BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
 
@@ -54,6 +55,18 @@ public sealed class UpdateOwnerCompanyProfileHandler(
         AddRequired(errors, nameof(command.City), command.City, "City / province / state is required.");
         AddRequired(errors, nameof(command.PostalCode), command.PostalCode, "Postal code is required.");
         AddRequired(errors, nameof(command.Country), command.Country, "Country is required.");
+        AddMaxLength(errors, nameof(command.CompanyName), command.CompanyName, OwnerCompanyProfile.CompanyNameMaxLength);
+        AddMaxLength(errors, nameof(command.AddressLine1), command.AddressLine1, OwnerCompanyProfile.AddressLine1MaxLength);
+        AddMaxLength(errors, nameof(command.AddressLine2), command.AddressLine2, OwnerCompanyProfile.AddressLine2MaxLength);
+        AddMaxLength(errors, nameof(command.City), command.City, OwnerCompanyProfile.CityProvinceStateMaxLength);
+        AddMaxLength(errors, nameof(command.PostalCode), command.PostalCode, OwnerCompanyProfile.PostalCodeMaxLength);
+        AddMaxLength(errors, nameof(command.Country), command.Country, OwnerCompanyProfile.CountryMaxLength);
+        AddMaxLength(errors, nameof(command.TaxId), command.TaxId, OwnerCompanyProfile.TaxIdMaxLength);
+        AddMaxLength(errors, nameof(command.Phone), command.Phone, OwnerCompanyProfile.PhoneMaxLength);
+        AddMaxLength(errors, nameof(command.Email), command.Email, OwnerCompanyProfile.EmailMaxLength);
+        AddMaxLength(errors, nameof(command.Website), command.Website, OwnerCompanyProfile.WebsiteMaxLength);
+        AddMaxLength(errors, nameof(command.LogoReference), command.LogoReference, OwnerCompanyProfile.LogoReferenceMaxLength);
+        AddMaxLength(errors, nameof(command.RegistrationNumber), command.RegistrationNumber, OwnerCompanyProfile.RegistrationNumberMaxLength);
 
         if (!string.IsNullOrWhiteSpace(command.Email) &&
             !command.Email.Contains('@', StringComparison.Ordinal))
@@ -78,4 +91,16 @@ public sealed class UpdateOwnerCompanyProfileHandler(
 
     private static string? BlankToNull(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static void AddMaxLength(
+        Dictionary<string, string[]> errors,
+        string fieldName,
+        string? value,
+        int maxLength)
+    {
+        if (value?.Trim().Length > maxLength)
+        {
+            errors[fieldName] = [$"Must not exceed {maxLength} characters."];
+        }
+    }
 }

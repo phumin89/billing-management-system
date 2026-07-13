@@ -73,6 +73,22 @@ public sealed class UpdateOwnerCompanyProfileHandlerTests
         Assert.Equal("Chiang Mai", result.Profile.City);
     }
 
+    [Fact]
+    public async Task Handle_rejects_values_over_persistence_limits()
+    {
+        var store = new InMemoryOwnerCompanyProfileStore();
+        await store.Add(new OwnerCompanyProfileRecord(
+            Guid.NewGuid(), "Old Co", "1 Old Street", null, "Bangkok", "10110",
+            "Thailand", null, null, null, null, null, null));
+        var handler = new UpdateOwnerCompanyProfileHandler(store);
+        var command = ValidCommand() with { LogoReference = new string('x', 501) };
+
+        var result = await handler.Handle(command);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(nameof(command.LogoReference), result.Errors.Keys);
+    }
+
     private static UpdateOwnerCompanyProfileCommand ValidCommand() =>
         new(
             CompanyName: "Acme Updated",

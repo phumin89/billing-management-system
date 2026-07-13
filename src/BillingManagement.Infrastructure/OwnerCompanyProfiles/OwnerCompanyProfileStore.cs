@@ -1,5 +1,6 @@
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Domain;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace BillingManagement.Infrastructure.OwnerCompanyProfiles;
@@ -11,13 +12,12 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
     {
         var profile = await dbContext.OwnerCompanyProfiles
             .AsNoTracking()
-            .OrderBy(ownerProfile => ownerProfile.CompanyName)
-            .FirstOrDefaultAsync(cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken);
 
         return profile is null ? null : ToRecord(profile);
     }
 
-    public async Task Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
+    public async Task<bool> Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
     {
         dbContext.OwnerCompanyProfiles.Add(OwnerCompanyProfile.Create(
             profile.Id,
@@ -34,13 +34,23 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
             profile.LogoReference,
             profile.RegistrationNumber));
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch (DbUpdateException exception) when (
+            exception.InnerException is SqlException { Number: 2601 or 2627 })
+        {
+            dbContext.ChangeTracker.Clear();
+            return false;
+        }
     }
 
     public async Task<bool> Update(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
     {
         var existingProfile = await dbContext.OwnerCompanyProfiles
-            .FirstOrDefaultAsync(cancellationToken);
+            .SingleOrDefaultAsync(cancellationToken);
 
         if (existingProfile is null)
         {

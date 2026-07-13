@@ -61,6 +61,18 @@ public class CreateOwnerCompanyProfileHandlerTests
         Assert.Contains("Owner company profile already exists.", result.Errors["Profile"]);
     }
 
+    [Fact]
+    public async Task Handle_rejects_values_over_persistence_limits()
+    {
+        var handler = new CreateOwnerCompanyProfileHandler(new InMemoryOwnerCompanyProfileStore());
+        var command = ValidCommand() with { CompanyName = new string('x', 201) };
+
+        var result = await handler.Handle(command);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(nameof(command.CompanyName), result.Errors.Keys);
+    }
+
     private static CreateOwnerCompanyProfileCommand ValidCommand() =>
         new(
             CompanyName: "Acme Co",
@@ -83,10 +95,15 @@ public class CreateOwnerCompanyProfileHandlerTests
         public Task<OwnerCompanyProfileRecord?> GetAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(this.Profile);
 
-        public Task Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
+        public Task<bool> Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
         {
+            if (this.Profile is not null)
+            {
+                return Task.FromResult(false);
+            }
+
             this.Profile = profile;
-            return Task.CompletedTask;
+            return Task.FromResult(true);
         }
 
         public Task<bool> Update(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
