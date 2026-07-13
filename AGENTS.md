@@ -432,7 +432,7 @@ Use TDD for production behavior changes.
 - Developer owns implementation only after PM routes an approved card to Developer. Developer must not start BA/Design/QA work or start another card while one implementation card is active.
 - QA owns verification, test notes, regression risk, and accept/reject outcome. QA does not implement fixes unless PM explicitly routes a fix card.
 - One card has one active owner at a time. Other agents may comment, but they must not move the card or start work without PM routing.
-- Handoff rule: every agent must end with a Trello comment and PM callback that states final status, output, verification, blockers/gaps, recommended next owner, and explicit confirmation that PONYTAIL plus CAVEMAN ultra were used.
+- Handoff rule: every agent must end with a Trello comment and PM callback that states final status, output, verification, blockers/gaps, and recommended next owner. Do not include routine tool, skill, model, or mode confirmations in comments or callbacks.
 - When an agent finishes assigned work, it must update the Trello card and send a completion message back to the Project Manager session.
 - When an agent is blocked, it must update the Trello card and send a blocked message back to the Project Manager session instead of waiting silently.
 - Completion or blocked messages must include the Trello card link, final status, important output, verification performed, blockers or gaps, and the recommended next owner.
