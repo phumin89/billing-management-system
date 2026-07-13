@@ -116,7 +116,7 @@ public partial class CompanyProfile
     {
         this.form = ToRequest(this.profile);
         this.validationErrors = new Dictionary<string, string[]>();
-        this.statusMessage = "Update is not available yet.";
+        this.statusMessage = null;
         this.reviewState = ProfileReviewState.Form;
         this.isEditMode = true;
         this.showDeleteSnackbar = false;
@@ -152,23 +152,20 @@ public partial class CompanyProfile
 
     private async Task ConfirmDelete() => await this.DismissSnackbar(this.ShowEmpty);
 
-    private async Task CreateProfile()
+    private async Task SaveProfile()
     {
         if (this.isSubmitting)
         {
             return;
         }
 
-        if (this.isEditMode)
-        {
-            this.ShowExisting();
-            return;
-        }
-
         this.validationErrors = new Dictionary<string, string[]>();
         this.statusMessage = null;
         this.isSubmitting = true;
-        var result = await this.Client.Create(this.form);
+        var result = this.isEditMode
+            ? await this.Client.Update(ToUpdateRequest(this.form))
+            : await this.Client.Create(this.form);
+
         this.isSubmitting = false;
         if (!result.Succeeded)
         {
@@ -225,4 +222,21 @@ public partial class CompanyProfile
                 LogoReference = profile.LogoReference,
                 RegistrationNumber = profile.RegistrationNumber
             };
+
+    private static UpdateOwnerCompanyProfileRequest ToUpdateRequest(CreateOwnerCompanyProfileRequest form) =>
+        new()
+        {
+            CompanyName = form.CompanyName,
+            AddressLine1 = form.AddressLine1,
+            AddressLine2 = form.AddressLine2,
+            CityProvinceState = form.CityProvinceState,
+            PostalCode = form.PostalCode,
+            Country = form.Country,
+            TaxId = form.TaxId,
+            Phone = form.Phone,
+            Email = form.Email,
+            Website = form.Website,
+            LogoReference = form.LogoReference,
+            RegistrationNumber = form.RegistrationNumber
+        };
 }

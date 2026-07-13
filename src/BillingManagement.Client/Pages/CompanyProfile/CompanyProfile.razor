@@ -37,13 +37,10 @@
                     <h2>@DisplayProfile.CompanyName</h2>
                     <p>Primary owner company profile.</p>
                 </div>
-                @if (profile is null)
-                {
-                    <div class="company-actions">
-                        <button class="company-secondary-button" type="button" @onclick="ShowEdit">Update</button>
-                        <button class="company-danger-button" type="button" @onclick="ShowDelete">Delete</button>
-                    </div>
-                }
+                <div class="company-actions">
+                    <button class="company-secondary-button" type="button" @onclick="ShowEdit">Update</button>
+                    <button class="company-danger-button" type="button" @onclick="ShowDelete">Delete</button>
+                </div>
             </div>
 
             <dl class="company-summary-grid">
@@ -93,7 +90,7 @@
                 <p role="alert">@statusMessage</p>
             }
 
-            <form class="company-form" @onsubmit="CreateProfile" @onsubmit:preventDefault>
+            <form class="company-form" @onsubmit="SaveProfile" @onsubmit:preventDefault>
                 <div class="company-form-grid">
                     <div class="company-field full">
                         <label for="company-name">Company name*</label>
@@ -154,7 +151,7 @@
                 <div class="company-form-actions">
                     <button class="company-secondary-button" type="button" disabled="@isSubmitting" @onclick="ShowExisting">Cancel</button>
                     <button class="company-primary-button" type="submit" disabled="@isSubmitting">
-                        @(isSubmitting ? "Saving..." : "Create company profile")
+                        @(isSubmitting ? "Saving..." : isEditMode ? "Update company profile" : "Create company profile")
                     </button>
                 </div>
             </form>

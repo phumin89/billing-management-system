@@ -1,6 +1,7 @@
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProfile;
+using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
 using BillingManagement.Contracts.OwnerCompanyProfiles;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,8 @@ namespace BillingManagement.Api.Controllers;
 [Route("api/owner-company-profile")]
 public sealed class OwnerCompanyProfileController(
     CreateOwnerCompanyProfileHandler createHandler,
-    GetOwnerCompanyProfileHandler getHandler)
+    GetOwnerCompanyProfileHandler getHandler,
+    UpdateOwnerCompanyProfileHandler updateHandler)
     : ControllerBase
 {
     [HttpGet]
@@ -51,6 +53,43 @@ public sealed class OwnerCompanyProfileController(
         }
 
         return this.CreatedAtAction(nameof(Get), ToResponse(result.Profile!));
+    }
+
+    [HttpPut]
+    public async Task<ActionResult<OwnerCompanyProfileResponse>> Update(
+        UpdateOwnerCompanyProfileRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await updateHandler.Handle(new UpdateOwnerCompanyProfileCommand(
+            request.CompanyName ?? string.Empty,
+            request.AddressLine1 ?? string.Empty,
+            request.AddressLine2,
+            request.CityProvinceState ?? string.Empty,
+            request.PostalCode ?? string.Empty,
+            request.Country ?? string.Empty,
+            request.TaxId,
+            request.Phone,
+            request.Email,
+            request.Website,
+            request.LogoReference,
+            request.RegistrationNumber), cancellationToken);
+
+        if (result.NotFound)
+        {
+            return this.NotFound();
+        }
+
+        if (!result.Succeeded)
+        {
+            foreach (var error in result.Errors)
+            {
+                this.ModelState.AddModelError(error.Key, string.Join(" ", error.Value));
+            }
+
+            return this.ValidationProblem(this.ModelState);
+        }
+
+        return this.Ok(ToResponse(result.Profile!));
     }
 
     private static OwnerCompanyProfileResponse ToResponse(OwnerCompanyProfileRecord profile) =>
