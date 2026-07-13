@@ -9,10 +9,15 @@ internal sealed class InMemoryOwnerCompanyProfileStore : IOwnerCompanyProfileSto
     public Task<OwnerCompanyProfileRecord?> GetAsync(CancellationToken cancellationToken = default) =>
         Task.FromResult(this.Profile);
 
-    public Task Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
+    public Task<bool> Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
     {
+        if (this.Profile is not null)
+        {
+            return Task.FromResult(false);
+        }
+
         this.Profile = profile;
-        return Task.CompletedTask;
+        return Task.FromResult(true);
     }
 
     public Task<bool> Update(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
