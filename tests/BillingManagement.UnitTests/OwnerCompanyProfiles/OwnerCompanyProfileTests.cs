@@ -5,6 +5,42 @@ namespace BillingManagement.UnitTests.OwnerCompanyProfiles;
 public sealed class OwnerCompanyProfileTests
 {
     [Fact]
+    public void Create_generates_unique_non_empty_ids()
+    {
+        var first = Create();
+        var second = Create();
+
+        Assert.NotEqual(Guid.Empty, first.Id);
+        Assert.NotEqual(Guid.Empty, second.Id);
+        Assert.NotEqual(first.Id, second.Id);
+    }
+
+    [Fact]
+    public void Rehydrate_preserves_valid_id_and_rejects_empty_id()
+    {
+        var id = Guid.NewGuid();
+
+        var profile = Rehydrate(id);
+
+        Assert.Equal(id, profile.Id);
+        Assert.Throws<ArgumentException>(() => Rehydrate(Guid.Empty));
+    }
+
+    [Fact]
+    public void Rehydrate_enforces_the_same_invariants_as_create()
+    {
+        Assert.Throws<ArgumentException>(() => Rehydrate(Guid.NewGuid(), companyName: " "));
+        Assert.Throws<ArgumentException>(() => Rehydrate(Guid.NewGuid(), email: Over(OwnerCompanyProfileConstraints.EmailMaxLength)));
+    }
+
+    [Fact]
+    public void Domain_does_not_expose_persistence_singleton_key()
+    {
+        Assert.Null(typeof(OwnerCompanyProfile).GetProperty("SingletonKey"));
+        Assert.Null(typeof(OwnerCompanyProfile).GetField("SingletonKeyValue"));
+    }
+
+    [Fact]
     public void Create_trims_required_values_and_normalizes_optional_blanks()
     {
         var profile = Create(
@@ -125,7 +161,26 @@ public sealed class OwnerCompanyProfileTests
         string? logoReference = null,
         string? registrationNumber = null) =>
         OwnerCompanyProfile.Create(
-            Guid.NewGuid(), companyName, addressLine1, addressLine2,
+            companyName, addressLine1, addressLine2,
+            cityProvinceState, postalCode, country, taxId, phone, email,
+            website, logoReference, registrationNumber);
+
+    private static OwnerCompanyProfile Rehydrate(
+        Guid id,
+        string companyName = "Acme Co",
+        string addressLine1 = "1 Main Street",
+        string? addressLine2 = null,
+        string cityProvinceState = "Bangkok",
+        string postalCode = "10110",
+        string country = "Thailand",
+        string? taxId = null,
+        string? phone = null,
+        string? email = null,
+        string? website = null,
+        string? logoReference = null,
+        string? registrationNumber = null) =>
+        OwnerCompanyProfile.Rehydrate(
+            id, companyName, addressLine1, addressLine2,
             cityProvinceState, postalCode, country, taxId, phone, email,
             website, logoReference, registrationNumber);
 

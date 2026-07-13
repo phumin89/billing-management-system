@@ -19,7 +19,7 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
 
     public async Task<bool> Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
     {
-        dbContext.OwnerCompanyProfiles.Add(OwnerCompanyProfile.Create(
+        dbContext.OwnerCompanyProfiles.Add(OwnerCompanyProfile.Rehydrate(
             profile.Id,
             profile.CompanyName,
             profile.AddressLine1,

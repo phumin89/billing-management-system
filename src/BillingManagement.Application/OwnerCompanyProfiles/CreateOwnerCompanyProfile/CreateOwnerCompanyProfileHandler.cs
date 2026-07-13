@@ -21,7 +21,6 @@ public sealed class CreateOwnerCompanyProfileHandler(
         }
 
         var ownerCompanyProfile = OwnerCompanyProfile.Create(
-            Guid.NewGuid(),
             command.CompanyName,
             command.AddressLine1,
             command.AddressLine2,
