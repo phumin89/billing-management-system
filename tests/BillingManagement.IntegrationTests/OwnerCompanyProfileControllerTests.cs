@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Net;
+using System.Net.Http.Json;
 using BillingManagement.Api.Controllers;
 using BillingManagement.Application;
 using BillingManagement.Application.Abstractions.Commands;
@@ -7,6 +9,10 @@ using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfi
 using BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
 using BillingManagement.Contracts.OwnerCompanyProfiles;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +21,34 @@ namespace BillingManagement.IntegrationTests;
 
 public sealed class OwnerCompanyProfileControllerTests
 {
+    [Fact]
+    public async Task Missing_required_create_and_update_use_same_dispatcher_validation_http_response()
+    {
+        await using var app = await StartHttpApplication(new StubStore(ExistingProfile()));
+        using var client = new HttpClient { BaseAddress = GetServerAddress(app) };
+
+        var createResponse = await client.PostAsJsonAsync(
+            "/api/owner-company-profile",
+            new CreateOwnerCompanyProfileRequest());
+        var updateResponse = await client.PutAsJsonAsync(
+            "/api/owner-company-profile",
+            new UpdateOwnerCompanyProfileRequest());
+
+        Assert.Equal(HttpStatusCode.BadRequest, createResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
+        var createProblem = await createResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        var updateProblem = await updateResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.NotNull(createProblem);
+        Assert.NotNull(updateProblem);
+        Assert.Equal(updateProblem.Errors.Keys.Order(), createProblem.Errors.Keys.Order());
+        foreach (var field in updateProblem.Errors.Keys)
+        {
+            Assert.Equal(updateProblem.Errors[field], createProblem.Errors[field]);
+        }
+
+        Assert.Equal(["Company name is required."], createProblem.Errors["CompanyName"]);
+    }
+
     [Fact]
     public async Task Create_and_update_reject_the_same_invalid_email()
     {
@@ -48,19 +82,18 @@ public sealed class OwnerCompanyProfileControllerTests
     }
 
     [Fact]
-    public void Create_request_leaves_email_validation_to_command_pipeline()
+    public void Transport_requests_do_not_define_validation_attributes()
     {
-        var request = ValidCreateRequest("a@");
-        var errors = new List<ValidationResult>();
+        Type[] requestTypes =
+        [
+            typeof(CreateOwnerCompanyProfileRequest),
+            typeof(UpdateOwnerCompanyProfileRequest)
+        ];
 
-        var isValid = Validator.TryValidateObject(
-            request,
-            new ValidationContext(request),
-            errors,
-            validateAllProperties: true);
-
-        Assert.True(isValid);
-        Assert.Empty(errors);
+        foreach (var property in requestTypes.SelectMany(type => type.GetProperties()))
+        {
+            Assert.Empty(property.GetCustomAttributes(typeof(ValidationAttribute), inherit: true));
+        }
     }
 
     [Fact]
@@ -113,6 +146,31 @@ public sealed class OwnerCompanyProfileControllerTests
                 HttpContext = new DefaultHttpContext { RequestServices = provider }
             }
         };
+    }
+
+    private static async Task<WebApplication> StartHttpApplication(StubStore store)
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Services
+            .AddControllers()
+            .AddApplicationPart(typeof(OwnerCompanyProfileController).Assembly);
+        builder.Services.AddSingleton<IOwnerCompanyProfileStore>(store);
+        builder.Services.AddBillingManagementApplication();
+
+        var app = builder.Build();
+        app.MapControllers();
+        await app.StartAsync();
+        return app;
+    }
+
+    private static Uri GetServerAddress(WebApplication app)
+    {
+        var addresses = app.Services
+            .GetRequiredService<IServer>()
+            .Features
+            .Get<IServerAddressesFeature>()!;
+        return new Uri(addresses.Addresses.Single());
     }
 
     private static CreateOwnerCompanyProfileRequest ValidCreateRequest(string email) =>
