@@ -1,4 +1,5 @@
 using BillingManagement.Application.Abstractions.Commands;
+using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Application.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -6,7 +7,7 @@ namespace BillingManagement.Application.Commands;
 
 public sealed class CommandDispatcher(IServiceProvider services) : ICommandDispatcher
 {
-    public async Task<CommandDispatchResult<TResult>> Send<TCommand, TResult>(
+    public async Task<ApplicationResult<TResult>> Send<TCommand, TResult>(
         TCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -24,11 +25,13 @@ public sealed class CommandDispatcher(IServiceProvider services) : ICommandDispa
 
         if (errors.Count > 0)
         {
-            return CommandDispatchResult<TResult>.Invalid(errors);
+            return ApplicationResult<TResult>.Failure(ApplicationError.Validation(
+                "validation_failed",
+                "One or more validation errors occurred.",
+                errors));
         }
 
         var handler = services.GetRequiredService<ICommandHandler<TCommand, TResult>>();
-        var result = await handler.Handle(command, cancellationToken);
-        return CommandDispatchResult<TResult>.Success(result);
+        return await handler.Handle(command, cancellationToken);
     }
 }

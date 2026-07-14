@@ -1,23 +1,21 @@
 using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
+using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Domain;
 
 namespace BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 
 public sealed class CreateOwnerCompanyProfileHandler(
     IOwnerCompanyProfileStore store)
-    : ICommandHandler<CreateOwnerCompanyProfileCommand, CreateOwnerCompanyProfileResult>
+    : ICommandHandler<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>
 {
-    public async Task<CreateOwnerCompanyProfileResult> Handle(
+    public async Task<ApplicationResult<OwnerCompanyProfileRecord>> Handle(
         CreateOwnerCompanyProfileCommand command,
         CancellationToken cancellationToken = default)
     {
         if (await store.GetAsync(cancellationToken) is not null)
         {
-            return CreateOwnerCompanyProfileResult.Failed(new Dictionary<string, string[]>
-            {
-                ["Profile"] = ["Owner company profile already exists."]
-            });
+            return DuplicateProfile();
         }
 
         var ownerCompanyProfile = OwnerCompanyProfile.Create(
@@ -37,14 +35,16 @@ public sealed class CreateOwnerCompanyProfileHandler(
 
         if (!await store.Add(profile, cancellationToken))
         {
-            return CreateOwnerCompanyProfileResult.Failed(new Dictionary<string, string[]>
-            {
-                ["Profile"] = ["Owner company profile already exists."]
-            });
+            return DuplicateProfile();
         }
 
-        return CreateOwnerCompanyProfileResult.Success(profile);
+        return ApplicationResult<OwnerCompanyProfileRecord>.Success(profile);
     }
+
+    private static ApplicationResult<OwnerCompanyProfileRecord> DuplicateProfile() =>
+        ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.Conflict(
+            "owner_company_profile.already_exists",
+            "Owner company profile already exists."));
 
     private static OwnerCompanyProfileRecord ToRecord(OwnerCompanyProfile profile) =>
         new(

@@ -1,4 +1,5 @@
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
+using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
 
 namespace BillingManagement.UnitTests.OwnerCompanyProfiles;
@@ -12,8 +13,11 @@ public sealed class UpdateOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(ValidCommand());
 
-        Assert.False(result.Succeeded);
-        Assert.True(result.NotFound);
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ApplicationErrorKind.NotFound, result.Error.Kind);
+        Assert.Equal("owner_company_profile.not_found", result.Error.Code);
+        Assert.Equal("Owner company profile was not found.", result.Error.Message);
     }
 
     [Fact]
@@ -39,11 +43,11 @@ public sealed class UpdateOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(ValidCommand());
 
-        Assert.True(result.Succeeded);
-        Assert.NotNull(result.Profile);
-        Assert.Equal(store.Profile!.Id, result.Profile.Id);
-        Assert.Equal("Acme Updated", result.Profile.CompanyName);
-        Assert.Equal("Chiang Mai", result.Profile.City);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(store.Profile!.Id, result.Value.Id);
+        Assert.Equal("Acme Updated", result.Value.CompanyName);
+        Assert.Equal("Chiang Mai", result.Value.City);
     }
 
     private static UpdateOwnerCompanyProfileCommand ValidCommand() =>

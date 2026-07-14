@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddProblemDetails();
 builder.Services.AddBillingManagementApplication();
 builder.Services.AddBillingManagementInfrastructure(builder.Configuration);
 builder.Services.AddCors(options =>
@@ -26,6 +27,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 

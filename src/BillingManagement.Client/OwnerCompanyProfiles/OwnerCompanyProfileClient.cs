@@ -46,9 +46,14 @@ public sealed class OwnerCompanyProfileClient(HttpClient httpClient)
             var problem = await response.Content.ReadFromJsonAsync<ValidationProblemResponse>(cancellationToken);
             return SaveOwnerCompanyProfileResult.Failed(
                 problem?.Errors ?? [],
-                problem?.Errors.ContainsKey("Profile") == true
-                    ? "Company profile already exists. Refresh the page to view it."
-                    : null);
+                null);
+        }
+
+        if (response.StatusCode is HttpStatusCode.Conflict)
+        {
+            return SaveOwnerCompanyProfileResult.Failed(
+                new Dictionary<string, string[]>(),
+                "Company profile already exists. Refresh the page to view it.");
         }
 
         return SaveOwnerCompanyProfileResult.Failed(

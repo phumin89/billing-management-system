@@ -28,7 +28,7 @@ public sealed class OwnerCompanyProfileController(
         CreateOwnerCompanyProfileRequest request,
         CancellationToken cancellationToken)
     {
-        var dispatchResult = await commandDispatcher.Send<CreateOwnerCompanyProfileCommand, CreateOwnerCompanyProfileResult>(
+        var result = await commandDispatcher.Send<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>(
             new CreateOwnerCompanyProfileCommand(
             request.CompanyName ?? string.Empty,
             request.AddressLine1 ?? string.Empty,
@@ -43,21 +43,12 @@ public sealed class OwnerCompanyProfileController(
             request.LogoReference,
             request.RegistrationNumber), cancellationToken);
 
-        if (!dispatchResult.IsValid)
+        if (!result.IsSuccess)
         {
-            this.ModelState.AddErrors(dispatchResult.ValidationErrors);
-            return this.ValidationProblem(this.ModelState);
+            return this.ToProblemDetails(result.Error!);
         }
 
-        var result = dispatchResult.Result!;
-
-        if (!result.Succeeded)
-        {
-            this.ModelState.AddErrors(result.Errors);
-            return this.ValidationProblem(this.ModelState);
-        }
-
-        return this.CreatedAtAction(nameof(Get), ToResponse(result.Profile!));
+        return this.CreatedAtAction(nameof(Get), ToResponse(result.Value!));
     }
 
     [HttpPut]
@@ -65,7 +56,7 @@ public sealed class OwnerCompanyProfileController(
         UpdateOwnerCompanyProfileRequest request,
         CancellationToken cancellationToken)
     {
-        var dispatchResult = await commandDispatcher.Send<UpdateOwnerCompanyProfileCommand, UpdateOwnerCompanyProfileResult>(
+        var result = await commandDispatcher.Send<UpdateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>(
             new UpdateOwnerCompanyProfileCommand(
             request.CompanyName ?? string.Empty,
             request.AddressLine1 ?? string.Empty,
@@ -80,26 +71,12 @@ public sealed class OwnerCompanyProfileController(
             request.LogoReference,
             request.RegistrationNumber), cancellationToken);
 
-        if (!dispatchResult.IsValid)
+        if (!result.IsSuccess)
         {
-            this.ModelState.AddErrors(dispatchResult.ValidationErrors);
-            return this.ValidationProblem(this.ModelState);
+            return this.ToProblemDetails(result.Error!);
         }
 
-        var result = dispatchResult.Result!;
-
-        if (result.NotFound)
-        {
-            return this.NotFound();
-        }
-
-        if (!result.Succeeded)
-        {
-            this.ModelState.AddErrors(result.Errors);
-            return this.ValidationProblem(this.ModelState);
-        }
-
-        return this.Ok(ToResponse(result.Profile!));
+        return this.Ok(ToResponse(result.Value!));
     }
 
     private static OwnerCompanyProfileResponse ToResponse(OwnerCompanyProfileRecord profile) =>
@@ -117,5 +94,4 @@ public sealed class OwnerCompanyProfileController(
             profile.Website,
             profile.LogoReference,
             profile.RegistrationNumber);
-
 }

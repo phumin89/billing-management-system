@@ -1,4 +1,5 @@
 using BillingManagement.Application.Abstractions.Commands;
+using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Application.Commands;
 using BillingManagement.Application.Validation;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,8 +19,9 @@ public sealed class CommandDispatcherTests
 
         var result = await dispatcher.Send<TestCommand, string>(new TestCommand());
 
-        Assert.True(result.IsValid);
-        Assert.Equal("handled", result.Result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("handled", result.Value);
+        Assert.Null(result.Error);
         Assert.Equal(["validator", "handler"], events);
         Assert.Equal(1, handler.InvocationCount);
     }
@@ -43,10 +45,15 @@ public sealed class CommandDispatcherTests
 
         var result = await dispatcher.Send<TestCommand, string>(new TestCommand());
 
-        Assert.False(result.IsValid);
-        Assert.Null(result.Result);
-        Assert.Equal(["Name is required.", "Name is too long."], result.ValidationErrors["Name"]);
-        Assert.Equal(["Email format is invalid."], result.ValidationErrors["Email"]);
+        Assert.False(result.IsSuccess);
+        Assert.Null(result.Value);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ApplicationErrorKind.Validation, result.Error.Kind);
+        Assert.Equal("validation_failed", result.Error.Code);
+        Assert.NotNull(result.Error.ValidationErrors);
+        Assert.Equal(["Name", "Email"], result.Error.ValidationErrors.Keys);
+        Assert.Equal(["Name is required.", "Name is too long."], result.Error.ValidationErrors["Name"]);
+        Assert.Equal(["Email format is invalid."], result.Error.ValidationErrors["Email"]);
         Assert.Equal(["validator", "validator"], events);
         Assert.Equal(0, handler.InvocationCount);
     }
@@ -65,10 +72,12 @@ public sealed class CommandDispatcherTests
 
         var result = await dispatcher.Send<TestCommand, string>(new TestCommand(" "));
 
-        Assert.False(result.IsValid);
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Error);
+        Assert.NotNull(result.Error.ValidationErrors);
         Assert.Equal(
             ["Name is required.", "Names must differ."],
-            result.ValidationErrors["Name"]);
+            result.Error.ValidationErrors["Name"]);
         Assert.Equal(["validator"], events);
         Assert.Equal(0, handler.InvocationCount);
     }
@@ -97,11 +106,13 @@ public sealed class CommandDispatcherTests
     {
         public int InvocationCount { get; private set; }
 
-        public Task<string> Handle(TestCommand command, CancellationToken cancellationToken = default)
+        public Task<ApplicationResult<string>> Handle(
+            TestCommand command,
+            CancellationToken cancellationToken = default)
         {
             this.InvocationCount++;
             events.Add("handler");
-            return Task.FromResult("handled");
+            return Task.FromResult(ApplicationResult<string>.Success("handled"));
         }
     }
 

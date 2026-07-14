@@ -1,4 +1,5 @@
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
+using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Domain;
 using BillingManagement.Infrastructure.OwnerCompanyProfiles;
@@ -66,9 +67,12 @@ public sealed class OwnerCompanyProfileStoreTests
                 firstHandler.Handle(ValidCommand("First Co")),
                 secondHandler.Handle(ValidCommand("Second Co")));
 
-            Assert.Single(results, result => result.Succeeded);
-            Assert.Single(results, result =>
-                !result.Succeeded && result.Errors["Profile"].Contains("Owner company profile already exists."));
+            Assert.Single(results, result => result.IsSuccess);
+            var duplicate = Assert.Single(results, result => !result.IsSuccess);
+            Assert.NotNull(duplicate.Error);
+            Assert.Equal(ApplicationErrorKind.Conflict, duplicate.Error.Kind);
+            Assert.Equal("owner_company_profile.already_exists", duplicate.Error.Code);
+            Assert.Equal("Owner company profile already exists.", duplicate.Error.Message);
 
             await using var verification = SqlServerIntegrationTestDatabase.CreateContext(databaseName);
             Assert.Equal(1, await verification.OwnerCompanyProfiles.CountAsync());

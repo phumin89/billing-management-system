@@ -21,9 +21,9 @@ public sealed class ApplicationServiceCollectionExtensionsTests
 
         Assert.IsType<CommandDispatcher>(provider.GetRequiredService<ICommandDispatcher>());
         Assert.IsType<CreateOwnerCompanyProfileHandler>(
-            provider.GetRequiredService<ICommandHandler<CreateOwnerCompanyProfileCommand, CreateOwnerCompanyProfileResult>>());
+            provider.GetRequiredService<ICommandHandler<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>>());
         Assert.IsType<UpdateOwnerCompanyProfileHandler>(
-            provider.GetRequiredService<ICommandHandler<UpdateOwnerCompanyProfileCommand, UpdateOwnerCompanyProfileResult>>());
+            provider.GetRequiredService<ICommandHandler<UpdateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>>());
         Assert.IsType<AnnotationCommandValidator<CreateOwnerCompanyProfileCommand>>(
             Assert.Single(provider.GetServices<ICommandValidator<CreateOwnerCompanyProfileCommand>>()));
         Assert.IsType<AnnotationCommandValidator<UpdateOwnerCompanyProfileCommand>>(

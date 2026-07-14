@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using BillingManagement.Api.Controllers;
 using BillingManagement.Application;
 using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
+using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
@@ -16,6 +18,7 @@ using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace BillingManagement.IntegrationTests;
 
@@ -44,6 +47,91 @@ public sealed class OwnerCompanyProfileControllerTests
         Assert.Equal(400, updateProblem.Status);
         AssertValidationErrors(ExpectedRequiredErrors(), createProblem.Errors);
         AssertValidationErrors(ExpectedRequiredErrors(), updateProblem.Errors);
+        Assert.Equal("validation_failed", ProblemCode(createProblem));
+        Assert.Equal("validation_failed", ProblemCode(updateProblem));
+    }
+
+    [Fact]
+    public async Task Duplicate_create_returns_conflict_problem_details()
+    {
+        await using var app = await StartHttpApplication(new StubStore(ExistingProfile()));
+        using var client = new HttpClient { BaseAddress = GetServerAddress(app) };
+
+        var response = await client.PostAsJsonAsync(
+            "/api/owner-company-profile",
+            ValidCreateRequest("billing@example.com"));
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.NotNull(problem);
+        Assert.Equal(409, problem.Status);
+        Assert.Equal("Owner company profile already exists.", problem.Detail);
+        Assert.Equal("owner_company_profile.already_exists", ProblemCode(problem));
+    }
+
+    [Fact]
+    public async Task Missing_update_returns_not_found_problem_details()
+    {
+        await using var app = await StartHttpApplication(new StubStore());
+        using var client = new HttpClient { BaseAddress = GetServerAddress(app) };
+
+        var response = await client.PutAsJsonAsync(
+            "/api/owner-company-profile",
+            ValidUpdateRequest("billing@example.com"));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.NotNull(problem);
+        Assert.Equal(404, problem.Status);
+        Assert.Equal("Owner company profile was not found.", problem.Detail);
+        Assert.Equal("owner_company_profile.not_found", ProblemCode(problem));
+    }
+
+    [Fact]
+    public async Task Successful_create_and_update_keep_status_codes_and_payloads()
+    {
+        await using var app = await StartHttpApplication(new StubStore());
+        using var client = new HttpClient { BaseAddress = GetServerAddress(app) };
+
+        var createResponse = await client.PostAsJsonAsync(
+            "/api/owner-company-profile",
+            ValidCreateRequest("billing@example.com"));
+        var updateResponse = await client.PutAsJsonAsync(
+            "/api/owner-company-profile",
+            ValidUpdateRequest("updated@example.com"));
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        var created = await createResponse.Content.ReadFromJsonAsync<OwnerCompanyProfileResponse>();
+        var updated = await updateResponse.Content.ReadFromJsonAsync<OwnerCompanyProfileResponse>();
+        Assert.NotNull(created);
+        Assert.NotNull(updated);
+        Assert.Equal("Acme Co.", created.CompanyName);
+        Assert.Equal("billing@example.com", created.Email);
+        Assert.Equal(created.Id, updated.Id);
+        Assert.Equal("updated@example.com", updated.Email);
+    }
+
+    [Fact]
+    public async Task Unhandled_exception_returns_sanitized_problem_details()
+    {
+        const string exceptionMessage = "Sensitive database failure detail.";
+        await using var app = await StartHttpApplication(
+            new StubStore(exception: new InvalidOperationException(exceptionMessage)));
+        using var client = new HttpClient { BaseAddress = GetServerAddress(app) };
+
+        var response = await client.GetAsync("/api/owner-company-profile");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.NotNull(problem);
+        Assert.Equal(500, problem.Status);
+        Assert.Equal("An error occurred while processing your request.", problem.Title);
+        Assert.Null(problem.Detail);
+        Assert.DoesNotContain(exceptionMessage, body, StringComparison.Ordinal);
+        Assert.DoesNotContain(nameof(InvalidOperationException), body, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -143,7 +231,10 @@ public sealed class OwnerCompanyProfileControllerTests
             ["CompanyName"] = ["Company name is required.", "Must not exceed 200 characters."]
         };
         var dispatcher = new StubCommandDispatcher(
-            CommandDispatchResult<CreateOwnerCompanyProfileResult>.Invalid(errors));
+            ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.Validation(
+                "validation_failed",
+                "One or more validation errors occurred.",
+                errors)));
         var controller = CreateController(dispatcher, new StubStore());
 
         var response = await controller.Create(new CreateOwnerCompanyProfileRequest(), default);
@@ -160,7 +251,10 @@ public sealed class OwnerCompanyProfileControllerTests
             ["Email"] = ["Email format is invalid."]
         };
         var dispatcher = new StubCommandDispatcher(
-            CommandDispatchResult<UpdateOwnerCompanyProfileResult>.Invalid(errors));
+            ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.Validation(
+                "validation_failed",
+                "One or more validation errors occurred.",
+                errors)));
         var controller = CreateController(dispatcher, new StubStore(ExistingProfile()));
 
         var response = await controller.Update(new UpdateOwnerCompanyProfileRequest(), default);
@@ -170,49 +264,51 @@ public sealed class OwnerCompanyProfileControllerTests
     }
 
     [Fact]
-    public async Task Create_preserves_handler_validation_problem_details()
+    public async Task Create_maps_handler_conflict_problem_details()
     {
-        var errors = new Dictionary<string, string[]>
-        {
-            ["Profile"] = ["Owner company profile already exists."]
-        };
         var dispatcher = new StubCommandDispatcher(
-            CommandDispatchResult<CreateOwnerCompanyProfileResult>.Success(
-                CreateOwnerCompanyProfileResult.Failed(errors)));
+            ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.Conflict(
+                "owner_company_profile.already_exists",
+                "Owner company profile already exists.")));
         var controller = CreateController(dispatcher, new StubStore(ExistingProfile()));
 
         var response = await controller.Create(ValidCreateRequest("billing@example.com"), default);
 
-        AssertValidationProblem(response.Result, errors);
+        AssertProblem(
+            response.Result,
+            409,
+            "owner_company_profile.already_exists",
+            "Owner company profile already exists.");
     }
 
     [Fact]
-    public async Task Update_preserves_handler_validation_problem_details()
+    public async Task Update_maps_handler_failure_problem_details()
     {
-        var errors = new Dictionary<string, string[]>
-        {
-            ["Profile"] = ["Owner company profile could not be updated."]
-        };
         var dispatcher = new StubCommandDispatcher(
-            CommandDispatchResult<UpdateOwnerCompanyProfileResult>.Success(
-                UpdateOwnerCompanyProfileResult.Failed(errors)));
+            ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.Failure(
+                "owner_company_profile.update_failed",
+                "Owner company profile could not be updated.")));
         var controller = CreateController(dispatcher, new StubStore(ExistingProfile()));
 
         var response = await controller.Update(ValidUpdateRequest("billing@example.com"), default);
 
-        AssertValidationProblem(response.Result, errors);
+        AssertProblem(
+            response.Result,
+            400,
+            "owner_company_profile.update_failed",
+            "Owner company profile could not be updated.");
     }
 
     private sealed class StubCommandDispatcher(object response) : ICommandDispatcher
     {
         public object? Command { get; private set; }
 
-        public Task<CommandDispatchResult<TResult>> Send<TCommand, TResult>(
+        public Task<ApplicationResult<TResult>> Send<TCommand, TResult>(
             TCommand command,
             CancellationToken cancellationToken = default)
         {
             this.Command = command;
-            return Task.FromResult((CommandDispatchResult<TResult>)response);
+            return Task.FromResult((ApplicationResult<TResult>)response);
         }
     }
 
@@ -255,15 +351,20 @@ public sealed class OwnerCompanyProfileControllerTests
 
     private static async Task<WebApplication> StartHttpApplication(StubStore store)
     {
-        var builder = WebApplication.CreateBuilder();
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            EnvironmentName = Environments.Production
+        });
         builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services
             .AddControllers()
             .AddApplicationPart(typeof(OwnerCompanyProfileController).Assembly);
         builder.Services.AddSingleton<IOwnerCompanyProfileStore>(store);
         builder.Services.AddBillingManagementApplication();
+        builder.Services.AddProblemDetails();
 
         var app = builder.Build();
+        app.UseExceptionHandler();
         app.MapControllers();
         await app.StartAsync();
         return app;
@@ -339,6 +440,20 @@ public sealed class OwnerCompanyProfileControllerTests
         }
     }
 
+    private static void AssertProblem(
+        ActionResult? result,
+        int expectedStatus,
+        string expectedCode,
+        string expectedDetail)
+    {
+        var objectResult = Assert.IsAssignableFrom<ObjectResult>(result);
+        var problem = Assert.IsType<ProblemDetails>(objectResult.Value);
+        Assert.Equal(expectedStatus, objectResult.StatusCode);
+        Assert.Equal(expectedStatus, problem.Status);
+        Assert.Equal(expectedCode, problem.Extensions["code"]);
+        Assert.Equal(expectedDetail, problem.Detail);
+    }
+
     private static void AssertValidationErrors(
         IReadOnlyDictionary<string, string[]> expected,
         IDictionary<string, string[]> actual)
@@ -350,6 +465,9 @@ public sealed class OwnerCompanyProfileControllerTests
         }
     }
 
+    private static string? ProblemCode(ProblemDetails problem) =>
+        Assert.IsType<JsonElement>(problem.Extensions["code"]).GetString();
+
     private static IReadOnlyDictionary<string, string[]> ExpectedRequiredErrors() =>
         new Dictionary<string, string[]>
         {
@@ -360,12 +478,16 @@ public sealed class OwnerCompanyProfileControllerTests
             ["Country"] = ["Country is required."]
         };
 
-    private sealed class StubStore(OwnerCompanyProfileRecord? profile = null) : IOwnerCompanyProfileStore
+    private sealed class StubStore(
+        OwnerCompanyProfileRecord? profile = null,
+        Exception? exception = null) : IOwnerCompanyProfileStore
     {
         private OwnerCompanyProfileRecord? profile = profile;
 
         public Task<OwnerCompanyProfileRecord?> GetAsync(CancellationToken cancellationToken = default) =>
-            Task.FromResult(this.profile);
+            exception is null
+                ? Task.FromResult(this.profile)
+                : Task.FromException<OwnerCompanyProfileRecord?>(exception);
 
         public Task<bool> Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
         {
