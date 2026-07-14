@@ -1,8 +1,10 @@
+using BillingManagement.Application.Abstractions.Results;
+
 namespace BillingManagement.Application.Abstractions.Commands;
 
 public interface ICommandHandler<in TCommand, TResult>
 {
-    Task<TResult> Handle(
+    Task<ApplicationResult<TResult>> Handle(
         TCommand command,
         CancellationToken cancellationToken = default);
 }

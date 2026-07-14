@@ -1,4 +1,5 @@
 using BillingManagement.Application.Abstractions.Commands;
+using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Commands;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProfile;
@@ -15,11 +16,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICommandDispatcher, CommandDispatcher>();
         services.AddScoped(typeof(ICommandValidator<>), typeof(AnnotationCommandValidator<>));
         services.AddScoped<
-            ICommandHandler<CreateOwnerCompanyProfileCommand, CreateOwnerCompanyProfileResult>,
+            ICommandHandler<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>,
             CreateOwnerCompanyProfileHandler>();
         services.AddScoped<GetOwnerCompanyProfileHandler>();
         services.AddScoped<
-            ICommandHandler<UpdateOwnerCompanyProfileCommand, UpdateOwnerCompanyProfileResult>,
+            ICommandHandler<UpdateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>,
             UpdateOwnerCompanyProfileHandler>();
         return services;
     }

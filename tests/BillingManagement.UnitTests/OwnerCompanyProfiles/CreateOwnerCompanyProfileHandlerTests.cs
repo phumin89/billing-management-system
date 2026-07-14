@@ -1,4 +1,5 @@
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
+using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 
 namespace BillingManagement.UnitTests.OwnerCompanyProfiles;
@@ -13,11 +14,11 @@ public class CreateOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(ValidCommand());
 
-        Assert.True(result.Succeeded);
-        Assert.NotNull(result.Profile);
-        Assert.Equal("Acme Co", result.Profile.CompanyName);
-        Assert.Equal("Bangkok", result.Profile.City);
-        Assert.NotEqual(Guid.Empty, result.Profile.Id);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal("Acme Co", result.Value.CompanyName);
+        Assert.Equal("Bangkok", result.Value.City);
+        Assert.NotEqual(Guid.Empty, result.Value.Id);
         Assert.NotNull(store.Profile);
     }
 
@@ -30,8 +31,11 @@ public class CreateOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(ValidCommand());
 
-        Assert.False(result.Succeeded);
-        Assert.Contains("Owner company profile already exists.", result.Errors["Profile"]);
+        Assert.False(result.IsSuccess);
+        Assert.NotNull(result.Error);
+        Assert.Equal(ApplicationErrorKind.Conflict, result.Error.Kind);
+        Assert.Equal("owner_company_profile.already_exists", result.Error.Code);
+        Assert.Equal("Owner company profile already exists.", result.Error.Message);
     }
 
     private static CreateOwnerCompanyProfileCommand ValidCommand() =>
