@@ -4,6 +4,7 @@ using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Commands;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
+using BillingManagement.Application.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BillingManagement.UnitTests;
@@ -11,7 +12,7 @@ namespace BillingManagement.UnitTests;
 public sealed class ApplicationServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddBillingManagementApplication_registers_dispatcher_handlers_and_validators_explicitly()
+    public void AddBillingManagementApplication_registers_dispatcher_handlers_and_open_generic_annotation_validator()
     {
         var services = new ServiceCollection();
         services.AddSingleton<IOwnerCompanyProfileStore, StubStore>();
@@ -23,11 +24,15 @@ public sealed class ApplicationServiceCollectionExtensionsTests
             provider.GetRequiredService<ICommandHandler<CreateOwnerCompanyProfileCommand, CreateOwnerCompanyProfileResult>>());
         Assert.IsType<UpdateOwnerCompanyProfileHandler>(
             provider.GetRequiredService<ICommandHandler<UpdateOwnerCompanyProfileCommand, UpdateOwnerCompanyProfileResult>>());
-        Assert.IsType<CreateOwnerCompanyProfileValidator>(
+        Assert.IsType<AnnotationCommandValidator<CreateOwnerCompanyProfileCommand>>(
             Assert.Single(provider.GetServices<ICommandValidator<CreateOwnerCompanyProfileCommand>>()));
-        Assert.IsType<UpdateOwnerCompanyProfileValidator>(
+        Assert.IsType<AnnotationCommandValidator<UpdateOwnerCompanyProfileCommand>>(
             Assert.Single(provider.GetServices<ICommandValidator<UpdateOwnerCompanyProfileCommand>>()));
+        Assert.IsType<AnnotationCommandValidator<TestCommand>>(
+            provider.GetRequiredService<ICommandValidator<TestCommand>>());
     }
+
+    private sealed record TestCommand;
 
     private sealed class StubStore : IOwnerCompanyProfileStore
     {

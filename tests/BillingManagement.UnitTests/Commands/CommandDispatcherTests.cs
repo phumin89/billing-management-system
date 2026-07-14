@@ -1,5 +1,6 @@
 using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Commands;
+using BillingManagement.Application.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BillingManagement.UnitTests.Commands;
@@ -50,12 +51,35 @@ public sealed class CommandDispatcherTests
         Assert.Equal(0, handler.InvocationCount);
     }
 
+    [Fact]
+    public async Task Send_aggregates_annotation_and_explicit_errors_before_handler()
+    {
+        var events = new List<string>();
+        var handler = new RecordingHandler(events);
+        var dispatcher = CreateDispatcher(
+            handler,
+            new RecordingValidator(events, new Dictionary<string, string[]>
+            {
+                ["Name"] = ["Names must differ."]
+            }));
+
+        var result = await dispatcher.Send<TestCommand, string>(new TestCommand(" "));
+
+        Assert.False(result.IsValid);
+        Assert.Equal(
+            ["Name is required.", "Names must differ."],
+            result.ValidationErrors["Name"]);
+        Assert.Equal(["validator"], events);
+        Assert.Equal(0, handler.InvocationCount);
+    }
+
     private static ICommandDispatcher CreateDispatcher(
         RecordingHandler handler,
         params RecordingValidator[] validators)
     {
         var services = new ServiceCollection();
         services.AddSingleton<ICommandHandler<TestCommand, string>>(handler);
+        services.AddSingleton<ICommandValidator<TestCommand>, AnnotationCommandValidator<TestCommand>>();
         foreach (var validator in validators)
         {
             services.AddSingleton<ICommandValidator<TestCommand>>(validator);
@@ -64,7 +88,9 @@ public sealed class CommandDispatcherTests
         return new CommandDispatcher(services.BuildServiceProvider());
     }
 
-    private sealed record TestCommand;
+    private sealed record TestCommand(
+        [property: RequiredText("Name is required.")]
+        string Name = "Valid");
 
     private sealed class RecordingHandler(List<string> events)
         : ICommandHandler<TestCommand, string>

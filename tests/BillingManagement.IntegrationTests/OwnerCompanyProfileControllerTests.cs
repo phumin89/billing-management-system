@@ -40,20 +40,42 @@ public sealed class OwnerCompanyProfileControllerTests
         var updateProblem = await updateResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
         Assert.NotNull(createProblem);
         Assert.NotNull(updateProblem);
-        Assert.Equal(updateProblem.Errors.Keys.Order(), createProblem.Errors.Keys.Order());
-        foreach (var field in updateProblem.Errors.Keys)
-        {
-            Assert.Equal(updateProblem.Errors[field], createProblem.Errors[field]);
-        }
-
-        Assert.Equal(["Company name is required."], createProblem.Errors["CompanyName"]);
+        Assert.Equal(400, createProblem.Status);
+        Assert.Equal(400, updateProblem.Status);
+        AssertValidationErrors(ExpectedRequiredErrors(), createProblem.Errors);
+        AssertValidationErrors(ExpectedRequiredErrors(), updateProblem.Errors);
     }
 
     [Fact]
-    public async Task Create_and_update_reject_the_same_invalid_email()
+    public async Task Create_and_update_preserve_maximum_length_then_email_error_order()
     {
-        const string invalidEmail = "a@";
+        var email = new string('x', 255);
+        await using var app = await StartHttpApplication(new StubStore(ExistingProfile()));
+        using var client = new HttpClient { BaseAddress = GetServerAddress(app) };
 
+        var createResponse = await client.PostAsJsonAsync(
+            "/api/owner-company-profile",
+            ValidCreateRequest(email));
+        var updateResponse = await client.PutAsJsonAsync(
+            "/api/owner-company-profile",
+            ValidUpdateRequest(email));
+
+        Assert.Equal(HttpStatusCode.BadRequest, createResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
+        var createProblem = await createResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        var updateProblem = await updateResponse.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.NotNull(createProblem);
+        Assert.NotNull(updateProblem);
+        string[] expected = ["Must not exceed 254 characters.", "Email format is invalid."];
+        Assert.Equal(expected, createProblem.Errors["Email"]);
+        Assert.Equal(expected, updateProblem.Errors["Email"]);
+    }
+
+    [Theory]
+    [InlineData("a@")]
+    [InlineData(" a@ ")]
+    public async Task Create_and_update_reject_the_same_invalid_email(string invalidEmail)
+    {
         var createResponse = await CreateController(new StubStore()).Create(
             ValidCreateRequest(invalidEmail),
             default);
@@ -75,6 +97,23 @@ public sealed class OwnerCompanyProfileControllerTests
             default);
         var updateResponse = await CreateController(new StubStore(ExistingProfile())).Update(
             ValidUpdateRequest(validEmail),
+            default);
+
+        Assert.IsType<CreatedAtActionResult>(createResponse.Result);
+        Assert.IsType<OkObjectResult>(updateResponse.Result);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task Create_and_update_accept_optional_blank_email(string? email)
+    {
+        var createResponse = await CreateController(new StubStore()).Create(
+            ValidCreateRequest(email),
+            default);
+        var updateResponse = await CreateController(new StubStore(ExistingProfile())).Update(
+            ValidUpdateRequest(email),
             default);
 
         Assert.IsType<CreatedAtActionResult>(createResponse.Result);
@@ -239,7 +278,7 @@ public sealed class OwnerCompanyProfileControllerTests
         return new Uri(addresses.Addresses.Single());
     }
 
-    private static CreateOwnerCompanyProfileRequest ValidCreateRequest(string email) =>
+    private static CreateOwnerCompanyProfileRequest ValidCreateRequest(string? email) =>
         new()
         {
             CompanyName = "Acme Co.",
@@ -250,7 +289,7 @@ public sealed class OwnerCompanyProfileControllerTests
             Email = email
         };
 
-    private static UpdateOwnerCompanyProfileRequest ValidUpdateRequest(string email) =>
+    private static UpdateOwnerCompanyProfileRequest ValidUpdateRequest(string? email) =>
         new()
         {
             CompanyName = "Acme Co.",
@@ -299,6 +338,27 @@ public sealed class OwnerCompanyProfileControllerTests
             Assert.Equal(error.Value, problem.Errors[error.Key]);
         }
     }
+
+    private static void AssertValidationErrors(
+        IReadOnlyDictionary<string, string[]> expected,
+        IDictionary<string, string[]> actual)
+    {
+        Assert.Equal(expected.Keys.Order(), actual.Keys.Order());
+        foreach (var error in expected)
+        {
+            Assert.Equal(error.Value, actual[error.Key]);
+        }
+    }
+
+    private static IReadOnlyDictionary<string, string[]> ExpectedRequiredErrors() =>
+        new Dictionary<string, string[]>
+        {
+            ["CompanyName"] = ["Company name is required."],
+            ["AddressLine1"] = ["Address line 1 is required."],
+            ["City"] = ["City / province / state is required."],
+            ["PostalCode"] = ["Postal code is required."],
+            ["Country"] = ["Country is required."]
+        };
 
     private sealed class StubStore(OwnerCompanyProfileRecord? profile = null) : IOwnerCompanyProfileStore
     {
