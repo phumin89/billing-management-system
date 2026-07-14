@@ -55,17 +55,89 @@ public sealed class OwnerCompanyProfileClientTests
         Assert.Equal("Company profile already exists. Refresh the page to view it.", result.Message);
     }
 
+    [Fact]
+    public async Task Delete_sends_delete_request_to_company_profile_endpoint()
+    {
+        HttpMethod? method = null;
+        string? requestUri = null;
+        var client = CreateClient(request =>
+        {
+            method = request.Method;
+            requestUri = request.RequestUri?.ToString();
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+        });
+
+        await client.Delete();
+
+        Assert.Equal(HttpMethod.Delete, method);
+        Assert.Equal("http://localhost/api/owner-company-profile", requestUri);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.NoContent)]
+    [InlineData(HttpStatusCode.NotFound)]
+    public async Task Delete_treats_absent_profile_as_success(HttpStatusCode statusCode)
+    {
+        var client = CreateClient(new HttpResponseMessage(statusCode));
+
+        var result = await client.Delete();
+
+        Assert.True(result.Succeeded);
+        Assert.Null(result.Message);
+    }
+
+    [Fact]
+    public async Task Delete_returns_dependency_message_from_conflict()
+    {
+        var client = CreateClient(new HttpResponseMessage(HttpStatusCode.Conflict));
+
+        var result = await client.Delete();
+
+        Assert.False(result.Succeeded);
+        Assert.Equal(
+            "Company profile is used by quotations or invoices and cannot be deleted.",
+            result.Message);
+    }
+
+    [Fact]
+    public async Task Delete_returns_retry_message_from_unexpected_response()
+    {
+        var client = CreateClient(new HttpResponseMessage(HttpStatusCode.InternalServerError));
+
+        var result = await client.Delete();
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("Could not delete company profile. Try again.", result.Message);
+    }
+
+    [Fact]
+    public async Task Delete_returns_retry_message_when_api_is_unreachable()
+    {
+        var client = CreateClient(_ =>
+            Task.FromException<HttpResponseMessage>(new HttpRequestException("API unavailable.")));
+
+        var result = await client.Delete();
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("Could not delete company profile. Try again.", result.Message);
+    }
+
     private static OwnerCompanyProfileClient CreateClient(HttpResponseMessage response) =>
-        new(new HttpClient(new StubHttpMessageHandler(response))
+        CreateClient(_ => Task.FromResult(response));
+
+    private static OwnerCompanyProfileClient CreateClient(
+        Func<HttpRequestMessage, Task<HttpResponseMessage>> sendAsync) =>
+        new(new HttpClient(new StubHttpMessageHandler(sendAsync))
         {
             BaseAddress = new Uri("http://localhost")
         });
 
-    private sealed class StubHttpMessageHandler(HttpResponseMessage response) : HttpMessageHandler
+    private sealed class StubHttpMessageHandler(
+        Func<HttpRequestMessage, Task<HttpResponseMessage>> sendAsync) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken) =>
-            Task.FromResult(response);
+            sendAsync(request);
     }
 }

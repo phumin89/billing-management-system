@@ -101,6 +101,35 @@ public sealed class OwnerCompanyProfileClient(HttpClient httpClient)
             "Could not update company profile. Try again.");
     }
 
+    public async Task<DeleteOwnerCompanyProfileResult> Delete(
+        CancellationToken cancellationToken = default)
+    {
+        HttpResponseMessage response;
+        try
+        {
+            response = await httpClient.DeleteAsync("api/owner-company-profile", cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            return DeleteOwnerCompanyProfileResult.Failed(
+                "Could not delete company profile. Try again.");
+        }
+
+        if (response.StatusCode is HttpStatusCode.NoContent or HttpStatusCode.NotFound)
+        {
+            return DeleteOwnerCompanyProfileResult.Success();
+        }
+
+        if (response.StatusCode is HttpStatusCode.Conflict)
+        {
+            return DeleteOwnerCompanyProfileResult.Failed(
+                "Company profile is used by quotations or invoices and cannot be deleted.");
+        }
+
+        return DeleteOwnerCompanyProfileResult.Failed(
+            "Could not delete company profile. Try again.");
+    }
+
     private sealed class ValidationProblemResponse
     {
         public Dictionary<string, string[]> Errors { get; set; } = [];
