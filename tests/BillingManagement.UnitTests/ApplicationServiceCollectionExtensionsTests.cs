@@ -3,6 +3,7 @@ using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Commands;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
+using BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
 using BillingManagement.Application.Validation;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,8 @@ public sealed class ApplicationServiceCollectionExtensionsTests
         Assert.IsType<CommandDispatcher>(provider.GetRequiredService<ICommandDispatcher>());
         Assert.IsType<CreateOwnerCompanyProfileHandler>(
             provider.GetRequiredService<ICommandHandler<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>>());
+        Assert.IsType<DeleteOwnerCompanyProfileHandler>(
+            provider.GetRequiredService<ICommandHandler<DeleteOwnerCompanyProfileCommand, bool>>());
         Assert.IsType<UpdateOwnerCompanyProfileHandler>(
             provider.GetRequiredService<ICommandHandler<UpdateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>>());
         Assert.IsType<AnnotationCommandValidator<CreateOwnerCompanyProfileCommand>>(
@@ -44,5 +47,8 @@ public sealed class ApplicationServiceCollectionExtensionsTests
 
         public Task<bool> Update(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default) =>
             Task.FromResult(true);
+
+        public Task<OwnerCompanyProfileDeleteResult> Delete(CancellationToken cancellationToken = default) =>
+            Task.FromResult(OwnerCompanyProfileDeleteResult.NotFound);
     }
 }

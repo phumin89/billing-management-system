@@ -30,4 +30,15 @@ internal sealed class InMemoryOwnerCompanyProfileStore : IOwnerCompanyProfileSto
         this.Profile = profile;
         return Task.FromResult(true);
     }
+
+    public Task<OwnerCompanyProfileDeleteResult> Delete(CancellationToken cancellationToken = default)
+    {
+        if (this.Profile is null)
+        {
+            return Task.FromResult(OwnerCompanyProfileDeleteResult.NotFound);
+        }
+
+        this.Profile = null;
+        return Task.FromResult(OwnerCompanyProfileDeleteResult.Deleted);
+    }
 }

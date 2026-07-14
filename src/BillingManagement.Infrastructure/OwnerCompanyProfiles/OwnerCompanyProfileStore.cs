@@ -75,6 +75,20 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
         return true;
     }
 
+    public async Task<OwnerCompanyProfileDeleteResult> Delete(
+        CancellationToken cancellationToken = default)
+    {
+        var profile = await dbContext.OwnerCompanyProfiles.SingleOrDefaultAsync(cancellationToken);
+        if (profile is null)
+        {
+            return OwnerCompanyProfileDeleteResult.NotFound;
+        }
+
+        dbContext.OwnerCompanyProfiles.Remove(profile);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return OwnerCompanyProfileDeleteResult.Deleted;
+    }
+
     private static OwnerCompanyProfileRecord ToRecord(OwnerCompanyProfile profile) =>
         new(
             profile.Id,

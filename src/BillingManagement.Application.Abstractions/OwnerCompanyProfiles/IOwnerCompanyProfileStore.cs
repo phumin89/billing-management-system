@@ -7,4 +7,6 @@ public interface IOwnerCompanyProfileStore
     Task<bool> Add(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default);
 
     Task<bool> Update(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default);
+
+    Task<OwnerCompanyProfileDeleteResult> Delete(CancellationToken cancellationToken = default);
 }
