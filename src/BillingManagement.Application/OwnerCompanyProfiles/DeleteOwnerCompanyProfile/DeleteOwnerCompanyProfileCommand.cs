@@ -1,0 +1,3 @@
+namespace BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfile;
+
+public sealed record DeleteOwnerCompanyProfileCommand;

@@ -113,6 +113,59 @@ public sealed class OwnerCompanyProfileControllerTests
     }
 
     [Fact]
+    public async Task Delete_existing_profile_returns_no_content_and_removes_profile()
+    {
+        var store = new StubStore(ExistingProfile());
+        await using var app = await StartHttpApplication(store);
+        using var client = new HttpClient { BaseAddress = GetServerAddress(app) };
+
+        var response = await client.DeleteAsync("/api/owner-company-profile");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Null(await store.GetAsync());
+    }
+
+    [Fact]
+    public async Task Delete_missing_profile_returns_not_found_problem_details()
+    {
+        var store = new StubStore();
+        await using var app = await StartHttpApplication(store);
+        using var client = new HttpClient { BaseAddress = GetServerAddress(app) };
+
+        var response = await client.DeleteAsync("/api/owner-company-profile");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.NotNull(problem);
+        Assert.Equal(404, problem.Status);
+        Assert.Equal("Owner company profile was not found.", problem.Detail);
+        Assert.Equal("owner_company_profile.not_found", ProblemCode(problem));
+        Assert.Null(await store.GetAsync());
+    }
+
+    [Fact]
+    public async Task Delete_profile_with_dependencies_returns_conflict_problem_details()
+    {
+        var store = new StubStore(
+            ExistingProfile(),
+            deleteResult: OwnerCompanyProfileDeleteResult.DependencyConflict);
+        await using var app = await StartHttpApplication(store);
+        using var client = new HttpClient { BaseAddress = GetServerAddress(app) };
+
+        var response = await client.DeleteAsync("/api/owner-company-profile");
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.NotNull(problem);
+        Assert.Equal(409, problem.Status);
+        Assert.Equal(
+            "Company profile is used by quotations or invoices and cannot be deleted.",
+            problem.Detail);
+        Assert.Equal("owner_company_profile.in_use", ProblemCode(problem));
+        Assert.NotNull(await store.GetAsync());
+    }
+
+    [Fact]
     public async Task Unhandled_exception_returns_sanitized_problem_details()
     {
         const string exceptionMessage = "Sensitive database failure detail.";
@@ -480,7 +533,8 @@ public sealed class OwnerCompanyProfileControllerTests
 
     private sealed class StubStore(
         OwnerCompanyProfileRecord? profile = null,
-        Exception? exception = null) : IOwnerCompanyProfileStore
+        Exception? exception = null,
+        OwnerCompanyProfileDeleteResult? deleteResult = null) : IOwnerCompanyProfileStore
     {
         private OwnerCompanyProfileRecord? profile = profile;
 
@@ -509,6 +563,20 @@ public sealed class OwnerCompanyProfileControllerTests
 
             this.profile = profile;
             return Task.FromResult(true);
+        }
+
+        public Task<OwnerCompanyProfileDeleteResult> Delete(CancellationToken cancellationToken = default)
+        {
+            var result = deleteResult ?? (this.profile is null
+                ? OwnerCompanyProfileDeleteResult.NotFound
+                : OwnerCompanyProfileDeleteResult.Deleted);
+
+            if (result == OwnerCompanyProfileDeleteResult.Deleted)
+            {
+                this.profile = null;
+            }
+
+            return Task.FromResult(result);
         }
     }
 }

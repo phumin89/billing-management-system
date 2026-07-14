@@ -11,6 +11,50 @@ namespace BillingManagement.IntegrationTests;
 public sealed class OwnerCompanyProfileStoreTests
 {
     [Fact]
+    public async Task Delete_removes_existing_profile()
+    {
+        var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();
+
+        try
+        {
+            await using var context = SqlServerIntegrationTestDatabase.CreateContext(databaseName);
+            await context.Database.MigrateAsync();
+            var store = new OwnerCompanyProfileStore(context);
+            Assert.True(await store.Add(ValidRecord()));
+
+            var result = await store.Delete();
+
+            Assert.Equal(OwnerCompanyProfileDeleteResult.Deleted, result);
+            Assert.False(await context.OwnerCompanyProfiles.AnyAsync());
+        }
+        finally
+        {
+            await SqlServerIntegrationTestDatabase.Delete(databaseName);
+        }
+    }
+
+    [Fact]
+    public async Task Delete_returns_not_found_when_profile_missing()
+    {
+        var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();
+
+        try
+        {
+            await using var context = SqlServerIntegrationTestDatabase.CreateContext(databaseName);
+            await context.Database.MigrateAsync();
+            var store = new OwnerCompanyProfileStore(context);
+
+            var result = await store.Delete();
+
+            Assert.Equal(OwnerCompanyProfileDeleteResult.NotFound, result);
+        }
+        finally
+        {
+            await SqlServerIntegrationTestDatabase.Delete(databaseName);
+        }
+    }
+
+    [Fact]
     public async Task Database_rejects_blank_values_and_second_profile()
     {
         var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();
@@ -109,6 +153,11 @@ public sealed class OwnerCompanyProfileStoreTests
     private static CreateOwnerCompanyProfileCommand ValidCommand(string companyName) =>
         new(
             companyName, "1 Main Street", null, "Bangkok", "10110", "Thailand",
+            null, null, null, null, null, null);
+
+    private static OwnerCompanyProfileRecord ValidRecord() =>
+        new(
+            Guid.NewGuid(), "Acme Co", "1 Main Street", null, "Bangkok", "10110", "Thailand",
             null, null, null, null, null, null);
 
     private static string InsertSql(string companyName, string addressLine2) =>

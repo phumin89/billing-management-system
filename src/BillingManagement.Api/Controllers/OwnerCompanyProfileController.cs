@@ -1,6 +1,7 @@
 using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
+using BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
 using BillingManagement.Contracts.OwnerCompanyProfiles;
@@ -77,6 +78,20 @@ public sealed class OwnerCompanyProfileController(
         }
 
         return this.Ok(ToResponse(result.Value!));
+    }
+
+    [HttpDelete]
+    public async Task<ActionResult> Delete(CancellationToken cancellationToken)
+    {
+        var result = await commandDispatcher.Send<DeleteOwnerCompanyProfileCommand, bool>(
+            new DeleteOwnerCompanyProfileCommand(), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return this.ToProblemDetails(result.Error!);
+        }
+
+        return this.NoContent();
     }
 
     private static OwnerCompanyProfileResponse ToResponse(OwnerCompanyProfileRecord profile) =>
