@@ -38,6 +38,16 @@ public sealed class CompanyProfileIdentityTests
         Assert.Contains("aria-label=\"Call +66 2 555 0100\"", markup);
     }
 
+    [Fact]
+    public void Route_focused_heading_does_not_draw_control_outline()
+    {
+        var styles = ReadApplicationStyles().ReplaceLineEndings("\n");
+
+        Assert.Contains(
+            "h1[tabindex=\"-1\"]:focus-visible {\n  outline: none;\n}",
+            styles);
+    }
+
     private static async Task<string> RenderExistingProfile()
     {
         using var services = new ServiceCollection()
@@ -51,6 +61,31 @@ public sealed class CompanyProfileIdentityTests
             var component = await renderer.RenderComponentAsync<CompanyProfile>();
             return component.ToHtmlString();
         });
+    }
+
+    private static string ReadApplicationStyles()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            var path = Path.Combine(
+                directory.FullName,
+                "src",
+                "BillingManagement.Client",
+                "wwwroot",
+                "css",
+                "app.css");
+
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new FileNotFoundException("Could not find application styles.");
     }
 
     private sealed class TestNavigationManager : NavigationManager
