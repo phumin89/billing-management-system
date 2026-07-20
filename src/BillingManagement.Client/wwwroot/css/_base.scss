@@ -236,36 +236,11 @@ input {
     &.is-collapsed {
         .sidebar {
             width: 112px;
-
-            &.active-company {
-                --indicator-y: calc(100vh - 76px);
-                --indicator-height: 62px;
-            }
         }
 
         .sidebar-text {
-            max-width: 0;
             opacity: 0;
-        }
-
-        .sidebar-top {
-            padding: 0 12px;
-        }
-
-        .brand,
-        .nav-item,
-        .company-link {
-            justify-content: center;
-            gap: 0;
-        }
-
-        .nav-item {
-            padding: 0;
-        }
-
-        .company-link {
-            min-height: 62px;
-            padding: 8px 0;
+            transform: translateX(-8px);
         }
 
         .sidebar-toggle svg {
@@ -291,7 +266,7 @@ input {
     background: #ffffff;
     border-right: 1px solid #dddddd;
     box-sizing: border-box;
-    transition: width 300ms ease, padding 300ms ease;
+    transition: width 300ms ease-out;
 
     &.active-quotations {
         --indicator-y: 168px;
@@ -311,14 +286,14 @@ input {
     position: absolute;
     top: 0;
     left: 16px;
-    right: 16px;
+    right: 15px;
     z-index: 0;
     height: var(--indicator-height);
     border-radius: 12px;
     background: #e0e2e6;
     pointer-events: none;
     transform: translateY(var(--indicator-y));
-    transition: transform 300ms ease, height 300ms ease;
+    transition: transform 300ms ease-out, height 300ms ease-out;
 }
 
 .sidebar-top,
@@ -332,27 +307,31 @@ input {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 12px;
     min-height: 48px;
     margin-bottom: 30px;
-    padding: 0 12px;
+    padding: 0;
 }
 
 .brand,
 .nav-item,
 .company-link {
-    display: flex;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
     align-items: center;
-    gap: 14px;
+    justify-content: stretch;
+    column-gap: 14px;
     min-height: 44px;
+    padding-inline: 21px 10px;
+    overflow: hidden;
     color: #1f2933;
     text-decoration: none;
     border-radius: 12px;
-    transition: background 160ms ease, color 160ms ease, gap 300ms ease;
+    transition: background 160ms ease, color 160ms ease;
     box-sizing: border-box;
 }
 
 .brand {
+    width: 100%;
     min-width: 0;
     color: #181d26;
     font-size: 21px;
@@ -362,11 +341,12 @@ input {
 
 .sidebar-text {
     display: inline-block;
-    max-width: 190px;
+    min-width: 0;
     overflow: hidden;
     white-space: nowrap;
     opacity: 1;
-    transition: max-width 300ms ease, opacity 300ms ease;
+    transform: translateX(0);
+    transition: opacity 300ms ease-out, transform 300ms ease-out;
 }
 
 .brand-mark,
@@ -392,12 +372,12 @@ input {
 .nav-list {
     display: grid;
     gap: 8px;
-    padding: 0 2px;
+    padding: 0;
 }
 
 .nav-item {
     min-height: 54px;
-    padding: 0 14px;
+    padding-block: 0;
     color: #333840;
     font-size: 16px;
     font-weight: 600;
@@ -440,13 +420,13 @@ input {
 .company-link {
     margin-top: auto;
     min-height: 64px;
-    padding: 8px 10px;
+    padding-block: 8px;
     color: #181d26;
     background: transparent;
-    border: 1px solid #dddddd;
+    border: 0;
     font-size: 15px;
     font-weight: 700;
-    box-shadow: 0 1px 2px rgba(24, 29, 38, 0.04);
+    box-shadow: inset 0 0 0 1px #dddddd, 0 1px 2px rgba(24, 29, 38, 0.04);
 
     &.active {
         color: #181d26;
@@ -506,7 +486,7 @@ input {
         width: 22px;
         height: 22px;
         fill: currentColor;
-        transition: transform 300ms ease;
+        transition: transform 300ms ease-out;
     }
 
     &:hover,
@@ -520,6 +500,15 @@ input {
     min-width: 0;
     margin-left: 316px;
     padding: 32px 40px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar,
+    .sidebar-indicator,
+    .sidebar-text,
+    .sidebar-toggle svg {
+        transition: none;
+    }
 }
 
 @media (max-width: 640px) {
