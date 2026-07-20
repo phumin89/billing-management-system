@@ -169,7 +169,9 @@
             <p>Delete company profile? You can create a new one later. Delete is blocked when quotations or invoices use this profile.</p>
             <div class="company-snackbar-actions">
                 <button type="button" @onclick="CloseDeleteSnackbar">Cancel</button>
-                <button type="button" class="danger" disabled="@isDeleting" @onclick="ConfirmDelete">Delete</button>
+                <button type="button" class="danger" disabled="@isDeleting" @onclick="ConfirmDelete">
+                    @(isDeleting ? "Deleting..." : "Delete")
+                </button>
             </div>
         </div>
     }

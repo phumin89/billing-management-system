@@ -3,6 +3,10 @@ using System.Reflection;
 using BillingManagement.Client.OwnerCompanyProfiles;
 using BillingManagement.Client.Pages.CompanyProfile;
 using BillingManagement.Contracts.OwnerCompanyProfiles;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BillingManagement.UnitTests.OwnerCompanyProfiles;
 
@@ -32,6 +36,14 @@ public sealed class CompanyProfileDeleteTests
         Assert.False(Field<bool>(component, "isDeleting"));
         Assert.Equal("Empty", ReviewState(component));
         Assert.Null(Field<OwnerCompanyProfileResponse?>(component, "profile"));
+    }
+
+    [Fact]
+    public async Task Delete_confirmation_renders_pending_label_while_deleting()
+    {
+        var markup = await RenderPendingDelete();
+
+        Assert.Contains(">Deleting...</button>", markup);
     }
 
     [Theory]
@@ -79,6 +91,21 @@ public sealed class CompanyProfileDeleteTests
     private static Task ConfirmDelete(CompanyProfile component) =>
         (Task)Method(component, "ConfirmDelete").Invoke(component, null)!;
 
+    private static async Task<string> RenderPendingDelete()
+    {
+        using var services = new ServiceCollection()
+            .AddSingleton<NavigationManager>(new TestNavigationManager())
+            .AddSingleton(new OwnerCompanyProfileClient(new HttpClient()))
+            .BuildServiceProvider();
+        await using var renderer = new HtmlRenderer(services, NullLoggerFactory.Instance);
+
+        return await renderer.Dispatcher.InvokeAsync(async () =>
+        {
+            var component = await renderer.RenderComponentAsync<PendingDeleteCompanyProfile>();
+            return component.ToHtmlString();
+        });
+    }
+
     private static string ReviewState(CompanyProfile component) =>
         FieldValue(component, "reviewState")!.ToString()!;
 
@@ -86,16 +113,16 @@ public sealed class CompanyProfileDeleteTests
         (T)FieldValue(component, name)!;
 
     private static object? FieldValue(CompanyProfile component, string name) =>
-        FieldInfo(component, name).GetValue(component);
+        FieldInfo(name).GetValue(component);
 
     private static void SetField(CompanyProfile component, string name, object? value)
     {
-        var field = FieldInfo(component, name);
+        var field = FieldInfo(name);
         field.SetValue(component, field.FieldType.IsEnum ? Enum.Parse(field.FieldType, (string)value!) : value);
     }
 
-    private static FieldInfo FieldInfo(CompanyProfile component, string name) =>
-        component.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!;
+    private static FieldInfo FieldInfo(string name) =>
+        typeof(CompanyProfile).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!;
 
     private static PropertyInfo Property(CompanyProfile component, string name) =>
         component.GetType().GetProperty(name, BindingFlags.Instance | BindingFlags.NonPublic)!;
@@ -126,5 +153,34 @@ public sealed class CompanyProfileDeleteTests
             HttpRequestMessage request,
             CancellationToken cancellationToken) =>
             sendAsync(request);
+    }
+
+    private sealed class PendingDeleteCompanyProfile : CompanyProfile
+    {
+        public PendingDeleteCompanyProfile()
+        {
+        }
+
+        protected override Task OnInitializedAsync()
+        {
+            SetField(this, "isLoading", false);
+            SetField(this, "isDeleting", true);
+            SetField(this, "profile", ExistingProfile());
+            SetField(this, "reviewState", "Existing");
+            SetField(this, "showDeleteSnackbar", true);
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class TestNavigationManager : NavigationManager
+    {
+        public TestNavigationManager()
+        {
+            this.Initialize("http://localhost/", "http://localhost/company-profile");
+        }
+
+        protected override void NavigateToCore(string uri, bool forceLoad)
+        {
+        }
     }
 }
