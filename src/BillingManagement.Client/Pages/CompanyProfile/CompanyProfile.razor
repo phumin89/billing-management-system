@@ -4,9 +4,8 @@
 <main class="company-profile-page">
     <header class="company-page-header">
         <div>
-            <p class="company-page-kicker">Owner company</p>
             <h1>Company profile</h1>
-            <p>Seller information used later on quotation and invoice document headers.</p>
+            <p>Manage company identity and contact details.</p>
         </div>
     </header>
 
@@ -32,52 +31,90 @@
     else if (reviewState == ProfileReviewState.Existing)
     {
         <section class="company-card" data-profile-view="existing">
-            <div class="company-card-header">
-                <div>
-                    <h2>@DisplayProfile.CompanyName</h2>
-                    <p>Primary owner company profile.</p>
-                </div>
-                <div class="company-actions">
-                    <button class="company-secondary-button" type="button" @onclick="ShowEdit">Update</button>
-                    <button class="company-danger-button" type="button" @onclick="ShowDelete">Delete</button>
-                </div>
+            <div class="company-identity-cover">
+                <img src="images/company-profile/header.svg"
+                     alt="mi.nie company cover"
+                     width="1200"
+                     height="440" />
             </div>
 
-            @if (!string.IsNullOrWhiteSpace(statusMessage))
-            {
-                <p class="company-status-message" role="alert">@statusMessage</p>
-            }
+            <div class="company-card-content">
+                <div class="company-identity-row">
+                    <div class="company-identity-summary">
+                        <img class="company-identity-icon"
+                             src="images/company-profile/company-icon.svg"
+                             alt="mi.nie company mark"
+                             width="80"
+                             height="80" />
+                        <div class="company-identity-copy">
+                            <h2>@DisplayProfile.CompanyName</h2>
+                            <p>Primary owner company profile.</p>
+                        </div>
+                    </div>
+                    <div class="company-actions">
+                        <button class="company-secondary-button" type="button" @onclick="ShowEdit">Update</button>
+                        <button class="company-danger-button" type="button" @onclick="ShowDelete">Delete</button>
+                    </div>
+                </div>
 
-            <dl class="company-summary-grid">
-                <div class="full">
-                    <dt>Address</dt>
-                    <dd>@DisplayProfile.AddressLine1, @DisplayProfile.AddressLine2, @DisplayProfile.CityProvinceState, @DisplayProfile.PostalCode, @DisplayProfile.Country</dd>
-                </div>
-                <div>
-                    <dt>Tax ID</dt>
-                    <dd>@DisplayProfile.TaxId</dd>
-                </div>
-                <div>
-                    <dt>Phone</dt>
-                    <dd>@DisplayProfile.Phone</dd>
-                </div>
-                <div>
-                    <dt>Email</dt>
-                    <dd>@DisplayProfile.Email</dd>
-                </div>
-                <div>
-                    <dt>Website</dt>
-                    <dd>@DisplayProfile.Website</dd>
-                </div>
-                <div class="full">
-                    <dt>Logo/reference</dt>
-                    <dd>@DisplayProfile.LogoReference</dd>
-                </div>
-                <div class="full">
-                    <dt>Registration/business reference</dt>
-                    <dd>@DisplayProfile.RegistrationNumber</dd>
-                </div>
-            </dl>
+                @if (!string.IsNullOrWhiteSpace(statusMessage))
+                {
+                    <p class="company-status-message" role="alert">@statusMessage</p>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(DisplayProfile.Email) ||
+                    !string.IsNullOrWhiteSpace(DisplayProfile.Phone))
+                {
+                    <div class="company-contacts" aria-label="Company contacts">
+                        @if (!string.IsNullOrWhiteSpace(DisplayProfile.Email))
+                        {
+                            <a class="company-contact-link"
+                               href="@($"mailto:{DisplayProfile.Email}")"
+                               aria-label="@($"Email {DisplayProfile.Email}")">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+                                    <path d="m3 7 9 6 9-6" />
+                                </svg>
+                                <span>@DisplayProfile.Email</span>
+                            </a>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(DisplayProfile.Phone))
+                        {
+                            <a class="company-contact-link"
+                               href="@PhoneHref(DisplayProfile.Phone)"
+                               aria-label="@($"Call {DisplayProfile.Phone}")">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.8a2 2 0 0 1-.45 2.11L8.07 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.32 1.84.55 2.8.68A2 2 0 0 1 22 16.92Z" />
+                                </svg>
+                                <span>@DisplayProfile.Phone</span>
+                            </a>
+                        }
+                    </div>
+                }
+
+                <dl class="company-summary-grid">
+                    <div class="full">
+                        <dt>Address</dt>
+                        <dd>@DisplayProfile.AddressLine1, @DisplayProfile.AddressLine2, @DisplayProfile.CityProvinceState, @DisplayProfile.PostalCode, @DisplayProfile.Country</dd>
+                    </div>
+                    <div>
+                        <dt>Tax ID</dt>
+                        <dd>@DisplayProfile.TaxId</dd>
+                    </div>
+                    <div>
+                        <dt>Website</dt>
+                        <dd>@DisplayProfile.Website</dd>
+                    </div>
+                    <div class="full">
+                        <dt>Logo/reference</dt>
+                        <dd>@DisplayProfile.LogoReference</dd>
+                    </div>
+                    <div class="full">
+                        <dt>Registration/business reference</dt>
+                        <dd>@DisplayProfile.RegistrationNumber</dd>
+                    </div>
+                </dl>
+            </div>
         </section>
     }
     else

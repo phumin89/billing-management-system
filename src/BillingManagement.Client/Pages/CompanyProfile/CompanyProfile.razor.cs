@@ -229,6 +229,10 @@ public partial class CompanyProfile
                 : string.Empty;
     }
 
+    private static string PhoneHref(string? phone) =>
+        $"tel:{string.Concat((phone ?? string.Empty).Where(character =>
+            char.IsDigit(character) || character is '+' or '*' or '#'))}";
+
     private static CreateOwnerCompanyProfileRequest ToRequest(OwnerCompanyProfileResponse? profile) =>
         profile is null
             ? new CreateOwnerCompanyProfileRequest()

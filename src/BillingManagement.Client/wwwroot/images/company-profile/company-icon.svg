@@ -1,0 +1,8 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">mi.nie company mark</title>
+  <desc id="desc">A rounded square containing the letters m and n separated by a diagonal line.</desc>
+  <rect x="1.5" y="1.5" width="93" height="93" rx="20.5" fill="#FBFBF9" stroke="#151515" stroke-width="3"/>
+  <path d="M24 82L72 24" stroke="#151515" stroke-width="4" stroke-linecap="round"/>
+  <text x="38" y="35" fill="#151515" font-size="35" font-weight="700" font-family="Segoe UI, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">m</text>
+  <text x="62" y="64" fill="#151515" font-size="35" font-weight="700" font-family="Segoe UI, Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">n</text>
+</svg>
