@@ -43,6 +43,11 @@
                 </div>
             </div>
 
+            @if (!string.IsNullOrWhiteSpace(statusMessage))
+            {
+                <p class="company-status-message" role="alert">@statusMessage</p>
+            }
+
             <dl class="company-summary-grid">
                 <div class="full">
                     <dt>Address</dt>
@@ -161,10 +166,12 @@
     @if (showDeleteSnackbar)
     {
         <div class="@SnackbarClass" role="status" data-profile-view="delete">
-            <p>Delete this company profile?</p>
+            <p>Delete company profile? You can create a new one later. Delete is blocked when quotations or invoices use this profile.</p>
             <div class="company-snackbar-actions">
                 <button type="button" @onclick="CloseDeleteSnackbar">Cancel</button>
-                <button type="button" class="danger" @onclick="ConfirmDelete">Delete</button>
+                <button type="button" class="danger" disabled="@isDeleting" @onclick="ConfirmDelete">
+                    @(isDeleting ? "Deleting..." : "Delete")
+                </button>
             </div>
         </div>
     }

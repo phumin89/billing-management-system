@@ -53,6 +53,10 @@
   font-size: 14px;
   line-height: 1.45;
 }
+.company-card p.company-status-message {
+  margin-bottom: 24px;
+  color: #aa2d00;
+}
 .company-card-header {
   display: flex;
   justify-content: space-between;
@@ -210,8 +214,14 @@
   cursor: pointer;
 }
 .company-snackbar button.danger {
+  width: 112px;
+  box-sizing: border-box;
   color: #ffffff;
   background: #aa2d00;
+}
+.company-snackbar button.danger:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 @keyframes company-snackbar-enter {

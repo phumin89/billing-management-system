@@ -18,6 +18,7 @@ public partial class CompanyProfile
     private bool snackbarClosing;
     private bool isLoading = true;
     private bool isSubmitting;
+    private bool isDeleting;
     private string? statusMessage;
     private OwnerCompanyProfileResponse? profile;
     private CreateOwnerCompanyProfileRequest form = new();
@@ -126,6 +127,7 @@ public partial class CompanyProfile
     {
         this.reviewState = ProfileReviewState.Existing;
         this.isEditMode = false;
+        this.statusMessage = null;
         this.snackbarClosing = false;
         this.showDeleteSnackbar = true;
     }
@@ -150,7 +152,30 @@ public partial class CompanyProfile
 
     private async Task CloseDeleteSnackbar() => await this.DismissSnackbar(this.ShowExisting);
 
-    private async Task ConfirmDelete() => await this.DismissSnackbar(this.ShowEmpty);
+    private async Task ConfirmDelete()
+    {
+        if (this.isDeleting)
+        {
+            return;
+        }
+
+        this.statusMessage = null;
+        this.isDeleting = true;
+        try
+        {
+            var result = await this.Client.Delete();
+            if (!result.Succeeded)
+            {
+                this.statusMessage = result.Message;
+            }
+
+            await this.DismissSnackbar(result.Succeeded ? this.ShowEmpty : this.ShowExisting);
+        }
+        finally
+        {
+            this.isDeleting = false;
+        }
+    }
 
     private async Task SaveProfile()
     {
