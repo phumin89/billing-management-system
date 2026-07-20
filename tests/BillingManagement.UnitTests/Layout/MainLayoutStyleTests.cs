@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace BillingManagement.UnitTests.Layout;
@@ -15,9 +16,45 @@ public sealed class MainLayoutStyleTests
         Assert.Equal("grid", Property(rows, "display"));
         Assert.Equal("42px minmax(0, 1fr)", Property(rows, "grid-template-columns"));
         Assert.Equal("14px", Property(rows, "column-gap"));
-        Assert.Equal("21px", Property(rows, "padding-inline"));
+        Assert.Equal("21px 10px", Property(rows, "padding-inline"));
         Assert.Equal("stretch", Property(rows, "justify-content"));
         Assert.Equal("hidden", Property(rows, "overflow"));
+    }
+
+    [Fact]
+    public void Brand_label_fits_expanded_and_has_no_visible_track_collapsed()
+    {
+        var styles = ReadStyles();
+        var sidebar = Rule(styles, @"^\.sidebar");
+        var collapsedSidebar = Rule(styles, @"^\.app-shell\.is-collapsed \.sidebar");
+        var rows = Rule(styles, @"^\.brand,\s*\.nav-item,\s*\.company-link");
+        var label = Rule(styles, @"^\.sidebar-text");
+        var collapsedLabel = Rule(styles, @"^\.app-shell\.is-collapsed \.sidebar-text");
+        var sidebarPadding = Property(sidebar, "padding").Split(' ');
+        var rowPadding = Property(rows, "padding-inline").Split(' ');
+        var iconColumn = Property(rows, "grid-template-columns").Split(' ')[0];
+        var borderWidth = Property(sidebar, "border-right").Split(' ')[0];
+
+        var fixedWidth =
+            Pixels(borderWidth) +
+            (2 * Pixels(sidebarPadding[1])) +
+            Pixels(rowPadding[0]) +
+            Pixels(rowPadding[^1]) +
+            Pixels(iconColumn) +
+            Pixels(Property(rows, "column-gap"));
+        var expandedLabelTrack = Pixels(Property(sidebar, "width")) - fixedWidth;
+        var collapsedLabelTrack = Math.Max(
+            0,
+            Pixels(Property(collapsedSidebar, "width")) - fixedWidth);
+
+        Assert.True(
+            expandedLabelTrack >= 200,
+            $"Expanded brand track is {expandedLabelTrack}px; expected at least 200px.");
+        Assert.Equal(0, collapsedLabelTrack);
+        Assert.Equal("hidden", Property(rows, "overflow"));
+        Assert.Equal("hidden", Property(label, "overflow"));
+        Assert.Equal("0", Property(collapsedLabel, "opacity"));
+        Assert.Equal("translateX(-8px)", Property(collapsedLabel, "transform"));
     }
 
     [Fact]
@@ -118,5 +155,11 @@ public sealed class MainLayoutStyleTests
 
         Assert.True(match.Success, $"Could not find CSS property '{property}'.");
         return Regex.Replace(match.Groups["value"].Value, @"\s+", " ").Trim();
+    }
+
+    private static double Pixels(string value)
+    {
+        Assert.EndsWith("px", value, StringComparison.Ordinal);
+        return double.Parse(value[..^2], CultureInfo.InvariantCulture);
     }
 }

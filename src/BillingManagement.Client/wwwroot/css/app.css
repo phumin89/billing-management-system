@@ -298,7 +298,7 @@ input {
   justify-content: stretch;
   column-gap: 14px;
   min-height: 44px;
-  padding-inline: 21px;
+  padding-inline: 21px 10px;
   overflow: hidden;
   color: #1f2933;
   text-decoration: none;
