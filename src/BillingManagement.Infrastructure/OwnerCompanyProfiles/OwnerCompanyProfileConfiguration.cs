@@ -29,6 +29,8 @@ public sealed class OwnerCompanyProfileConfiguration
             table.HasCheckConstraint("CK_OwnerCompanyProfiles_Website_NotBlank", OptionalNotBlank("Website"));
             table.HasCheckConstraint("CK_OwnerCompanyProfiles_LogoReference_NotBlank", OptionalNotBlank("LogoReference"));
             table.HasCheckConstraint("CK_OwnerCompanyProfiles_RegistrationNumber_NotBlank", OptionalNotBlank("RegistrationNumber"));
+            table.HasCheckConstraint("CK_OwnerCompanyProfiles_CoverStorageKey_NotBlank", OptionalNotBlank("CoverStorageKey"));
+            table.HasCheckConstraint("CK_OwnerCompanyProfiles_CoverContentType_NotBlank", OptionalNotBlank("CoverContentType"));
         });
         builder.HasKey(profile => profile.Id);
         builder.Property<byte>(SingletonKeyProperty).HasDefaultValue(SingletonKeyValue);
@@ -45,6 +47,8 @@ public sealed class OwnerCompanyProfileConfiguration
         builder.Property(profile => profile.Website).HasMaxLength(OwnerCompanyProfileConstraints.WebsiteMaxLength);
         builder.Property(profile => profile.LogoReference).HasMaxLength(OwnerCompanyProfileConstraints.LogoReferenceMaxLength);
         builder.Property(profile => profile.RegistrationNumber).HasMaxLength(OwnerCompanyProfileConstraints.RegistrationNumberMaxLength);
+        builder.Property(profile => profile.CoverStorageKey).HasMaxLength(OwnerCompanyProfileConstraints.CoverStorageKeyMaxLength);
+        builder.Property(profile => profile.CoverContentType).HasMaxLength(OwnerCompanyProfileConstraints.CoverContentTypeMaxLength);
     }
 
     private static string RequiredNotBlank(string columnName) =>

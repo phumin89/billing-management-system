@@ -14,4 +14,6 @@ public static class OwnerCompanyProfileConstraints
     public const int WebsiteMaxLength = 300;
     public const int LogoReferenceMaxLength = 500;
     public const int RegistrationNumberMaxLength = 100;
+    public const int CoverStorageKeyMaxLength = 32;
+    public const int CoverContentTypeMaxLength = 20;
 }

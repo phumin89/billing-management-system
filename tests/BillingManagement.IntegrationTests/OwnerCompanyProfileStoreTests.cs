@@ -138,6 +138,8 @@ public sealed class OwnerCompanyProfileStoreTests
             await context.Database.MigrateAsync("20260707133000_RenameOwnerCompanyCityProvinceState");
             await context.Database.ExecuteSqlRawAsync(
                 "ALTER TABLE [OwnerCompanyProfiles] ADD [SingletonKey] tinyint NOT NULL CONSTRAINT [DF_Test_SingletonKey] DEFAULT 1;");
+            await context.Database.ExecuteSqlRawAsync(
+                "ALTER TABLE [OwnerCompanyProfiles] ADD [CoverStorageKey] nvarchar(32) NULL, [CoverContentType] nvarchar(20) NULL;");
             await context.Database.ExecuteSqlRawAsync(InsertSql("First Co", "NULL"));
             await context.Database.ExecuteSqlRawAsync(InsertSql("Second Co", "NULL"));
             var store = new OwnerCompanyProfileStore(context);

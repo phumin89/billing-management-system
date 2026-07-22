@@ -1,4 +1,5 @@
 using BillingManagement.Application.Abstractions.Commands;
+using BillingManagement.Application.Abstractions.CompanyMedia;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfile;
@@ -92,6 +93,49 @@ public sealed class OwnerCompanyProfileController(
         }
 
         return this.NoContent();
+    }
+
+    [HttpPut("cover")]
+    public async Task<ActionResult> UploadCover(
+        [FromForm] IFormFile? file,
+        [FromServices] ICompanyProfileCoverService coverService,
+        CancellationToken cancellationToken)
+    {
+        if (file is null)
+        {
+            return this.ToProblemDetails(BillingManagement.Application.Abstractions.Results.ApplicationError.Validation(
+                "owner_company_profile.cover_invalid",
+                "The company profile cover is invalid.",
+                new Dictionary<string, string[]> { ["file"] = ["A cover image file is required."] }));
+        }
+
+        await using var content = file.OpenReadStream();
+        var result = await coverService.UploadAsync(content, cancellationToken);
+        return result.IsSuccess ? this.NoContent() : this.ToProblemDetails(result.Error!);
+    }
+
+    [HttpGet("cover")]
+    public async Task<ActionResult> GetCover(
+        [FromServices] ICompanyProfileCoverService coverService,
+        CancellationToken cancellationToken)
+    {
+        var result = await coverService.OpenReadAsync(cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return this.ToProblemDetails(result.Error!);
+        }
+
+        this.Response.Headers.XContentTypeOptions = "nosniff";
+        return this.File(result.Value!.Content, result.Value.ContentType);
+    }
+
+    [HttpDelete("cover")]
+    public async Task<ActionResult> ResetCover(
+        [FromServices] ICompanyProfileCoverService coverService,
+        CancellationToken cancellationToken)
+    {
+        var result = await coverService.ResetAsync(cancellationToken);
+        return result.IsSuccess ? this.NoContent() : this.ToProblemDetails(result.Error!);
     }
 
     private static OwnerCompanyProfileResponse ToResponse(OwnerCompanyProfileRecord profile) =>

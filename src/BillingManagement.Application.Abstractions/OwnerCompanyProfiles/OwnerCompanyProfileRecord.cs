@@ -13,4 +13,6 @@ public sealed record OwnerCompanyProfileRecord(
     string? Email,
     string? Website,
     string? LogoReference,
-    string? RegistrationNumber);
+    string? RegistrationNumber,
+    string? CoverStorageKey = null,
+    string? CoverContentType = null);
