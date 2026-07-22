@@ -15,4 +15,6 @@ public sealed record OwnerCompanyProfileRecord(
     string? LogoReference,
     string? RegistrationNumber,
     string? CoverStorageKey = null,
-    string? CoverContentType = null);
+    string? CoverContentType = null,
+    string? IconStorageKey = null,
+    string? IconContentType = null);

@@ -523,6 +523,21 @@ public sealed class OwnerCompanyProfileControllerTests
         Assert.Equal("cover", await new StreamReader(content).ReadToEndAsync());
     }
 
+    [Fact]
+    public async Task GetIcon_returns_server_derived_content_type_and_nosniff_header()
+    {
+        var controller = CreateController(new StubStore());
+        var iconService = new StubIconService();
+
+        var response = await controller.GetIcon(iconService, default);
+
+        var file = Assert.IsType<FileStreamResult>(response);
+        Assert.Equal("image/webp", file.ContentType);
+        Assert.Equal("nosniff", controller.Response.Headers.XContentTypeOptions);
+        await using var content = file.FileStream;
+        Assert.Equal("icon", await new StreamReader(content).ReadToEndAsync());
+    }
+
     private static void AssertValidationErrors(
         IReadOnlyDictionary<string, string[]> expected,
         IDictionary<string, string[]> actual)
@@ -607,6 +622,22 @@ public sealed class OwnerCompanyProfileControllerTests
             CancellationToken cancellationToken = default) =>
             Task.FromResult(ApplicationResult<CompanyProfileCoverFile>.Success(
                 new CompanyProfileCoverFile("image/png", 5, new MemoryStream("cover"u8.ToArray()))));
+
+        public Task<ApplicationResult<bool>> ResetAsync(CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+    }
+
+    private sealed class StubIconService : ICompanyProfileIconService
+    {
+        public Task<ApplicationResult<CompanyProfileIconDescriptor>> UploadAsync(
+            Stream content,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<ApplicationResult<CompanyProfileIconFile>> OpenReadAsync(
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(ApplicationResult<CompanyProfileIconFile>.Success(
+                new CompanyProfileIconFile("image/webp", 4, new MemoryStream("icon"u8.ToArray()))));
 
         public Task<ApplicationResult<bool>> ResetAsync(CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();

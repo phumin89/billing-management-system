@@ -4,6 +4,7 @@ using BillingManagement.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BillingManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(BillingManagementDbContext))]
-    partial class BillingManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260722102831_AddOwnerCompanyProfileIconMedia")]
+    partial class AddOwnerCompanyProfileIconMedia
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

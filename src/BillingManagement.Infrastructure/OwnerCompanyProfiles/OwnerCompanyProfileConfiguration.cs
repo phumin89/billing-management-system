@@ -31,6 +31,8 @@ public sealed class OwnerCompanyProfileConfiguration
             table.HasCheckConstraint("CK_OwnerCompanyProfiles_RegistrationNumber_NotBlank", OptionalNotBlank("RegistrationNumber"));
             table.HasCheckConstraint("CK_OwnerCompanyProfiles_CoverStorageKey_NotBlank", OptionalNotBlank("CoverStorageKey"));
             table.HasCheckConstraint("CK_OwnerCompanyProfiles_CoverContentType_NotBlank", OptionalNotBlank("CoverContentType"));
+            table.HasCheckConstraint("CK_OwnerCompanyProfiles_IconStorageKey_NotBlank", OptionalNotBlank("IconStorageKey"));
+            table.HasCheckConstraint("CK_OwnerCompanyProfiles_IconContentType_NotBlank", OptionalNotBlank("IconContentType"));
         });
         builder.HasKey(profile => profile.Id);
         builder.Property<byte>(SingletonKeyProperty).HasDefaultValue(SingletonKeyValue);
@@ -49,6 +51,8 @@ public sealed class OwnerCompanyProfileConfiguration
         builder.Property(profile => profile.RegistrationNumber).HasMaxLength(OwnerCompanyProfileConstraints.RegistrationNumberMaxLength);
         builder.Property(profile => profile.CoverStorageKey).HasMaxLength(OwnerCompanyProfileConstraints.CoverStorageKeyMaxLength);
         builder.Property(profile => profile.CoverContentType).HasMaxLength(OwnerCompanyProfileConstraints.CoverContentTypeMaxLength);
+        builder.Property(profile => profile.IconStorageKey).HasMaxLength(OwnerCompanyProfileConstraints.IconStorageKeyMaxLength);
+        builder.Property(profile => profile.IconContentType).HasMaxLength(OwnerCompanyProfileConstraints.IconContentTypeMaxLength);
     }
 
     private static string RequiredNotBlank(string columnName) =>

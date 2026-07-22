@@ -16,4 +16,6 @@ public static class OwnerCompanyProfileConstraints
     public const int RegistrationNumberMaxLength = 100;
     public const int CoverStorageKeyMaxLength = 32;
     public const int CoverContentTypeMaxLength = 20;
+    public const int IconStorageKeyMaxLength = 32;
+    public const int IconContentTypeMaxLength = 20;
 }

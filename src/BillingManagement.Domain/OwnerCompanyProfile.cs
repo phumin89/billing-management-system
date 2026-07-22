@@ -21,13 +21,16 @@ public sealed class OwnerCompanyProfile
         string? logoReference,
         string? registrationNumber,
         string? coverStorageKey = null,
-        string? coverContentType = null)
+        string? coverContentType = null,
+        string? iconStorageKey = null,
+        string? iconContentType = null)
     {
         this.Id = id;
         this.SetValues(
             companyName, addressLine1, addressLine2, cityProvinceState, postalCode,
             country, taxId, phone, email, website, logoReference, registrationNumber);
         this.SetCover(coverStorageKey, coverContentType);
+        this.SetIcon(iconStorageKey, iconContentType);
     }
 
     public Guid Id { get; private set; }
@@ -60,6 +63,10 @@ public sealed class OwnerCompanyProfile
 
     public string? CoverContentType { get; private set; }
 
+    public string? IconStorageKey { get; private set; }
+
+    public string? IconContentType { get; private set; }
+
     public static OwnerCompanyProfile Create(
         string companyName,
         string addressLine1,
@@ -74,7 +81,9 @@ public sealed class OwnerCompanyProfile
         string? logoReference,
         string? registrationNumber,
         string? coverStorageKey = null,
-        string? coverContentType = null) =>
+        string? coverContentType = null,
+        string? iconStorageKey = null,
+        string? iconContentType = null) =>
         new(
             Guid.NewGuid(),
             companyName,
@@ -90,7 +99,9 @@ public sealed class OwnerCompanyProfile
             logoReference,
             registrationNumber,
             coverStorageKey,
-            coverContentType);
+            coverContentType,
+            iconStorageKey,
+            iconContentType);
 
     public static OwnerCompanyProfile Rehydrate(
         Guid id,
@@ -107,7 +118,9 @@ public sealed class OwnerCompanyProfile
         string? logoReference,
         string? registrationNumber,
         string? coverStorageKey = null,
-        string? coverContentType = null)
+        string? coverContentType = null,
+        string? iconStorageKey = null,
+        string? iconContentType = null)
     {
         if (id == Guid.Empty)
         {
@@ -129,7 +142,9 @@ public sealed class OwnerCompanyProfile
             logoReference,
             registrationNumber,
             coverStorageKey,
-            coverContentType);
+            coverContentType,
+            iconStorageKey,
+            iconContentType);
     }
 
     public void Update(
@@ -175,6 +190,32 @@ public sealed class OwnerCompanyProfile
 
         this.CoverStorageKey = storageKey;
         this.CoverContentType = contentType;
+    }
+
+    public void SetIcon(string? storageKey, string? contentType)
+    {
+        if (storageKey is null && contentType is null)
+        {
+            this.IconStorageKey = null;
+            this.IconContentType = null;
+            return;
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
+
+        if (!Guid.TryParseExact(storageKey, "N", out _))
+        {
+            throw new ArgumentException("Icon storage key must be an opaque GUID value.", nameof(storageKey));
+        }
+
+        if (contentType is not ("image/png" or "image/jpeg" or "image/webp"))
+        {
+            throw new ArgumentException("Icon content type is not supported.", nameof(contentType));
+        }
+
+        this.IconStorageKey = storageKey;
+        this.IconContentType = contentType;
     }
 
     private void SetValues(
