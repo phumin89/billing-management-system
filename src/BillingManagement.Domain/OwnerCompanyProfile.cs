@@ -19,12 +19,15 @@ public sealed class OwnerCompanyProfile
         string? email,
         string? website,
         string? logoReference,
-        string? registrationNumber)
+        string? registrationNumber,
+        string? coverStorageKey = null,
+        string? coverContentType = null)
     {
         this.Id = id;
         this.SetValues(
             companyName, addressLine1, addressLine2, cityProvinceState, postalCode,
             country, taxId, phone, email, website, logoReference, registrationNumber);
+        this.SetCover(coverStorageKey, coverContentType);
     }
 
     public Guid Id { get; private set; }
@@ -53,6 +56,10 @@ public sealed class OwnerCompanyProfile
 
     public string? RegistrationNumber { get; private set; }
 
+    public string? CoverStorageKey { get; private set; }
+
+    public string? CoverContentType { get; private set; }
+
     public static OwnerCompanyProfile Create(
         string companyName,
         string addressLine1,
@@ -65,7 +72,9 @@ public sealed class OwnerCompanyProfile
         string? email,
         string? website,
         string? logoReference,
-        string? registrationNumber) =>
+        string? registrationNumber,
+        string? coverStorageKey = null,
+        string? coverContentType = null) =>
         new(
             Guid.NewGuid(),
             companyName,
@@ -79,7 +88,9 @@ public sealed class OwnerCompanyProfile
             email,
             website,
             logoReference,
-            registrationNumber);
+            registrationNumber,
+            coverStorageKey,
+            coverContentType);
 
     public static OwnerCompanyProfile Rehydrate(
         Guid id,
@@ -94,7 +105,9 @@ public sealed class OwnerCompanyProfile
         string? email,
         string? website,
         string? logoReference,
-        string? registrationNumber)
+        string? registrationNumber,
+        string? coverStorageKey = null,
+        string? coverContentType = null)
     {
         if (id == Guid.Empty)
         {
@@ -114,7 +127,9 @@ public sealed class OwnerCompanyProfile
             email,
             website,
             logoReference,
-            registrationNumber);
+            registrationNumber,
+            coverStorageKey,
+            coverContentType);
     }
 
     public void Update(
@@ -134,6 +149,32 @@ public sealed class OwnerCompanyProfile
         this.SetValues(
             companyName, addressLine1, addressLine2, cityProvinceState, postalCode,
             country, taxId, phone, email, website, logoReference, registrationNumber);
+    }
+
+    public void SetCover(string? storageKey, string? contentType)
+    {
+        if (storageKey is null && contentType is null)
+        {
+            this.CoverStorageKey = null;
+            this.CoverContentType = null;
+            return;
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(storageKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
+
+        if (!Guid.TryParseExact(storageKey, "N", out _))
+        {
+            throw new ArgumentException("Cover storage key must be an opaque GUID value.", nameof(storageKey));
+        }
+
+        if (contentType is not ("image/png" or "image/jpeg" or "image/webp"))
+        {
+            throw new ArgumentException("Cover content type is not supported.", nameof(contentType));
+        }
+
+        this.CoverStorageKey = storageKey;
+        this.CoverContentType = contentType;
     }
 
     private void SetValues(

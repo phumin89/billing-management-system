@@ -5,6 +5,7 @@ using System.Text.Json;
 using BillingManagement.Api.Controllers;
 using BillingManagement.Application;
 using BillingManagement.Application.Abstractions.Commands;
+using BillingManagement.Application.Abstractions.CompanyMedia;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
@@ -507,6 +508,21 @@ public sealed class OwnerCompanyProfileControllerTests
         Assert.Equal(expectedDetail, problem.Detail);
     }
 
+    [Fact]
+    public async Task GetCover_returns_server_derived_content_type_and_nosniff_header()
+    {
+        var controller = CreateController(new StubStore());
+        var coverService = new StubCoverService();
+
+        var response = await controller.GetCover(coverService, default);
+
+        var file = Assert.IsType<FileStreamResult>(response);
+        Assert.Equal("image/png", file.ContentType);
+        Assert.Equal("nosniff", controller.Response.Headers.XContentTypeOptions);
+        await using var content = file.FileStream;
+        Assert.Equal("cover", await new StreamReader(content).ReadToEndAsync());
+    }
+
     private static void AssertValidationErrors(
         IReadOnlyDictionary<string, string[]> expected,
         IDictionary<string, string[]> actual)
@@ -578,5 +594,21 @@ public sealed class OwnerCompanyProfileControllerTests
 
             return Task.FromResult(result);
         }
+    }
+
+    private sealed class StubCoverService : ICompanyProfileCoverService
+    {
+        public Task<ApplicationResult<CompanyProfileCoverDescriptor>> UploadAsync(
+            Stream content,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<ApplicationResult<CompanyProfileCoverFile>> OpenReadAsync(
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(ApplicationResult<CompanyProfileCoverFile>.Success(
+                new CompanyProfileCoverFile("image/png", 5, new MemoryStream("cover"u8.ToArray()))));
+
+        public Task<ApplicationResult<bool>> ResetAsync(CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
     }
 }

@@ -62,5 +62,7 @@ public sealed class UpdateOwnerCompanyProfileHandler(
             profile.Email,
             profile.Website,
             profile.LogoReference,
-            profile.RegistrationNumber);
+            profile.RegistrationNumber,
+            profile.CoverStorageKey,
+            profile.CoverContentType);
 }

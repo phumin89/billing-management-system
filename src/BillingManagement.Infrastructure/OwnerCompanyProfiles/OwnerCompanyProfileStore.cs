@@ -32,7 +32,9 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
             profile.Email,
             profile.Website,
             profile.LogoReference,
-            profile.RegistrationNumber));
+            profile.RegistrationNumber,
+            profile.CoverStorageKey,
+            profile.CoverContentType));
 
         try
         {
@@ -70,6 +72,7 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
             profile.Website,
             profile.LogoReference,
             profile.RegistrationNumber);
+        existingProfile.SetCover(profile.CoverStorageKey, profile.CoverContentType);
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
@@ -103,5 +106,7 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
             profile.Email,
             profile.Website,
             profile.LogoReference,
-            profile.RegistrationNumber);
+            profile.RegistrationNumber,
+            profile.CoverStorageKey,
+            profile.CoverContentType);
 }
