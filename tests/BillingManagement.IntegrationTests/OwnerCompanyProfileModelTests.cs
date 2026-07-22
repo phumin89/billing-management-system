@@ -28,7 +28,9 @@ public sealed class OwnerCompanyProfileModelTests
             [nameof(OwnerCompanyProfile.LogoReference)] = OwnerCompanyProfileConstraints.LogoReferenceMaxLength,
             [nameof(OwnerCompanyProfile.RegistrationNumber)] = OwnerCompanyProfileConstraints.RegistrationNumberMaxLength,
             [nameof(OwnerCompanyProfile.CoverStorageKey)] = OwnerCompanyProfileConstraints.CoverStorageKeyMaxLength,
-            [nameof(OwnerCompanyProfile.CoverContentType)] = OwnerCompanyProfileConstraints.CoverContentTypeMaxLength
+            [nameof(OwnerCompanyProfile.CoverContentType)] = OwnerCompanyProfileConstraints.CoverContentTypeMaxLength,
+            [nameof(OwnerCompanyProfile.IconStorageKey)] = OwnerCompanyProfileConstraints.IconStorageKeyMaxLength,
+            [nameof(OwnerCompanyProfile.IconContentType)] = OwnerCompanyProfileConstraints.IconContentTypeMaxLength
         };
 
         foreach (var expected in expectedLengths)

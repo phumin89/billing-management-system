@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<ICommandDispatcher, CommandDispatcher>();
         services.AddScoped<ICompanyProfileCoverService, CompanyProfileCoverService>();
+        services.AddScoped<ICompanyProfileIconService, CompanyProfileIconService>();
         services.AddScoped(typeof(ICommandValidator<>), typeof(AnnotationCommandValidator<>));
         services.AddScoped<
             ICommandHandler<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>,

@@ -138,6 +138,49 @@ public sealed class OwnerCompanyProfileController(
         return result.IsSuccess ? this.NoContent() : this.ToProblemDetails(result.Error!);
     }
 
+    [HttpPut("icon")]
+    public async Task<ActionResult> UploadIcon(
+        [FromForm] IFormFile? file,
+        [FromServices] ICompanyProfileIconService iconService,
+        CancellationToken cancellationToken)
+    {
+        if (file is null)
+        {
+            return this.ToProblemDetails(BillingManagement.Application.Abstractions.Results.ApplicationError.Validation(
+                "owner_company_profile.icon_invalid",
+                "The company profile icon is invalid.",
+                new Dictionary<string, string[]> { ["file"] = ["An icon image file is required."] }));
+        }
+
+        await using var content = file.OpenReadStream();
+        var result = await iconService.UploadAsync(content, cancellationToken);
+        return result.IsSuccess ? this.NoContent() : this.ToProblemDetails(result.Error!);
+    }
+
+    [HttpGet("icon")]
+    public async Task<ActionResult> GetIcon(
+        [FromServices] ICompanyProfileIconService iconService,
+        CancellationToken cancellationToken)
+    {
+        var result = await iconService.OpenReadAsync(cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return this.ToProblemDetails(result.Error!);
+        }
+
+        this.Response.Headers.XContentTypeOptions = "nosniff";
+        return this.File(result.Value!.Content, result.Value.ContentType);
+    }
+
+    [HttpDelete("icon")]
+    public async Task<ActionResult> ResetIcon(
+        [FromServices] ICompanyProfileIconService iconService,
+        CancellationToken cancellationToken)
+    {
+        var result = await iconService.ResetAsync(cancellationToken);
+        return result.IsSuccess ? this.NoContent() : this.ToProblemDetails(result.Error!);
+    }
+
     private static OwnerCompanyProfileResponse ToResponse(OwnerCompanyProfileRecord profile) =>
         new(
             profile.Id,
