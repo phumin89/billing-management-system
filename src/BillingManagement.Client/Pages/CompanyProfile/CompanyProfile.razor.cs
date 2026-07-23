@@ -7,7 +7,9 @@ namespace BillingManagement.Client.Pages.CompanyProfile;
 
 public partial class CompanyProfile
 {
+    private const long MaximumIconLength = 2 * 1024 * 1024;
     private const long MaximumCoverLength = 5 * 1024 * 1024;
+    private const string FallbackIconImageUrl = "images/company-profile/company-icon.svg";
     private const string FallbackCoverImageUrl = "images/company-profile/header.svg";
 
     [Inject]
@@ -23,10 +25,18 @@ public partial class CompanyProfile
     private bool isLoading = true;
     private bool isSubmitting;
     private bool isDeleting;
+    private bool isUploadingIcon;
+    private bool isResettingIcon;
+    private bool showResetIconConfirmation;
     private bool isUploadingCover;
     private bool isResettingCover;
     private bool showResetCoverConfirmation;
     private string? statusMessage;
+    private string? iconMessage;
+    private bool iconMessageIsError;
+    private string ServerIconImageUrl { get; set; } = FallbackIconImageUrl;
+    private string? iconPreviewUrl;
+    private IBrowserFile? selectedIcon;
     private string? coverMessage;
     private bool coverMessageIsError;
     private string ServerCoverImageUrl { get; set; } = FallbackCoverImageUrl;
@@ -62,6 +72,7 @@ public partial class CompanyProfile
         this.reviewState = this.profile is null ? ProfileReviewState.Empty : ProfileReviewState.Existing;
         if (this.profile is not null)
         {
+            this.RefreshServerIcon();
             this.RefreshServerCover();
         }
 
@@ -111,6 +122,8 @@ public partial class CompanyProfile
         this.isEditMode = false;
         this.showDeleteSnackbar = false;
         this.profile = null;
+        this.ClearIconSelection();
+        this.ServerIconImageUrl = FallbackIconImageUrl;
         this.ClearCoverSelection();
         this.ServerCoverImageUrl = FallbackCoverImageUrl;
     }
@@ -152,6 +165,14 @@ public partial class CompanyProfile
     }
 
     private string SnackbarClass => this.snackbarClosing ? "company-snackbar is-closing" : "company-snackbar";
+
+    private string IconImageUrl => this.iconPreviewUrl ?? this.ServerIconImageUrl;
+
+    private bool IsIconRequestInProgress => this.isUploadingIcon || this.isResettingIcon;
+
+    private string IconMessageClass => this.iconMessageIsError
+        ? "company-icon-message is-error"
+        : "company-icon-message";
 
     private string CoverImageUrl => this.coverPreviewUrl ?? this.ServerCoverImageUrl;
 
@@ -229,6 +250,140 @@ public partial class CompanyProfile
         this.profile = result.Profile;
         this.ShowExisting();
     }
+
+    private async Task SelectIcon(InputFileChangeEventArgs eventArgs)
+    {
+        var file = eventArgs.File;
+        this.iconMessage = null;
+        this.showResetIconConfirmation = false;
+
+        if (!IsSupportedIcon(file) || file.Size > MaximumIconLength)
+        {
+            this.ClearIconSelection();
+            this.iconMessage = "Choose a PNG, JPEG, or WebP image up to 2 MB.";
+            this.iconMessageIsError = true;
+            return;
+        }
+
+        try
+        {
+            await using var content = file.OpenReadStream(MaximumIconLength);
+            await using var preview = new MemoryStream();
+            await content.CopyToAsync(preview);
+            this.selectedIcon = file;
+            this.iconPreviewUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(preview.ToArray())}";
+        }
+        catch (IOException)
+        {
+            this.ClearIconSelection();
+            this.iconMessage = "Could not read the selected icon image. Try another file.";
+            this.iconMessageIsError = true;
+        }
+    }
+
+    private async Task UploadIcon()
+    {
+        if (this.selectedIcon is null || this.IsIconRequestInProgress)
+        {
+            return;
+        }
+
+        this.iconMessage = null;
+        this.isUploadingIcon = true;
+        try
+        {
+            await using var content = this.selectedIcon.OpenReadStream(MaximumIconLength);
+            var result = await this.Client.UploadIcon(
+                content,
+                this.selectedIcon.Name,
+                this.selectedIcon.ContentType);
+
+            if (!result.Succeeded)
+            {
+                this.ClearIconSelection();
+                this.iconMessage = result.Message;
+                this.iconMessageIsError = true;
+                return;
+            }
+
+            this.ClearIconSelection();
+            this.RefreshServerIcon();
+            this.iconMessage = "Icon image saved.";
+            this.iconMessageIsError = false;
+        }
+        finally
+        {
+            this.isUploadingIcon = false;
+        }
+    }
+
+    private void ShowResetIconConfirmation()
+    {
+        if (this.IsIconRequestInProgress)
+        {
+            return;
+        }
+
+        this.iconMessage = null;
+        this.showResetIconConfirmation = true;
+    }
+
+    private void CancelResetIcon() => this.showResetIconConfirmation = false;
+
+    private async Task ResetIcon()
+    {
+        if (this.IsIconRequestInProgress)
+        {
+            return;
+        }
+
+        this.isResettingIcon = true;
+        try
+        {
+            var result = await this.Client.ResetIcon();
+            if (!result.Succeeded)
+            {
+                this.iconMessage = result.Message;
+                this.iconMessageIsError = true;
+                return;
+            }
+
+            this.ClearIconSelection();
+            this.ServerIconImageUrl = FallbackIconImageUrl;
+            this.iconMessage = "Icon image reset.";
+            this.iconMessageIsError = false;
+            this.showResetIconConfirmation = false;
+        }
+        finally
+        {
+            this.isResettingIcon = false;
+        }
+    }
+
+    private void ClearIconSelection()
+    {
+        this.selectedIcon = null;
+        this.iconPreviewUrl = null;
+    }
+
+    private void UseFallbackIcon()
+    {
+        if (this.iconPreviewUrl is not null)
+        {
+            this.ClearIconSelection();
+            this.iconMessage = "Could not preview the selected icon image. Try another file.";
+            this.iconMessageIsError = true;
+            return;
+        }
+
+        this.ServerIconImageUrl = FallbackIconImageUrl;
+    }
+
+    private void RefreshServerIcon() =>
+        this.ServerIconImageUrl = this.Client.GetIconUrl(Guid.NewGuid().ToString("N"));
+
+    private static bool IsSupportedIcon(IBrowserFile file) =>
+        file.ContentType is "image/png" or "image/jpeg" or "image/webp";
 
     private async Task SelectCover(InputFileChangeEventArgs eventArgs)
     {
