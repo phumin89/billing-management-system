@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.JSInterop;
 
 namespace BillingManagement.UnitTests.OwnerCompanyProfiles;
 
@@ -39,6 +40,16 @@ public sealed class CompanyProfileIdentityTests
     }
 
     [Fact]
+    public async Task Existing_profile_renders_cover_upload_and_reset_controls()
+    {
+        var markup = WebUtility.HtmlDecode(await RenderExistingProfile());
+
+        Assert.Contains("Change cover", markup);
+        Assert.Contains("Reset cover", markup);
+        Assert.Contains("accept=\"image/png,image/jpeg,image/webp\"", markup);
+    }
+
+    [Fact]
     public void Route_focused_heading_does_not_draw_control_outline()
     {
         var styles = ReadApplicationStyles().ReplaceLineEndings("\n");
@@ -48,11 +59,21 @@ public sealed class CompanyProfileIdentityTests
             styles);
     }
 
+    [Fact]
+    public void Cover_picker_styles_reach_the_native_file_input()
+    {
+        var styles = ReadCompanyProfileStyles();
+
+        Assert.Contains(".company-cover-picker ::deep input", styles);
+        Assert.Contains(".company-cover-picker:focus-within", styles);
+    }
+
     private static async Task<string> RenderExistingProfile()
     {
         using var services = new ServiceCollection()
             .AddSingleton<NavigationManager>(new TestNavigationManager())
             .AddSingleton(new OwnerCompanyProfileClient(new HttpClient()))
+            .AddSingleton<IJSRuntime, TestJsRuntime>()
             .BuildServiceProvider();
         await using var renderer = new HtmlRenderer(services, NullLoggerFactory.Instance);
 
@@ -88,6 +109,31 @@ public sealed class CompanyProfileIdentityTests
         throw new FileNotFoundException("Could not find application styles.");
     }
 
+    private static string ReadCompanyProfileStyles()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            var path = Path.Combine(
+                directory.FullName,
+                "src",
+                "BillingManagement.Client",
+                "Pages",
+                "CompanyProfile",
+                "CompanyProfile.razor.scss");
+
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new FileNotFoundException("Could not find Company profile styles.");
+    }
+
     private sealed class TestNavigationManager : NavigationManager
     {
         public TestNavigationManager()
@@ -100,5 +146,17 @@ public sealed class CompanyProfileIdentityTests
         protected override void NavigateToCore(string uri, bool forceLoad)
         {
         }
+    }
+
+    private sealed class TestJsRuntime : IJSRuntime
+    {
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
+            ValueTask.FromResult(default(TValue)!);
+
+        public ValueTask<TValue> InvokeAsync<TValue>(
+            string identifier,
+            CancellationToken cancellationToken,
+            object?[]? args) =>
+            ValueTask.FromResult(default(TValue)!);
     }
 }

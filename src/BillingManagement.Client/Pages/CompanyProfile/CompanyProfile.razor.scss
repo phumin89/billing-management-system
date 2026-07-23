@@ -93,6 +93,64 @@
   object-fit: cover;
 }
 
+.company-cover-toolbar,
+.company-cover-reset-confirmation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 24px;
+  background: #fbfbf9;
+  border-bottom: 1px solid #dddddd;
+}
+
+.company-cover-picker {
+  position: relative;
+  overflow: hidden;
+}
+
+.company-cover-picker ::deep input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.company-cover-picker:focus-within {
+  outline: 2px solid #458fff;
+  outline-offset: 2px;
+}
+
+.company-cover-message {
+  margin: 0;
+  padding: 12px 24px;
+  color: #14532d;
+  background: #e9f7ef;
+  border-bottom: 1px solid #dddddd;
+}
+
+.company-cover-message.is-error {
+  color: #aa2d00;
+  background: #fff5f2;
+}
+
+.company-cover-reset-confirmation {
+  justify-content: space-between;
+  color: #181d26;
+  background: #ffffff;
+}
+
+.company-cover-reset-confirmation p {
+  color: #181d26;
+}
+
+.company-cover-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .company-identity-row {
   display: flex;
   justify-content: space-between;
@@ -417,6 +475,7 @@
 
   .company-card-header,
   .company-identity-row,
+  .company-cover-reset-confirmation,
   .company-snackbar {
     align-items: stretch;
     flex-direction: column;
@@ -428,12 +487,14 @@
   }
 
   .company-actions,
+  .company-cover-actions,
   .company-form-actions,
   .company-snackbar-actions {
     justify-content: stretch;
   }
 
   .company-actions > *,
+  .company-cover-actions > *,
   .company-form-actions > *,
   .company-snackbar-actions > * {
     flex: 1 1 auto;
@@ -442,6 +503,12 @@
   .company-contact-link {
     max-width: 100%;
   }
+
+  .company-cover-toolbar,
+  .company-cover-message,
+  .company-cover-reset-confirmation {
+    padding-inline: 20px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -449,6 +516,12 @@
   .company-empty-card,
   .company-card-content {
     padding: 16px;
+  }
+
+  .company-cover-toolbar,
+  .company-cover-message,
+  .company-cover-reset-confirmation {
+    padding-inline: 16px;
   }
 
   .company-identity-summary {
