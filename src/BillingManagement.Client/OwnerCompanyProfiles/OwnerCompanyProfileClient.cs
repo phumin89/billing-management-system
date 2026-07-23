@@ -6,6 +6,11 @@ namespace BillingManagement.Client.OwnerCompanyProfiles;
 
 public sealed class OwnerCompanyProfileClient(HttpClient httpClient)
 {
+    public string GetIconUrl(string cacheKey) =>
+        new Uri(
+            httpClient.BaseAddress!,
+            $"api/owner-company-profile/icon?v={Uri.EscapeDataString(cacheKey)}").AbsoluteUri;
+
     public string GetCoverUrl(string cacheKey) =>
         new Uri(
             httpClient.BaseAddress!,
@@ -178,6 +183,52 @@ public sealed class OwnerCompanyProfileClient(HttpClient httpClient)
         {
             return CompanyProfileCoverResult.Failed(
                 "Could not reset the cover image. Check the API connection and try again.");
+        }
+    }
+
+    public async Task<CompanyProfileIconResult> UploadIcon(
+        Stream content,
+        string fileName,
+        string contentType,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var form = new MultipartFormDataContent();
+            using var file = new StreamContent(content);
+            file.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+            form.Add(file, "file", fileName);
+
+            var response = await httpClient.PutAsync(
+                "api/owner-company-profile/icon",
+                form,
+                cancellationToken);
+
+            return response.IsSuccessStatusCode
+                ? CompanyProfileIconResult.Success()
+                : CompanyProfileIconResult.Failed(
+                    "Could not upload the icon image. Try a PNG, JPEG, or WebP file.");
+        }
+        catch (HttpRequestException)
+        {
+            return CompanyProfileIconResult.Failed(
+                "Could not upload the icon image. Check the API connection and try again.");
+        }
+    }
+
+    public async Task<CompanyProfileIconResult> ResetIcon(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await httpClient.DeleteAsync("api/owner-company-profile/icon", cancellationToken);
+            return response.IsSuccessStatusCode
+                ? CompanyProfileIconResult.Success()
+                : CompanyProfileIconResult.Failed("Could not reset the icon image. Try again.");
+        }
+        catch (HttpRequestException)
+        {
+            return CompanyProfileIconResult.Failed(
+                "Could not reset the icon image. Check the API connection and try again.");
         }
     }
 

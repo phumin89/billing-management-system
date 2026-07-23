@@ -78,11 +78,32 @@
             <div class="company-card-content">
                 <div class="company-identity-row">
                     <div class="company-identity-summary">
-                        <img class="company-identity-icon"
-                             src="images/company-profile/company-icon.svg"
-                             alt="mi.nie company mark"
-                             width="80"
-                             height="80" />
+                        <div class="company-icon-editor">
+                            <img class="company-identity-icon"
+                                 src="@IconImageUrl"
+                                 alt="mi.nie company mark"
+                                 width="80"
+                                 height="80"
+                                 @onerror="UseFallbackIcon" />
+                            <div class="company-icon-toolbar" aria-label="Company profile icon">
+                                <label class="company-icon-action company-icon-picker">
+                                    <span>Change icon</span>
+                                    <InputFile accept="image/png,image/jpeg,image/webp"
+                                               OnChange="SelectIcon"
+                                               disabled="@IsIconRequestInProgress" />
+                                </label>
+                                @if (selectedIcon is not null)
+                                {
+                                    <button class="company-icon-action is-primary" type="button" disabled="@IsIconRequestInProgress" @onclick="UploadIcon">
+                                        @(isUploadingIcon ? "Saving icon..." : "Save icon")
+                                    </button>
+                                    <button class="company-icon-action" type="button" disabled="@IsIconRequestInProgress" @onclick="ClearIconSelection">Cancel</button>
+                                }
+                                <button class="company-icon-action" type="button" disabled="@IsIconRequestInProgress" @onclick="ShowResetIconConfirmation">
+                                    @(isResettingIcon ? "Resetting icon..." : "Reset icon")
+                                </button>
+                            </div>
+                        </div>
                         <div class="company-identity-copy">
                             <h2>@DisplayProfile.CompanyName</h2>
                             <p>Primary owner company profile.</p>
@@ -93,6 +114,24 @@
                         <button class="company-danger-button" type="button" @onclick="ShowDelete">Delete</button>
                     </div>
                 </div>
+
+                @if (!string.IsNullOrWhiteSpace(iconMessage))
+                {
+                    <p class="@IconMessageClass" role="@(iconMessageIsError ? "alert" : "status")">@iconMessage</p>
+                }
+
+                @if (showResetIconConfirmation)
+                {
+                    <div class="company-icon-reset-confirmation" role="alertdialog" aria-label="Reset company icon confirmation">
+                        <p>Reset the company icon to the approved fallback image?</p>
+                        <div class="company-icon-reset-actions">
+                            <button class="company-secondary-button" type="button" disabled="@isResettingIcon" @onclick="CancelResetIcon">Cancel</button>
+                            <button class="company-danger-button" type="button" disabled="@isResettingIcon" @onclick="ResetIcon">
+                                @(isResettingIcon ? "Resetting icon..." : "Reset icon")
+                            </button>
+                        </div>
+                    </div>
+                }
 
                 @if (!string.IsNullOrWhiteSpace(statusMessage))
                 {

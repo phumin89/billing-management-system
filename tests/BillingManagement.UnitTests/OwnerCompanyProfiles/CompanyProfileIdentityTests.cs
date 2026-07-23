@@ -50,6 +50,22 @@ public sealed class CompanyProfileIdentityTests
     }
 
     [Fact]
+    public async Task Existing_profile_renders_icon_upload_and_reset_controls_near_the_icon()
+    {
+        var markup = WebUtility.HtmlDecode(await RenderExistingProfile());
+
+        Assert.Contains("Change icon", markup);
+        Assert.Contains("Reset icon", markup);
+        Assert.Contains("company-icon-picker", markup);
+        Assert.True(
+            markup.IndexOf("company-identity-icon", StringComparison.Ordinal) <
+            markup.IndexOf("Change icon", StringComparison.Ordinal));
+        Assert.True(
+            markup.IndexOf("Change icon", StringComparison.Ordinal) <
+            markup.IndexOf("company-identity-copy", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void Route_focused_heading_does_not_draw_control_outline()
     {
         var styles = ReadApplicationStyles().ReplaceLineEndings("\n");
@@ -66,6 +82,15 @@ public sealed class CompanyProfileIdentityTests
 
         Assert.Contains(".company-cover-picker ::deep input", styles);
         Assert.Contains(".company-cover-picker:focus-within", styles);
+    }
+
+    [Fact]
+    public void Icon_picker_styles_reach_the_native_file_input()
+    {
+        var styles = ReadCompanyProfileStyles();
+
+        Assert.Contains(".company-icon-picker ::deep input", styles);
+        Assert.Contains(".company-icon-picker:focus-within", styles);
     }
 
     private static async Task<string> RenderExistingProfile()

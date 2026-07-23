@@ -190,6 +190,74 @@ public sealed class OwnerCompanyProfileClientTests
         Assert.Equal("http://localhost/api/owner-company-profile/cover?v=saved-cover", url);
     }
 
+    [Fact]
+    public async Task Upload_icon_sends_a_multipart_put_request()
+    {
+        HttpMethod? method = null;
+        string? requestUri = null;
+        string? contentType = null;
+        string? fileName = null;
+        var client = CreateClient(async request =>
+        {
+            method = request.Method;
+            requestUri = request.RequestUri?.ToString();
+            var form = Assert.IsType<MultipartFormDataContent>(request.Content);
+            var file = Assert.Single(form);
+            contentType = file.Headers.ContentType?.MediaType;
+            fileName = file.Headers.ContentDisposition?.FileName?.Trim('"');
+            await file.LoadIntoBufferAsync();
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
+        });
+
+        var result = await client.UploadIcon(new MemoryStream([1, 2, 3]), "icon.png", "image/png");
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(HttpMethod.Put, method);
+        Assert.Equal("http://localhost/api/owner-company-profile/icon", requestUri);
+        Assert.Equal("image/png", contentType);
+        Assert.Equal("icon.png", fileName);
+    }
+
+    [Fact]
+    public async Task Upload_icon_returns_concise_message_for_failed_request()
+    {
+        var client = CreateClient(new HttpResponseMessage(HttpStatusCode.BadRequest));
+
+        var result = await client.UploadIcon(new MemoryStream([1]), "icon.png", "image/png");
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("Could not upload the icon image. Try a PNG, JPEG, or WebP file.", result.Message);
+    }
+
+    [Fact]
+    public async Task Reset_icon_sends_delete_request_to_icon_endpoint()
+    {
+        HttpMethod? method = null;
+        string? requestUri = null;
+        var client = CreateClient(request =>
+        {
+            method = request.Method;
+            requestUri = request.RequestUri?.ToString();
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+        });
+
+        var result = await client.ResetIcon();
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(HttpMethod.Delete, method);
+        Assert.Equal("http://localhost/api/owner-company-profile/icon", requestUri);
+    }
+
+    [Fact]
+    public void Icon_url_uses_the_configured_api_origin_and_cache_key()
+    {
+        var client = CreateClient(new HttpResponseMessage(HttpStatusCode.NoContent));
+
+        var url = client.GetIconUrl("saved-icon");
+
+        Assert.Equal("http://localhost/api/owner-company-profile/icon?v=saved-icon", url);
+    }
+
     private static OwnerCompanyProfileClient CreateClient(HttpResponseMessage response) =>
         CreateClient(_ => Task.FromResult(response));
 
