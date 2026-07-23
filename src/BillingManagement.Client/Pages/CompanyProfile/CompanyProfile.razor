@@ -32,11 +32,48 @@
     {
         <section class="company-card" data-profile-view="existing">
             <div class="company-identity-cover">
-                <img src="images/company-profile/header.svg"
+                <img src="@CoverImageUrl"
                      alt="mi.nie company cover"
                      width="1200"
-                     height="440" />
+                     height="440"
+                     @onerror="UseFallbackCover" />
             </div>
+            <div class="company-cover-toolbar" aria-label="Company profile cover">
+                <label class="company-secondary-button company-cover-picker">
+                    <span>Change cover</span>
+                    <InputFile accept="image/png,image/jpeg,image/webp"
+                               OnChange="SelectCover"
+                               disabled="@IsCoverRequestInProgress" />
+                </label>
+                @if (selectedCover is not null)
+                {
+                    <button class="company-primary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="UploadCover">
+                        @(isUploadingCover ? "Saving cover..." : "Save cover")
+                    </button>
+                    <button class="company-secondary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="ClearCoverSelection">Cancel</button>
+                }
+                <button class="company-secondary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="ShowResetCoverConfirmation">
+                    @(isResettingCover ? "Resetting cover..." : "Reset cover")
+                </button>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(coverMessage))
+            {
+                <p class="@CoverMessageClass" role="@(coverMessageIsError ? "alert" : "status")">@coverMessage</p>
+            }
+
+            @if (showResetCoverConfirmation)
+            {
+                <div class="company-cover-reset-confirmation" role="alertdialog" aria-label="Reset company cover confirmation">
+                    <p>Reset the company cover to the approved fallback image?</p>
+                    <div class="company-cover-actions">
+                        <button class="company-secondary-button" type="button" disabled="@isResettingCover" @onclick="CancelResetCover">Cancel</button>
+                        <button class="company-danger-button" type="button" disabled="@isResettingCover" @onclick="ResetCover">
+                            @(isResettingCover ? "Resetting cover..." : "Reset cover")
+                        </button>
+                    </div>
+                </div>
+            }
 
             <div class="company-card-content">
                 <div class="company-identity-row">

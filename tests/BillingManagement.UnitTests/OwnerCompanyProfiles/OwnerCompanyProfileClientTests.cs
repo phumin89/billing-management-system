@@ -122,6 +122,74 @@ public sealed class OwnerCompanyProfileClientTests
         Assert.Equal("Could not delete company profile. Try again.", result.Message);
     }
 
+    [Fact]
+    public async Task Upload_cover_sends_a_multipart_put_request()
+    {
+        HttpMethod? method = null;
+        string? requestUri = null;
+        string? contentType = null;
+        string? fileName = null;
+        var client = CreateClient(async request =>
+        {
+            method = request.Method;
+            requestUri = request.RequestUri?.ToString();
+            var form = Assert.IsType<MultipartFormDataContent>(request.Content);
+            var file = Assert.Single(form);
+            contentType = file.Headers.ContentType?.MediaType;
+            fileName = file.Headers.ContentDisposition?.FileName?.Trim('"');
+            await file.LoadIntoBufferAsync();
+            return new HttpResponseMessage(HttpStatusCode.NoContent);
+        });
+
+        var result = await client.UploadCover(new MemoryStream([1, 2, 3]), "cover.png", "image/png");
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(HttpMethod.Put, method);
+        Assert.Equal("http://localhost/api/owner-company-profile/cover", requestUri);
+        Assert.Equal("image/png", contentType);
+        Assert.Equal("cover.png", fileName);
+    }
+
+    [Fact]
+    public async Task Upload_cover_returns_concise_message_for_failed_request()
+    {
+        var client = CreateClient(new HttpResponseMessage(HttpStatusCode.BadRequest));
+
+        var result = await client.UploadCover(new MemoryStream([1]), "cover.png", "image/png");
+
+        Assert.False(result.Succeeded);
+        Assert.Equal("Could not upload the cover image. Try a PNG, JPEG, or WebP file.", result.Message);
+    }
+
+    [Fact]
+    public async Task Reset_cover_sends_delete_request_to_cover_endpoint()
+    {
+        HttpMethod? method = null;
+        string? requestUri = null;
+        var client = CreateClient(request =>
+        {
+            method = request.Method;
+            requestUri = request.RequestUri?.ToString();
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+        });
+
+        var result = await client.ResetCover();
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(HttpMethod.Delete, method);
+        Assert.Equal("http://localhost/api/owner-company-profile/cover", requestUri);
+    }
+
+    [Fact]
+    public void Cover_url_uses_the_configured_api_origin_and_cache_key()
+    {
+        var client = CreateClient(new HttpResponseMessage(HttpStatusCode.NoContent));
+
+        var url = client.GetCoverUrl("saved-cover");
+
+        Assert.Equal("http://localhost/api/owner-company-profile/cover?v=saved-cover", url);
+    }
+
     private static OwnerCompanyProfileClient CreateClient(HttpResponseMessage response) =>
         CreateClient(_ => Task.FromResult(response));
 

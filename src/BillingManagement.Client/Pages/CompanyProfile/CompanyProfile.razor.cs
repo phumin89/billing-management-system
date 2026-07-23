@@ -1,11 +1,15 @@
 using BillingManagement.Client.OwnerCompanyProfiles;
 using BillingManagement.Contracts.OwnerCompanyProfiles;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace BillingManagement.Client.Pages.CompanyProfile;
 
 public partial class CompanyProfile
 {
+    private const long MaximumCoverLength = 5 * 1024 * 1024;
+    private const string FallbackCoverImageUrl = "images/company-profile/header.svg";
+
     [Inject]
     private NavigationManager Navigation { get; set; } = default!;
 
@@ -19,7 +23,15 @@ public partial class CompanyProfile
     private bool isLoading = true;
     private bool isSubmitting;
     private bool isDeleting;
+    private bool isUploadingCover;
+    private bool isResettingCover;
+    private bool showResetCoverConfirmation;
     private string? statusMessage;
+    private string? coverMessage;
+    private bool coverMessageIsError;
+    private string ServerCoverImageUrl { get; set; } = FallbackCoverImageUrl;
+    private string? coverPreviewUrl;
+    private IBrowserFile? selectedCover;
     private OwnerCompanyProfileResponse? profile;
     private CreateOwnerCompanyProfileRequest form = new();
     private IReadOnlyDictionary<string, string[]> validationErrors = new Dictionary<string, string[]>();
@@ -48,6 +60,11 @@ public partial class CompanyProfile
 
         this.profile = await this.Client.Get();
         this.reviewState = this.profile is null ? ProfileReviewState.Empty : ProfileReviewState.Existing;
+        if (this.profile is not null)
+        {
+            this.RefreshServerCover();
+        }
+
         this.isLoading = false;
     }
 
@@ -94,6 +111,8 @@ public partial class CompanyProfile
         this.isEditMode = false;
         this.showDeleteSnackbar = false;
         this.profile = null;
+        this.ClearCoverSelection();
+        this.ServerCoverImageUrl = FallbackCoverImageUrl;
     }
 
     private void ShowExisting()
@@ -133,6 +152,14 @@ public partial class CompanyProfile
     }
 
     private string SnackbarClass => this.snackbarClosing ? "company-snackbar is-closing" : "company-snackbar";
+
+    private string CoverImageUrl => this.coverPreviewUrl ?? this.ServerCoverImageUrl;
+
+    private bool IsCoverRequestInProgress => this.isUploadingCover || this.isResettingCover;
+
+    private string CoverMessageClass => this.coverMessageIsError
+        ? "company-cover-message is-error"
+        : "company-cover-message";
 
     private OwnerCompanyProfileResponse DisplayProfile =>
         this.profile ?? new OwnerCompanyProfileResponse(
@@ -202,6 +229,140 @@ public partial class CompanyProfile
         this.profile = result.Profile;
         this.ShowExisting();
     }
+
+    private async Task SelectCover(InputFileChangeEventArgs eventArgs)
+    {
+        var file = eventArgs.File;
+        this.coverMessage = null;
+        this.showResetCoverConfirmation = false;
+
+        if (!IsSupportedCover(file) || file.Size > MaximumCoverLength)
+        {
+            this.ClearCoverSelection();
+            this.coverMessage = "Choose a PNG, JPEG, or WebP image up to 5 MB.";
+            this.coverMessageIsError = true;
+            return;
+        }
+
+        try
+        {
+            await using var content = file.OpenReadStream(MaximumCoverLength);
+            await using var preview = new MemoryStream();
+            await content.CopyToAsync(preview);
+            this.selectedCover = file;
+            this.coverPreviewUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(preview.ToArray())}";
+        }
+        catch (IOException)
+        {
+            this.ClearCoverSelection();
+            this.coverMessage = "Could not read the selected cover image. Try another file.";
+            this.coverMessageIsError = true;
+        }
+    }
+
+    private async Task UploadCover()
+    {
+        if (this.selectedCover is null || this.IsCoverRequestInProgress)
+        {
+            return;
+        }
+
+        this.coverMessage = null;
+        this.isUploadingCover = true;
+        try
+        {
+            await using var content = this.selectedCover.OpenReadStream(MaximumCoverLength);
+            var result = await this.Client.UploadCover(
+                content,
+                this.selectedCover.Name,
+                this.selectedCover.ContentType);
+
+            if (!result.Succeeded)
+            {
+                this.ClearCoverSelection();
+                this.coverMessage = result.Message;
+                this.coverMessageIsError = true;
+                return;
+            }
+
+            this.ClearCoverSelection();
+            this.RefreshServerCover();
+            this.coverMessage = "Cover image saved.";
+            this.coverMessageIsError = false;
+        }
+        finally
+        {
+            this.isUploadingCover = false;
+        }
+    }
+
+    private void ShowResetCoverConfirmation()
+    {
+        if (this.IsCoverRequestInProgress)
+        {
+            return;
+        }
+
+        this.coverMessage = null;
+        this.showResetCoverConfirmation = true;
+    }
+
+    private void CancelResetCover() => this.showResetCoverConfirmation = false;
+
+    private async Task ResetCover()
+    {
+        if (this.IsCoverRequestInProgress)
+        {
+            return;
+        }
+
+        this.isResettingCover = true;
+        try
+        {
+            var result = await this.Client.ResetCover();
+            if (!result.Succeeded)
+            {
+                this.coverMessage = result.Message;
+                this.coverMessageIsError = true;
+                return;
+            }
+
+            this.ClearCoverSelection();
+            this.ServerCoverImageUrl = FallbackCoverImageUrl;
+            this.coverMessage = "Cover image reset.";
+            this.coverMessageIsError = false;
+            this.showResetCoverConfirmation = false;
+        }
+        finally
+        {
+            this.isResettingCover = false;
+        }
+    }
+
+    private void ClearCoverSelection()
+    {
+        this.selectedCover = null;
+        this.coverPreviewUrl = null;
+    }
+
+    private void UseFallbackCover()
+    {
+        if (this.coverPreviewUrl is not null)
+        {
+            this.ClearCoverSelection();
+            this.coverMessage = "Could not preview the selected cover image. Try another file.";
+            this.coverMessageIsError = true;
+            return;
+        }
+
+        this.ServerCoverImageUrl = FallbackCoverImageUrl;
+    }
+
+    private void RefreshServerCover() =>
+        this.ServerCoverImageUrl = this.Client.GetCoverUrl(Guid.NewGuid().ToString("N"));
+
+    private static bool IsSupportedCover(IBrowserFile file) =>
+        file.ContentType is "image/png" or "image/jpeg" or "image/webp";
 
     private async Task DismissSnackbar(Action afterClose)
     {

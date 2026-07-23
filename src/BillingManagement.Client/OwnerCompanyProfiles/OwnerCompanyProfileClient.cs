@@ -6,6 +6,11 @@ namespace BillingManagement.Client.OwnerCompanyProfiles;
 
 public sealed class OwnerCompanyProfileClient(HttpClient httpClient)
 {
+    public string GetCoverUrl(string cacheKey) =>
+        new Uri(
+            httpClient.BaseAddress!,
+            $"api/owner-company-profile/cover?v={Uri.EscapeDataString(cacheKey)}").AbsoluteUri;
+
     public async Task<OwnerCompanyProfileResponse?> Get(CancellationToken cancellationToken = default)
     {
         var response = await httpClient.GetAsync("api/owner-company-profile", cancellationToken);
@@ -128,6 +133,52 @@ public sealed class OwnerCompanyProfileClient(HttpClient httpClient)
 
         return DeleteOwnerCompanyProfileResult.Failed(
             "Could not delete company profile. Try again.");
+    }
+
+    public async Task<CompanyProfileCoverResult> UploadCover(
+        Stream content,
+        string fileName,
+        string contentType,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var form = new MultipartFormDataContent();
+            using var file = new StreamContent(content);
+            file.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+            form.Add(file, "file", fileName);
+
+            var response = await httpClient.PutAsync(
+                "api/owner-company-profile/cover",
+                form,
+                cancellationToken);
+
+            return response.IsSuccessStatusCode
+                ? CompanyProfileCoverResult.Success()
+                : CompanyProfileCoverResult.Failed(
+                    "Could not upload the cover image. Try a PNG, JPEG, or WebP file.");
+        }
+        catch (HttpRequestException)
+        {
+            return CompanyProfileCoverResult.Failed(
+                "Could not upload the cover image. Check the API connection and try again.");
+        }
+    }
+
+    public async Task<CompanyProfileCoverResult> ResetCover(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await httpClient.DeleteAsync("api/owner-company-profile/cover", cancellationToken);
+            return response.IsSuccessStatusCode
+                ? CompanyProfileCoverResult.Success()
+                : CompanyProfileCoverResult.Failed("Could not reset the cover image. Try again.");
+        }
+        catch (HttpRequestException)
+        {
+            return CompanyProfileCoverResult.Failed(
+                "Could not reset the cover image. Check the API connection and try again.");
+        }
     }
 
     private sealed class ValidationProblemResponse
