@@ -414,6 +414,7 @@ public sealed class OwnerCompanyProfileControllerTests
             .AddControllers()
             .AddApplicationPart(typeof(OwnerCompanyProfileController).Assembly);
         builder.Services.AddSingleton<IOwnerCompanyProfileStore>(store);
+        builder.Services.AddSingleton<ICompanyMediaStore, StubMediaStore>();
         builder.Services.AddBillingManagementApplication();
         builder.Services.AddProblemDetails();
 
@@ -641,5 +642,29 @@ public sealed class OwnerCompanyProfileControllerTests
 
         public Task<ApplicationResult<bool>> ResetAsync(CancellationToken cancellationToken = default) =>
             throw new NotSupportedException();
+    }
+
+    private sealed class StubMediaStore : ICompanyMediaStore
+    {
+        public Task<CompanyMediaStoredFile> StoreAsync(
+            Stream content,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<CompanyMediaStoredFile> ReplaceAsync(
+            CompanyMediaStorageKey key,
+            Stream content,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<CompanyMediaReadFile?> OpenReadAsync(
+            CompanyMediaStorageKey key,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<bool> DeleteAsync(
+            CompanyMediaStorageKey key,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
     }
 }

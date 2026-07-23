@@ -1,5 +1,6 @@
 using BillingManagement.Application;
 using BillingManagement.Application.Abstractions.Commands;
+using BillingManagement.Application.Abstractions.CompanyMedia;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Commands;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
@@ -7,6 +8,8 @@ using BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfi
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
 using BillingManagement.Application.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BillingManagement.UnitTests;
 
@@ -17,6 +20,9 @@ public sealed class ApplicationServiceCollectionExtensionsTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<IOwnerCompanyProfileStore, StubStore>();
+        services.AddSingleton<ICompanyMediaStore, StubMediaStore>();
+        services.AddSingleton<ILogger<DeleteOwnerCompanyProfileHandler>>(
+            NullLogger<DeleteOwnerCompanyProfileHandler>.Instance);
         services.AddBillingManagementApplication();
         using var provider = services.BuildServiceProvider();
 
@@ -50,5 +56,29 @@ public sealed class ApplicationServiceCollectionExtensionsTests
 
         public Task<OwnerCompanyProfileDeleteResult> Delete(CancellationToken cancellationToken = default) =>
             Task.FromResult(OwnerCompanyProfileDeleteResult.NotFound);
+    }
+
+    private sealed class StubMediaStore : ICompanyMediaStore
+    {
+        public Task<CompanyMediaStoredFile> StoreAsync(
+            Stream content,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<CompanyMediaStoredFile> ReplaceAsync(
+            CompanyMediaStorageKey key,
+            Stream content,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<CompanyMediaReadFile?> OpenReadAsync(
+            CompanyMediaStorageKey key,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public Task<bool> DeleteAsync(
+            CompanyMediaStorageKey key,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
     }
 }
