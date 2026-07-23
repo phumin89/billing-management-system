@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.JSInterop;
 
 namespace BillingManagement.UnitTests.OwnerCompanyProfiles;
 
@@ -96,6 +97,7 @@ public sealed class CompanyProfileDeleteTests
         using var services = new ServiceCollection()
             .AddSingleton<NavigationManager>(new TestNavigationManager())
             .AddSingleton(new OwnerCompanyProfileClient(new HttpClient()))
+            .AddSingleton<IJSRuntime, TestJsRuntime>()
             .BuildServiceProvider();
         await using var renderer = new HtmlRenderer(services, NullLoggerFactory.Instance);
 
@@ -182,5 +184,17 @@ public sealed class CompanyProfileDeleteTests
         protected override void NavigateToCore(string uri, bool forceLoad)
         {
         }
+    }
+
+    private sealed class TestJsRuntime : IJSRuntime
+    {
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
+            ValueTask.FromResult(default(TValue)!);
+
+        public ValueTask<TValue> InvokeAsync<TValue>(
+            string identifier,
+            CancellationToken cancellationToken,
+            object?[]? args) =>
+            ValueTask.FromResult(default(TValue)!);
     }
 }
