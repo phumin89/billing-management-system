@@ -1,0 +1,42 @@
+@page "/customers"
+
+<PageTitle>Customers</PageTitle>
+
+<main class="customers-page">
+    <header class="customers-page-header">
+        <div>
+            <h1 tabindex="-1">Customers</h1>
+            <p>Keep customer details ready for future billing documents.</p>
+        </div>
+        <button class="customers-create-button" type="button">Create customer</button>
+    </header>
+
+    <section class="customers-list" aria-labelledby="customers-list-title">
+        <div class="customers-list-header">
+            <div>
+                <h2 id="customers-list-title">Customer list</h2>
+                <p>Customer records will appear here.</p>
+            </div>
+            <span class="customers-count">0 customers</span>
+        </div>
+
+        <div class="customers-table-wrap" tabindex="0" aria-label="Customer list">
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">Customer name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Phone</th>
+                        <th scope="col">Billing address</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="customers-empty-state">
+            <h2>No customers yet</h2>
+            <p>Create a customer to prepare future quotations and invoices.</p>
+            <button class="customers-create-button" type="button">Create customer</button>
+        </div>
+    </section>
+</main>
