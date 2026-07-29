@@ -1,0 +1,80 @@
+@page "/customers/create"
+
+<PageTitle>Create customer</PageTitle>
+
+<main class="customer-create-page">
+    <a class="customer-back-link" href="/customers">Back to customers</a>
+
+    <header class="customer-create-header">
+        <h1 tabindex="-1">Create customer</h1>
+        <p>Add the customer details used when preparing billing documents.</p>
+    </header>
+
+    <form class="customer-form">
+        <div class="customer-form-grid">
+            <div class="customer-form-field customer-form-field-wide">
+                <label for="customer-name">
+                    Customer name
+                    <span class="required-marker" aria-hidden="true">*</span>
+                    <span class="required-text">required</span>
+                </label>
+                <input id="customer-name" name="CustomerName" type="text" autocomplete="organization" />
+            </div>
+
+            <div class="customer-form-field">
+                <label for="tax-id">Tax ID</label>
+                <input id="tax-id" name="TaxId" type="text" />
+            </div>
+
+            <div class="customer-form-field">
+                <label for="email">Email</label>
+                <input id="email" name="Email" type="email" autocomplete="email" />
+            </div>
+
+            <div class="customer-form-field">
+                <label for="phone">Phone</label>
+                <input id="phone" name="Phone" type="tel" autocomplete="tel" />
+            </div>
+
+            <div class="customer-form-field">
+                <label for="contact-name">Contact name</label>
+                <input id="contact-name" name="ContactName" type="text" autocomplete="name" />
+            </div>
+
+            <div class="customer-form-field customer-form-field-wide">
+                <label for="billing-address-line-1">Billing address line 1</label>
+                <input id="billing-address-line-1" name="BillingAddressLine1" type="text" autocomplete="address-line1" />
+            </div>
+
+            <div class="customer-form-field customer-form-field-wide">
+                <label for="billing-address-line-2">Billing address line 2</label>
+                <input id="billing-address-line-2" name="BillingAddressLine2" type="text" autocomplete="address-line2" />
+            </div>
+
+            <div class="customer-form-field">
+                <label for="city-province-state">City / Province / State</label>
+                <input id="city-province-state" name="CityProvinceState" type="text" autocomplete="address-level1" />
+            </div>
+
+            <div class="customer-form-field">
+                <label for="postal-code">Postal code</label>
+                <input id="postal-code" name="PostalCode" type="text" autocomplete="postal-code" />
+            </div>
+
+            <div class="customer-form-field">
+                <label for="country">Country</label>
+                <input id="country" name="Country" type="text" autocomplete="country-name" />
+            </div>
+
+            <div class="customer-form-field customer-form-field-wide">
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="Notes" rows="5"></textarea>
+            </div>
+        </div>
+
+        <div class="customer-form-actions">
+            <a class="customer-cancel-button" href="/customers">Cancel</a>
+            <button class="customer-save-button" type="button" disabled>Save customer</button>
+        </div>
+    </form>
+</main>

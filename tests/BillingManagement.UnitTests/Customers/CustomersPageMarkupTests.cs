@@ -18,10 +18,57 @@ public sealed class CustomersPageMarkupTests
         Assert.Contains("Email", markup);
         Assert.Contains("Phone", markup);
         Assert.Contains("No customers yet", markup);
-        Assert.Equal(2, Count(markup, ">Create customer</button>"));
+        Assert.Equal(2, Count(markup, "href=\"/customers/create\""));
         Assert.True(markup.IndexOf("</table>", StringComparison.Ordinal) < markup.IndexOf("No customers yet", StringComparison.Ordinal));
         Assert.DoesNotContain("@inject", markup);
         Assert.DoesNotContain("@code", markup);
+    }
+
+    [Fact]
+    public void Customer_create_page_defines_static_form_and_local_navigation()
+    {
+        var markup = ReadClientFile("Pages", "Customers", "CreateCustomer.razor");
+
+        Assert.Contains("@page \"/customers/create\"", markup);
+        Assert.Contains("for=\"customer-name\"", markup);
+        Assert.Contains("class=\"required-marker\"", markup);
+
+        var fieldIds = new[]
+        {
+            "customer-name",
+            "tax-id",
+            "email",
+            "phone",
+            "billing-address-line-1",
+            "billing-address-line-2",
+            "city-province-state",
+            "postal-code",
+            "country",
+            "contact-name",
+            "notes"
+        };
+
+        foreach (var fieldId in fieldIds)
+        {
+            Assert.Contains($"id=\"{fieldId}\"", markup);
+        }
+
+        Assert.Contains("type=\"button\" disabled", markup);
+        Assert.Contains("href=\"/customers\"", markup);
+        Assert.DoesNotContain("type=\"submit\"", markup);
+        Assert.DoesNotContain("<EditForm", markup);
+        Assert.DoesNotContain("@inject", markup);
+        Assert.DoesNotContain("@code", markup);
+    }
+
+    [Fact]
+    public void Customer_create_styles_keep_labels_and_controls_within_layout()
+    {
+        var styles = ReadClientFile("Pages", "Customers", "CreateCustomer.razor.scss");
+        var normalizedStyles = styles.ReplaceLineEndings("\n");
+
+        Assert.Contains(".customer-form-field label {\n  display: inline-flex;", normalizedStyles);
+        Assert.Contains("box-sizing: border-box;", normalizedStyles);
     }
 
     [Fact]
