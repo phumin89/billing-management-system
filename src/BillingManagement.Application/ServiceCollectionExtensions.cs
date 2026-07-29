@@ -1,7 +1,9 @@
 using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.CompanyMedia;
+using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Commands;
+using BillingManagement.Application.Customers.CreateCustomer;
 using BillingManagement.Application.OwnerCompanyProfiles;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfile;
@@ -20,6 +22,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICompanyProfileCoverService, CompanyProfileCoverService>();
         services.AddScoped<ICompanyProfileIconService, CompanyProfileIconService>();
         services.AddScoped(typeof(ICommandValidator<>), typeof(AnnotationCommandValidator<>));
+        services.AddScoped<
+            ICommandHandler<CreateCustomerCommand, CustomerRecord>,
+            CreateCustomerHandler>();
         services.AddScoped<
             ICommandHandler<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>,
             CreateOwnerCompanyProfileHandler>();
