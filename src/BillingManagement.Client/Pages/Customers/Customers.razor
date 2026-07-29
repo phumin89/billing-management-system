@@ -17,7 +17,7 @@
                 <h2 id="customers-list-title">Customer list</h2>
                 <p>Customer records will appear here.</p>
             </div>
-            <span class="customers-count">0 customers</span>
+            <span class="customers-count">@CustomerList.Count @(CustomerList.Count == 1 ? "customer" : "customers")</span>
         </div>
 
         <div class="customers-table-wrap" tabindex="0" aria-label="Customer list">
@@ -30,13 +30,26 @@
                         <th scope="col">Billing address</th>
                     </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody>
+                    @foreach (var customer in CustomerList)
+                    {
+                        <tr>
+                            <td>@customer.CustomerName</td>
+                            <td>@customer.Email</td>
+                            <td>@customer.Phone</td>
+                            <td>@BillingAddress(customer)</td>
+                        </tr>
+                    }
+                </tbody>
             </table>
         </div>
-        <div class="customers-empty-state">
-            <h2>No customers yet</h2>
-            <p>Create a customer to prepare future quotations and invoices.</p>
-            <a class="customers-create-button" href="/customers/create">Create customer</a>
-        </div>
+        @if (CustomerList.Count == 0)
+        {
+            <div class="customers-empty-state">
+                <h2>No customers yet</h2>
+                <p>Create a customer to prepare future quotations and invoices.</p>
+                <a class="customers-create-button" href="/customers/create">Create customer</a>
+            </div>
+        }
     </section>
 </main>

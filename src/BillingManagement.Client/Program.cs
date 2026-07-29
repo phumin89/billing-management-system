@@ -1,4 +1,5 @@
 using BillingManagement.Client;
+using BillingManagement.Client.Customers;
 using BillingManagement.Client.OwnerCompanyProfiles;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -13,6 +14,8 @@ var apiBaseAddress = clientBaseAddress.Port == 5080
     : new Uri("http://localhost:5170/");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = apiBaseAddress });
+builder.Services.AddScoped<CustomerClient>();
+builder.Services.AddScoped<CustomerSessionState>();
 builder.Services.AddScoped<OwnerCompanyProfileClient>();
 
 await builder.Build().RunAsync();
