@@ -25,13 +25,33 @@ public sealed class CustomersPageMarkupTests
     }
 
     [Fact]
+    public void Customers_page_defines_same_page_local_edit_mode()
+    {
+        var markup = ReadClientFile("Pages", "Customers", "Customers.razor");
+        var codeBehind = ReadClientFile("Pages", "Customers", "Customers.razor.cs");
+
+        Assert.Contains("@onclick=\"() => BeginEdit(customer)\"", markup);
+        Assert.Contains("@if (IsEditing)", markup);
+        Assert.Contains("<CustomerFormFields Form=\"editForm!\" />", markup);
+        Assert.Contains("@onclick=\"CancelEdit\"", markup);
+        Assert.Contains("class=\"customer-edit-save-button\" type=\"button\" disabled", markup);
+        Assert.DoesNotContain("@onsubmit", markup);
+        Assert.DoesNotContain("CustomerClient", codeBehind);
+        Assert.DoesNotContain("HttpClient", codeBehind);
+    }
+
+    [Fact]
     public void Customer_create_page_defines_bound_submit_form_and_local_navigation()
     {
         var markup = ReadClientFile("Pages", "Customers", "CreateCustomer.razor");
 
         Assert.Contains("@page \"/customers/create\"", markup);
-        Assert.Contains("for=\"customer-name\"", markup);
-        Assert.Contains("class=\"required-marker\"", markup);
+        Assert.Contains("<CustomerFormFields Form=\"form\" FieldError=\"FieldError\" />", markup);
+
+        var fieldsMarkup = ReadClientFile("Components", "Customers", "CustomerFormFields.razor");
+
+        Assert.Contains("for=\"customer-name\"", fieldsMarkup);
+        Assert.Contains("class=\"required-marker\"", fieldsMarkup);
 
         var fieldIds = new[]
         {
@@ -50,13 +70,13 @@ public sealed class CustomersPageMarkupTests
 
         foreach (var fieldId in fieldIds)
         {
-            Assert.Contains($"id=\"{fieldId}\"", markup);
+            Assert.Contains($"id=\"{fieldId}\"", fieldsMarkup);
         }
 
         Assert.Contains("@onsubmit=\"SaveCustomer\"", markup);
         Assert.Contains("novalidate", markup);
-        Assert.Contains("@bind=\"form.CustomerName\"", markup);
-        Assert.Contains("@bind:event=\"oninput\"", markup);
+        Assert.Contains("@bind=\"Form.CustomerName\"", fieldsMarkup);
+        Assert.Contains("@bind:event=\"oninput\"", fieldsMarkup);
         Assert.Contains("type=\"submit\"", markup);
         Assert.Contains("disabled=\"@isSubmitting\"", markup);
         Assert.Contains("href=\"/customers\"", markup);
@@ -68,11 +88,19 @@ public sealed class CustomersPageMarkupTests
     [Fact]
     public void Customer_create_styles_keep_labels_and_controls_within_layout()
     {
-        var styles = ReadClientFile("Pages", "Customers", "CreateCustomer.razor.scss");
+        var styles = ReadClientFile("Components", "Customers", "CustomerFormFields.razor.scss");
         var normalizedStyles = styles.ReplaceLineEndings("\n");
 
         Assert.Contains(".customer-form-field label {\n  display: inline-flex;", normalizedStyles);
         Assert.Contains("box-sizing: border-box;", normalizedStyles);
+    }
+
+    [Fact]
+    public void Customers_styles_keep_full_width_mobile_action_inside_page()
+    {
+        var styles = ReadClientFile("Pages", "Customers", "Customers.razor.scss").ReplaceLineEndings("\n");
+
+        Assert.Contains(".customers-create-button {\n  box-sizing: border-box;", styles);
     }
 
     [Fact]
