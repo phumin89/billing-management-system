@@ -1,4 +1,5 @@
 @page "/customers/create"
+@using BillingManagement.Client.Components.Customers
 
 <PageTitle>Create customer</PageTitle>
 
@@ -15,77 +16,7 @@
         {
             <p class="customer-form-error-summary" role="alert">@GeneralError()</p>
         }
-        <div class="customer-form-grid">
-            <div class="customer-form-field customer-form-field-wide">
-                <label for="customer-name">
-                    Customer name
-                    <span class="required-marker" aria-hidden="true">*</span>
-                    <span class="required-text">required</span>
-                </label>
-                <input id="customer-name" name="CustomerName" type="text" autocomplete="organization" @bind="form.CustomerName" @bind:event="oninput" aria-describedby="customer-name-error" />
-                <span id="customer-name-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("CustomerName"))">@FieldError("CustomerName")</span>
-            </div>
-
-            <div class="customer-form-field">
-                <label for="tax-id">Tax ID</label>
-                <input id="tax-id" name="TaxId" type="text" @bind="form.TaxId" @bind:event="oninput" aria-describedby="tax-id-error" />
-                <span id="tax-id-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("TaxId"))">@FieldError("TaxId")</span>
-            </div>
-
-            <div class="customer-form-field">
-                <label for="email">Email</label>
-                <input id="email" name="Email" type="email" autocomplete="email" @bind="form.Email" @bind:event="oninput" aria-describedby="email-error" />
-                <span id="email-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("Email"))">@FieldError("Email")</span>
-            </div>
-
-            <div class="customer-form-field">
-                <label for="phone">Phone</label>
-                <input id="phone" name="Phone" type="tel" autocomplete="tel" @bind="form.Phone" @bind:event="oninput" aria-describedby="phone-error" />
-                <span id="phone-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("Phone"))">@FieldError("Phone")</span>
-            </div>
-
-            <div class="customer-form-field">
-                <label for="contact-name">Contact name</label>
-                <input id="contact-name" name="ContactName" type="text" autocomplete="name" @bind="form.ContactName" @bind:event="oninput" aria-describedby="contact-name-error" />
-                <span id="contact-name-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("ContactName"))">@FieldError("ContactName")</span>
-            </div>
-
-            <div class="customer-form-field customer-form-field-wide">
-                <label for="billing-address-line-1">Billing address line 1</label>
-                <input id="billing-address-line-1" name="BillingAddressLine1" type="text" autocomplete="address-line1" @bind="form.BillingAddressLine1" @bind:event="oninput" aria-describedby="billing-address-line-1-error" />
-                <span id="billing-address-line-1-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("BillingAddressLine1"))">@FieldError("BillingAddressLine1")</span>
-            </div>
-
-            <div class="customer-form-field customer-form-field-wide">
-                <label for="billing-address-line-2">Billing address line 2</label>
-                <input id="billing-address-line-2" name="BillingAddressLine2" type="text" autocomplete="address-line2" @bind="form.BillingAddressLine2" @bind:event="oninput" aria-describedby="billing-address-line-2-error" />
-                <span id="billing-address-line-2-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("BillingAddressLine2"))">@FieldError("BillingAddressLine2")</span>
-            </div>
-
-            <div class="customer-form-field">
-                <label for="city-province-state">City / Province / State</label>
-                <input id="city-province-state" name="CityProvinceState" type="text" autocomplete="address-level1" @bind="form.CityProvinceState" @bind:event="oninput" aria-describedby="city-province-state-error" />
-                <span id="city-province-state-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("CityProvinceState"))">@FieldError("CityProvinceState")</span>
-            </div>
-
-            <div class="customer-form-field">
-                <label for="postal-code">Postal code</label>
-                <input id="postal-code" name="PostalCode" type="text" autocomplete="postal-code" @bind="form.PostalCode" @bind:event="oninput" aria-describedby="postal-code-error" />
-                <span id="postal-code-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("PostalCode"))">@FieldError("PostalCode")</span>
-            </div>
-
-            <div class="customer-form-field">
-                <label for="country">Country</label>
-                <input id="country" name="Country" type="text" autocomplete="country-name" @bind="form.Country" @bind:event="oninput" aria-describedby="country-error" />
-                <span id="country-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("Country"))">@FieldError("Country")</span>
-            </div>
-
-            <div class="customer-form-field customer-form-field-wide">
-                <label for="notes">Notes</label>
-                <textarea id="notes" name="Notes" rows="5" @bind="form.Notes" @bind:event="oninput" aria-describedby="notes-error"></textarea>
-                <span id="notes-error" class="customer-field-error" hidden="@string.IsNullOrEmpty(FieldError("Notes"))">@FieldError("Notes")</span>
-            </div>
-        </div>
+        <CustomerFormFields Form="form" FieldError="FieldError" />
 
         <div class="customer-form-actions">
             <a class="customer-cancel-button" href="/customers">Cancel</a>

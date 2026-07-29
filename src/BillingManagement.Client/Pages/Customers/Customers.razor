@@ -1,4 +1,5 @@
 @page "/customers"
+@using BillingManagement.Client.Components.Customers
 
 <PageTitle>Customers</PageTitle>
 
@@ -12,44 +13,63 @@
     </header>
 
     <section class="customers-list" aria-labelledby="customers-list-title">
-        <div class="customers-list-header">
-            <div>
-                <h2 id="customers-list-title">Customer list</h2>
-                <p>Customer records will appear here.</p>
-            </div>
-            <span class="customers-count">@CustomerList.Count @(CustomerList.Count == 1 ? "customer" : "customers")</span>
-        </div>
-
-        <div class="customers-table-wrap" tabindex="0" aria-label="Customer list">
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Customer name</th>
-                        <th scope="col">Email</th>
-                        <th scope="col">Phone</th>
-                        <th scope="col">Billing address</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var customer in CustomerList)
-                    {
-                        <tr>
-                            <td>@customer.CustomerName</td>
-                            <td>@customer.Email</td>
-                            <td>@customer.Phone</td>
-                            <td>@BillingAddress(customer)</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-        @if (CustomerList.Count == 0)
+        @if (IsEditing)
         {
-            <div class="customers-empty-state">
-                <h2>No customers yet</h2>
-                <p>Create a customer to prepare future quotations and invoices.</p>
-                <a class="customers-create-button" href="/customers/create">Create customer</a>
+            <div class="customer-edit-header">
+                <h2 id="customers-list-title">Edit customer</h2>
+                <p>@editingCustomer!.CustomerName</p>
             </div>
+            <form class="customer-edit-form">
+                <CustomerFormFields Form="editForm!" />
+                <div class="customer-edit-actions">
+                    <button class="customer-edit-cancel-button" type="button" @onclick="CancelEdit">Cancel</button>
+                    <button class="customer-edit-save-button" type="button" disabled>Save changes</button>
+                </div>
+            </form>
+        }
+        else
+        {
+            <div class="customers-list-header">
+                <div>
+                    <h2 id="customers-list-title">Customer list</h2>
+                    <p>Customer records will appear here.</p>
+                </div>
+                <span class="customers-count">@CustomerList.Count @(CustomerList.Count == 1 ? "customer" : "customers")</span>
+            </div>
+
+            <div class="customers-table-wrap" tabindex="0" aria-label="Customer list">
+                <table>
+                    <thead>
+                        <tr>
+                            <th scope="col">Customer name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Phone</th>
+                            <th scope="col">Billing address</th>
+                            <th scope="col"><span class="visually-hidden">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var customer in CustomerList)
+                        {
+                            <tr>
+                                <td>@customer.CustomerName</td>
+                                <td>@customer.Email</td>
+                                <td>@customer.Phone</td>
+                                <td>@BillingAddress(customer)</td>
+                                <td><button class="customer-edit-button" type="button" @onclick="() => BeginEdit(customer)">Edit</button></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (CustomerList.Count == 0)
+            {
+                <div class="customers-empty-state">
+                    <h2>No customers yet</h2>
+                    <p>Create a customer to prepare future quotations and invoices.</p>
+                    <a class="customers-create-button" href="/customers/create">Create customer</a>
+                </div>
+            }
         }
     </section>
 </main>

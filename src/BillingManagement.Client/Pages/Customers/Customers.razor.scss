@@ -44,6 +44,7 @@
 }
 
 .customers-create-button {
+  box-sizing: border-box;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
@@ -124,6 +125,74 @@
   line-height: 1.4;
 }
 
+.customer-edit-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #dddddd;
+}
+
+.customer-edit-header p {
+  margin-top: 4px;
+}
+
+.customer-edit-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  background: #f8fafc;
+  border-top: 1px solid #dddddd;
+  border-radius: 0 0 8px 8px;
+}
+
+.customer-edit-button,
+.customer-edit-cancel-button,
+.customer-edit-save-button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.customer-edit-button,
+.customer-edit-cancel-button {
+  color: #181d26;
+  background: #ffffff;
+  border: 1px solid #a9adb5;
+  cursor: pointer;
+}
+
+.customer-edit-save-button {
+  color: #7a7f87;
+  background: #e6e8eb;
+  border: 1px solid #d1d4d9;
+  cursor: not-allowed;
+}
+
+.customer-edit-button:focus-visible,
+.customer-edit-cancel-button:focus-visible {
+  outline: 2px solid #458fff;
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .customers-empty-state {
   max-width: 440px;
   display: grid;
@@ -153,11 +222,23 @@
   }
 
   .customers-list-header,
+  .customer-edit-header,
   .customers-empty-state {
     padding-inline: 16px;
   }
 
   .customers-empty-state {
     padding-block: 40px;
+  }
+
+  .customer-edit-actions {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .customer-edit-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
   }
 }
