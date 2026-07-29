@@ -41,6 +41,14 @@
   border-radius: 8px;
 }
 
+.customer-form-error-summary {
+  margin: 0;
+  padding: 16px 24px 0;
+  color: #b42318;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 .customer-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -52,6 +60,13 @@
   min-width: 0;
   display: grid;
   gap: 8px;
+}
+
+.customer-field-error {
+  min-height: 18px;
+  color: #b42318;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .customer-form-field-wide {
@@ -149,9 +164,16 @@
 }
 
 .customer-save-button {
+  color: #ffffff;
+  background: #181d26;
+  border: 1px solid #181d26;
+  cursor: pointer;
+}
+
+.customer-save-button:disabled {
   color: #7a7f87;
   background: #e6e8eb;
-  border: 1px solid #d1d4d9;
+  border-color: #d1d4d9;
   cursor: not-allowed;
 }
 

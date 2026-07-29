@@ -116,6 +116,14 @@
   line-height: 1.35;
 }
 
+.customers-table-wrap td {
+  padding: 14px 24px;
+  border-bottom: 1px solid #dddddd;
+  color: #333840;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 .customers-empty-state {
   max-width: 440px;
   display: grid;

@@ -25,7 +25,7 @@ public sealed class CustomersPageMarkupTests
     }
 
     [Fact]
-    public void Customer_create_page_defines_static_form_and_local_navigation()
+    public void Customer_create_page_defines_bound_submit_form_and_local_navigation()
     {
         var markup = ReadClientFile("Pages", "Customers", "CreateCustomer.razor");
 
@@ -53,9 +53,13 @@ public sealed class CustomersPageMarkupTests
             Assert.Contains($"id=\"{fieldId}\"", markup);
         }
 
-        Assert.Contains("type=\"button\" disabled", markup);
+        Assert.Contains("@onsubmit=\"SaveCustomer\"", markup);
+        Assert.Contains("novalidate", markup);
+        Assert.Contains("@bind=\"form.CustomerName\"", markup);
+        Assert.Contains("@bind:event=\"oninput\"", markup);
+        Assert.Contains("type=\"submit\"", markup);
+        Assert.Contains("disabled=\"@isSubmitting\"", markup);
         Assert.Contains("href=\"/customers\"", markup);
-        Assert.DoesNotContain("type=\"submit\"", markup);
         Assert.DoesNotContain("<EditForm", markup);
         Assert.DoesNotContain("@inject", markup);
         Assert.DoesNotContain("@code", markup);
