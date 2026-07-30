@@ -55,5 +55,21 @@ public sealed class CustomerTests
         Assert.Throws<ArgumentException>(() => Customer.Rehydrate(Guid.Empty, "Acme", null, null, null, null, null, null, null, null, null, null));
     }
 
+    [Fact]
+    public void Update_preserves_id_and_normalizes_text()
+    {
+        var id = Guid.NewGuid();
+        var customer = Customer.Rehydrate(id, "Old name", null, null, null, null, null, null, null, null, null, null);
+
+        customer.Update(" New name ", " ", " billing@example.com ", "\t", null, null, " Bangkok ", null, null, null, null);
+
+        Assert.Equal(id, customer.Id);
+        Assert.Equal("New name", customer.CustomerName);
+        Assert.Null(customer.TaxId);
+        Assert.Equal("billing@example.com", customer.Email);
+        Assert.Null(customer.Phone);
+        Assert.Equal("Bangkok", customer.CityProvinceState);
+    }
+
     private static string Over(int maximumLength) => new('x', maximumLength + 1);
 }

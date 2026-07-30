@@ -1,8 +1,10 @@
 using BillingManagement.Application;
 using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.CompanyMedia;
+using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Commands;
+using BillingManagement.Application.Customers.UpdateCustomer;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
@@ -20,6 +22,7 @@ public sealed class ApplicationServiceCollectionExtensionsTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<IOwnerCompanyProfileStore, StubStore>();
+        services.AddSingleton<ICustomerStore, StubCustomerStore>();
         services.AddSingleton<ICompanyMediaStore, StubMediaStore>();
         services.AddSingleton<ILogger<DeleteOwnerCompanyProfileHandler>>(
             NullLogger<DeleteOwnerCompanyProfileHandler>.Instance);
@@ -33,15 +36,28 @@ public sealed class ApplicationServiceCollectionExtensionsTests
             provider.GetRequiredService<ICommandHandler<DeleteOwnerCompanyProfileCommand, bool>>());
         Assert.IsType<UpdateOwnerCompanyProfileHandler>(
             provider.GetRequiredService<ICommandHandler<UpdateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>>());
+        Assert.IsType<UpdateCustomerHandler>(
+            provider.GetRequiredService<ICommandHandler<UpdateCustomerCommand, CustomerRecord>>());
         Assert.IsType<AnnotationCommandValidator<CreateOwnerCompanyProfileCommand>>(
             Assert.Single(provider.GetServices<ICommandValidator<CreateOwnerCompanyProfileCommand>>()));
         Assert.IsType<AnnotationCommandValidator<UpdateOwnerCompanyProfileCommand>>(
             Assert.Single(provider.GetServices<ICommandValidator<UpdateOwnerCompanyProfileCommand>>()));
+        Assert.IsType<AnnotationCommandValidator<UpdateCustomerCommand>>(
+            Assert.Single(provider.GetServices<ICommandValidator<UpdateCustomerCommand>>()));
         Assert.IsType<AnnotationCommandValidator<TestCommand>>(
             provider.GetRequiredService<ICommandValidator<TestCommand>>());
     }
 
     private sealed record TestCommand;
+
+    private sealed class StubCustomerStore : ICustomerStore
+    {
+        public Task Add(CustomerRecord customer, CancellationToken cancellationToken = default) =>
+            Task.CompletedTask;
+
+        public Task<bool> Update(CustomerRecord customer, CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
+    }
 
     private sealed class StubStore : IOwnerCompanyProfileStore
     {

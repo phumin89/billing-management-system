@@ -39,5 +39,8 @@ public sealed class CreateCustomerHandlerTests
             this.Added = customer;
             return Task.CompletedTask;
         }
+
+        public Task<bool> Update(CustomerRecord customer, CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
     }
 }

@@ -1,6 +1,7 @@
 using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Customers.CreateCustomer;
+using BillingManagement.Application.Customers.UpdateCustomer;
 using BillingManagement.Contracts.Customers;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,6 +38,36 @@ public sealed class CustomersController(ICommandDispatcher commandDispatcher) : 
 
         var response = ToResponse(result.Value!);
         return this.StatusCode(StatusCodes.Status201Created, response);
+    }
+
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<CustomerResponse>> Update(
+        Guid id,
+        UpdateCustomerRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await commandDispatcher.Send<UpdateCustomerCommand, CustomerRecord>(
+            new UpdateCustomerCommand(
+                id,
+                request.CustomerName ?? string.Empty,
+                request.TaxId,
+                request.Email,
+                request.Phone,
+                request.BillingAddressLine1,
+                request.BillingAddressLine2,
+                request.CityProvinceState,
+                request.PostalCode,
+                request.Country,
+                request.ContactName,
+                request.Notes),
+            cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return this.ToProblemDetails(result.Error!);
+        }
+
+        return this.Ok(ToResponse(result.Value!));
     }
 
     private static CustomerResponse ToResponse(CustomerRecord customer) =>
