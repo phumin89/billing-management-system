@@ -48,6 +48,9 @@ public sealed class UpdateCustomerHandlerTests
 
     private sealed class RecordingCustomerStore : ICustomerStore
     {
+        public Task<IReadOnlyList<CustomerRecord>> List(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<CustomerRecord>>([]);
+
         public bool UpdateResult { get; init; }
         public CustomerRecord? Updated { get; private set; }
 

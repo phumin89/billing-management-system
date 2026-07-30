@@ -9,6 +9,53 @@ namespace BillingManagement.IntegrationTests;
 public sealed class CustomerPersistenceTests
 {
     [Fact]
+    public async Task Store_list_returns_all_fields_ordered_by_name_then_id_without_tracking()
+    {
+        var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();
+
+        try
+        {
+            await using var context = SqlServerIntegrationTestDatabase.CreateContext(databaseName);
+            await context.Database.MigrateAsync();
+            var firstDuplicateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var secondDuplicateId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+            context.Customers.AddRange(
+                Customer.Rehydrate(
+                    secondDuplicateId, "Duplicate", null, null, null, null, null, null, null, null, null, null),
+                Customer.Rehydrate(
+                    Guid.Parse("33333333-3333-3333-3333-333333333333"), "Alpha", "TAX-1",
+                    "billing@example.com", "0123", "1 Main Street", "Suite 2", "Bangkok", "10110",
+                    "Thailand", "Jane", "Notes"),
+                Customer.Rehydrate(
+                    firstDuplicateId, "Duplicate", null, null, null, null, null, null, null, null, null, null));
+            await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
+            var store = new CustomerStore(context);
+
+            var customers = await store.List();
+
+            Assert.Equal(["Alpha", "Duplicate", "Duplicate"], customers.Select(customer => customer.CustomerName));
+            Assert.Equal(firstDuplicateId, customers[1].Id);
+            Assert.Equal(secondDuplicateId, customers[2].Id);
+            Assert.Equal("TAX-1", customers[0].TaxId);
+            Assert.Equal("billing@example.com", customers[0].Email);
+            Assert.Equal("0123", customers[0].Phone);
+            Assert.Equal("1 Main Street", customers[0].BillingAddressLine1);
+            Assert.Equal("Suite 2", customers[0].BillingAddressLine2);
+            Assert.Equal("Bangkok", customers[0].CityProvinceState);
+            Assert.Equal("10110", customers[0].PostalCode);
+            Assert.Equal("Thailand", customers[0].Country);
+            Assert.Equal("Jane", customers[0].ContactName);
+            Assert.Equal("Notes", customers[0].Notes);
+            Assert.Empty(context.ChangeTracker.Entries());
+        }
+        finally
+        {
+            await SqlServerIntegrationTestDatabase.Delete(databaseName);
+        }
+    }
+
+    [Fact]
     public async Task Migration_persists_duplicate_names_and_optional_blanks_as_null()
     {
         var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();
