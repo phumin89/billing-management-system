@@ -199,6 +199,38 @@ public sealed class CustomerControllerTests
         Assert.Equal(2, store.Customers.Count(customer => customer.CustomerName == "Duplicate"));
     }
 
+    [Fact]
+    public async Task Delete_existing_customer_returns_no_content_and_preserves_unrelated_row()
+    {
+        var deletedId = Guid.NewGuid();
+        var preserved = new CustomerRecord(
+            Guid.NewGuid(), "Preserved", "TAX-1", "billing@example.com", "0123",
+            "1 Main Street", "Suite 2", "Bangkok", "10110", "Thailand", "Jane", "Notes");
+        var store = new InMemoryCustomerStore();
+        store.Customers.Add(new CustomerRecord(
+            deletedId, "Delete", null, null, null, null, null, null, null, null, null, null));
+        store.Customers.Add(preserved);
+        await using var app = await StartApplication(store);
+        using var client = CreateClient(app);
+
+        var response = await client.DeleteAsync($"/api/customers/{deletedId}");
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(preserved, Assert.Single(store.Customers));
+    }
+
+    [Fact]
+    public async Task Delete_missing_customer_returns_not_found()
+    {
+        var store = new InMemoryCustomerStore();
+        await using var app = await StartApplication(store);
+        using var client = CreateClient(app);
+
+        var response = await client.DeleteAsync($"/api/customers/{Guid.NewGuid()}");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private static async Task<WebApplication> StartApplication(ICustomerStore store)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
@@ -256,5 +288,8 @@ public sealed class CustomerControllerTests
             this.Customers[index] = customer;
             return Task.FromResult(true);
         }
+
+        public Task<bool> Delete(Guid id, CancellationToken cancellationToken = default) =>
+            Task.FromResult(this.Customers.RemoveAll(customer => customer.Id == id) == 1);
     }
 }

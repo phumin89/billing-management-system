@@ -4,6 +4,7 @@ using BillingManagement.Application.Abstractions.CompanyMedia;
 using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Commands;
+using BillingManagement.Application.Customers.DeleteCustomer;
 using BillingManagement.Application.Customers.ListCustomers;
 using BillingManagement.Application.Customers.UpdateCustomer;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
@@ -39,6 +40,8 @@ public sealed class ApplicationServiceCollectionExtensionsTests
             provider.GetRequiredService<ICommandHandler<UpdateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>>());
         Assert.IsType<UpdateCustomerHandler>(
             provider.GetRequiredService<ICommandHandler<UpdateCustomerCommand, CustomerRecord>>());
+        Assert.IsType<DeleteCustomerHandler>(
+            provider.GetRequiredService<ICommandHandler<DeleteCustomerCommand, bool>>());
         Assert.IsType<ListCustomersHandler>(provider.GetRequiredService<ListCustomersHandler>());
         Assert.IsType<AnnotationCommandValidator<CreateOwnerCompanyProfileCommand>>(
             Assert.Single(provider.GetServices<ICommandValidator<CreateOwnerCompanyProfileCommand>>()));
@@ -61,6 +64,9 @@ public sealed class ApplicationServiceCollectionExtensionsTests
             Task.CompletedTask;
 
         public Task<bool> Update(CustomerRecord customer, CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
+
+        public Task<bool> Delete(Guid id, CancellationToken cancellationToken = default) =>
             Task.FromResult(false);
     }
 

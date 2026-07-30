@@ -62,5 +62,8 @@ public sealed class UpdateCustomerHandlerTests
             this.Updated = customer;
             return Task.FromResult(this.UpdateResult);
         }
+
+        public Task<bool> Delete(Guid id, CancellationToken cancellationToken = default) =>
+            Task.FromResult(false);
     }
 }
