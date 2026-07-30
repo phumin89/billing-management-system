@@ -19,11 +19,17 @@
                 <h2 id="customers-list-title">Edit customer</h2>
                 <p>@editingCustomer!.CustomerName</p>
             </div>
-            <form class="customer-edit-form">
-                <CustomerFormFields Form="editForm!" />
+            <form class="customer-edit-form" @onsubmit="SaveCustomer" @onsubmit:preventDefault novalidate>
+                @if (!string.IsNullOrEmpty(GeneralError()))
+                {
+                    <p class="customer-edit-error-summary" role="alert">@GeneralError()</p>
+                }
+                <CustomerFormFields Form="editForm!" FieldError="FieldError" />
                 <div class="customer-edit-actions">
                     <button class="customer-edit-cancel-button" type="button" @onclick="CancelEdit">Cancel</button>
-                    <button class="customer-edit-save-button" type="button" disabled>Save changes</button>
+                    <button class="customer-edit-save-button" type="submit" disabled="@isSubmitting">
+                        @(isSubmitting ? "Saving..." : "Save changes")
+                    </button>
                 </div>
             </form>
         }

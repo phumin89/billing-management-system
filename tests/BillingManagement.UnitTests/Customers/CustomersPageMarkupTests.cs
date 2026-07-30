@@ -25,18 +25,18 @@ public sealed class CustomersPageMarkupTests
     }
 
     [Fact]
-    public void Customers_page_defines_same_page_local_edit_mode()
+    public void Customers_page_defines_same_page_api_edit_mode()
     {
         var markup = ReadClientFile("Pages", "Customers", "Customers.razor");
         var codeBehind = ReadClientFile("Pages", "Customers", "Customers.razor.cs");
 
         Assert.Contains("@onclick=\"() => BeginEdit(customer)\"", markup);
         Assert.Contains("@if (IsEditing)", markup);
-        Assert.Contains("<CustomerFormFields Form=\"editForm!\" />", markup);
+        Assert.Contains("<CustomerFormFields Form=\"editForm!\" FieldError=\"FieldError\" />", markup);
         Assert.Contains("@onclick=\"CancelEdit\"", markup);
-        Assert.Contains("class=\"customer-edit-save-button\" type=\"button\" disabled", markup);
-        Assert.DoesNotContain("@onsubmit", markup);
-        Assert.DoesNotContain("CustomerClient", codeBehind);
+        Assert.Contains("@onsubmit=\"SaveCustomer\"", markup);
+        Assert.Contains("type=\"submit\" disabled=\"@isSubmitting\"", markup);
+        Assert.Contains("CustomerClient", codeBehind);
         Assert.DoesNotContain("HttpClient", codeBehind);
     }
 
