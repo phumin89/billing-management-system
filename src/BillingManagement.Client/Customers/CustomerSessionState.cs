@@ -8,6 +8,15 @@ public sealed class CustomerSessionState
 
     public IReadOnlyList<CustomerResponse> Customers => this.customers;
 
+    public bool IsLoaded { get; private set; }
+
+    public void ReplaceAll(IEnumerable<CustomerResponse> replacements)
+    {
+        this.customers.Clear();
+        this.customers.AddRange(replacements);
+        this.IsLoaded = true;
+    }
+
     public void Add(CustomerResponse customer) => this.customers.Add(customer);
 
     public void Replace(CustomerResponse customer)

@@ -10,11 +10,11 @@ namespace BillingManagement.UnitTests.Customers;
 public sealed class CustomersComponentTests
 {
     [Fact]
-    public void Initialize_and_begin_edit_populate_a_copy_of_existing_customer_values()
+    public async Task Initialize_and_begin_edit_populate_a_copy_of_existing_customer_values()
     {
         var component = CreateComponent();
 
-        Invoke(component, "OnInitialized");
+        await Invoke<Task>(component, "OnInitializedAsync");
         var customer = State(component).Customers.Single();
         Invoke(component, "BeginEdit", customer);
 
@@ -34,10 +34,10 @@ public sealed class CustomersComponentTests
     }
 
     [Fact]
-    public void Cancel_edit_discards_changes_and_restores_customer_values()
+    public async Task Cancel_edit_discards_changes_and_restores_customer_values()
     {
         var component = CreateComponent();
-        Invoke(component, "OnInitialized");
+        await Invoke<Task>(component, "OnInitializedAsync");
         var customer = State(component).Customers.Single();
         var originalName = customer.CustomerName;
         Invoke(component, "BeginEdit", customer);
@@ -47,6 +47,89 @@ public sealed class CustomersComponentTests
 
         Assert.False(Property<bool>(component, "IsEditing"));
         Assert.Equal(originalName, customer.CustomerName);
+    }
+
+    [Fact]
+    public async Task Initialize_replaces_stale_rows_with_api_list_and_marks_loading_complete()
+    {
+        var first = new CustomerResponse { Id = Guid.NewGuid(), CustomerName = "Alpha", Email = "alpha@example.com" };
+        var second = new CustomerResponse { Id = Guid.NewGuid(), CustomerName = "Duplicate" };
+        var state = new CustomerSessionState();
+        state.Add(new CustomerResponse { Id = Guid.NewGuid(), CustomerName = "Stale" });
+        var component = CreateComponent(state, _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = JsonContent.Create(new[] { first, second })
+        }));
+
+        await Invoke<Task>(component, "OnInitializedAsync");
+
+        Assert.Equal([first.Id, second.Id], State(component).Customers.Select(customer => customer.Id));
+        Assert.True(State(component).IsLoaded);
+        Assert.False(Field<bool>(component, "isLoading"));
+        Assert.Null(FieldValue(component, "loadError"));
+    }
+
+    [Fact]
+    public async Task Initialize_empty_response_marks_loaded_without_showing_stale_rows()
+    {
+        var state = new CustomerSessionState();
+        state.Add(new CustomerResponse { Id = Guid.NewGuid(), CustomerName = "Stale" });
+        var component = CreateComponent(state, _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = JsonContent.Create(Array.Empty<CustomerResponse>())
+        }));
+
+        await Invoke<Task>(component, "OnInitializedAsync");
+
+        Assert.True(State(component).IsLoaded);
+        Assert.Empty(State(component).Customers);
+        Assert.False(Field<bool>(component, "isLoading"));
+    }
+
+    [Fact]
+    public async Task Retry_after_failure_replaces_rows_without_duplicates()
+    {
+        var customer = new CustomerResponse { Id = Guid.NewGuid(), CustomerName = "Recovered" };
+        var requestCount = 0;
+        var component = CreateComponent(new CustomerSessionState(), _ =>
+        {
+            requestCount++;
+            return Task.FromResult(requestCount == 1
+                ? new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                : new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = JsonContent.Create(new[] { customer })
+                });
+        });
+
+        await Invoke<Task>(component, "OnInitializedAsync");
+        Assert.Equal("Could not load customers. Try again.", Field<string?>(component, "loadError"));
+
+        await Invoke<Task>(component, "RetryLoad");
+
+        Assert.Equal(2, requestCount);
+        Assert.Equal(customer.Id, State(component).Customers.Single().Id);
+        Assert.Null(FieldValue(component, "loadError"));
+    }
+
+    [Fact]
+    public async Task Initialize_with_loaded_state_skips_reload_and_preserves_created_customer()
+    {
+        var state = new CustomerSessionState();
+        state.ReplaceAll([new CustomerResponse { Id = Guid.NewGuid(), CustomerName = "Existing" }]);
+        var created = new CustomerResponse { Id = Guid.NewGuid(), CustomerName = "Created" };
+        state.Add(created);
+        var requestCount = 0;
+        var component = CreateComponent(state, _ =>
+        {
+            requestCount++;
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+        });
+
+        await Invoke<Task>(component, "OnInitializedAsync");
+
+        Assert.Equal(0, requestCount);
+        Assert.Equal(["Existing", "Created"], State(component).Customers.Select(customer => customer.CustomerName));
     }
 
     [Fact]
@@ -158,12 +241,20 @@ public sealed class CustomersComponentTests
 
     private static CustomersPage CreateComponent()
     {
+        var state = new CustomerSessionState();
+        state.ReplaceAll([SampleCustomer()]);
+        return CreateComponent(state, _ => throw new InvalidOperationException("Loaded state must not call the API."));
+    }
+
+    private static CustomersPage CreateComponent(
+        CustomerSessionState state,
+        Func<HttpRequestMessage, Task<HttpResponseMessage>> sendAsync)
+    {
         var component = new CustomersPage();
-        var stateProperty = component.GetType().GetProperty(
-            "CustomerState",
-            BindingFlags.Instance | BindingFlags.NonPublic);
-        Assert.NotNull(stateProperty);
-        stateProperty.SetValue(component, new CustomerSessionState());
+        Property(component, "CustomerState").SetValue(component, state);
+        Property(component, "Client").SetValue(component, new CustomerClient(new HttpClient(
+            new StubHttpMessageHandler(sendAsync))
+        { BaseAddress = new Uri("http://localhost") }));
         return component;
     }
 
@@ -175,10 +266,26 @@ public sealed class CustomersComponentTests
             BaseAddress = new Uri("http://localhost")
         });
         Property(component, "Client").SetValue(component, client);
-        Invoke(component, "OnInitialized");
         Invoke(component, "BeginEdit", State(component).Customers.Single());
         return component;
     }
+
+    private static CustomerResponse SampleCustomer() =>
+        new()
+        {
+            Id = Guid.Parse("86fb6f33-5327-4d89-ae07-a678b2955970"),
+            CustomerName = "Northstar Studio",
+            TaxId = "TH-0105560123456",
+            Email = "billing@northstar.example",
+            Phone = "+66 2 555 0142",
+            BillingAddressLine1 = "88 Wireless Road",
+            BillingAddressLine2 = "Unit 1204",
+            CityProvinceState = "Bangkok",
+            PostalCode = "10330",
+            Country = "Thailand",
+            ContactName = "Maya Chen",
+            Notes = "Monthly billing contact"
+        };
 
     private static CustomerSessionState State(CustomersPage component)
     {
@@ -195,6 +302,9 @@ public sealed class CustomersComponentTests
         Assert.NotNull(field);
         return Assert.IsType<T>(field.GetValue(component));
     }
+
+    private static object? FieldValue(CustomersPage component, string name) =>
+        component.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(component);
 
     private static PropertyInfo Property(CustomersPage component, string name) =>
         component.GetType().GetProperty(name, BindingFlags.Instance | BindingFlags.NonPublic)!;

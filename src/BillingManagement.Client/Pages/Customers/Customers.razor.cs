@@ -25,6 +25,8 @@ public partial class Customers
     private CreateCustomerRequest? editForm;
     private IReadOnlyDictionary<string, string[]> validationErrors = new Dictionary<string, string[]>();
     private string? statusMessage;
+    private string? loadError;
+    private bool isLoading;
     private bool isSubmitting;
 
     [Inject]
@@ -37,11 +39,41 @@ public partial class Customers
 
     private bool IsEditing => this.editingCustomer is not null;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        if (this.CustomerList.Count == 0)
+        if (this.CustomerState.IsLoaded)
         {
-            this.CustomerState.Add(SampleCustomer());
+            return;
+        }
+
+        await this.LoadCustomers();
+    }
+
+    private Task RetryLoad() => this.LoadCustomers();
+
+    private async Task LoadCustomers()
+    {
+        if (this.isLoading)
+        {
+            return;
+        }
+
+        this.isLoading = true;
+        this.loadError = null;
+        try
+        {
+            var result = await this.Client.List();
+            if (!result.Succeeded)
+            {
+                this.loadError = result.Message;
+                return;
+            }
+
+            this.CustomerState.ReplaceAll(result.Customers);
+        }
+        finally
+        {
+            this.isLoading = false;
         }
     }
 
@@ -146,20 +178,4 @@ public partial class Customers
             customer.Country
         }.Where(value => !string.IsNullOrWhiteSpace(value)));
 
-    private static CustomerResponse SampleCustomer() =>
-        new()
-        {
-            Id = Guid.Parse("86fb6f33-5327-4d89-ae07-a678b2955970"),
-            CustomerName = "Northstar Studio",
-            TaxId = "TH-0105560123456",
-            Email = "billing@northstar.example",
-            Phone = "+66 2 555 0142",
-            BillingAddressLine1 = "88 Wireless Road",
-            BillingAddressLine2 = "Unit 1204",
-            CityProvinceState = "Bangkok",
-            PostalCode = "10330",
-            Country = "Thailand",
-            ContactName = "Maya Chen",
-            Notes = "Monthly billing contact"
-        };
 }

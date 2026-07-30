@@ -41,6 +41,18 @@ public sealed class CustomersPageMarkupTests
     }
 
     [Fact]
+    public void Customers_page_defines_loading_failure_and_retry_states()
+    {
+        var markup = ReadClientFile("Pages", "Customers", "Customers.razor");
+
+        Assert.Contains("Loading customers", markup);
+        Assert.Contains("role=\"status\"", markup);
+        Assert.Contains("Could not load customers", markup);
+        Assert.Contains("role=\"alert\"", markup);
+        Assert.Contains("@onclick=\"RetryLoad\"", markup);
+    }
+
+    [Fact]
     public void Customer_create_page_defines_bound_submit_form_and_local_navigation()
     {
         var markup = ReadClientFile("Pages", "Customers", "CreateCustomer.razor");
