@@ -1,6 +1,7 @@
 using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Customers.CreateCustomer;
+using BillingManagement.Application.Customers.DeleteCustomer;
 using BillingManagement.Application.Customers.ListCustomers;
 using BillingManagement.Application.Customers.UpdateCustomer;
 using BillingManagement.Contracts.Customers;
@@ -79,6 +80,20 @@ public sealed class CustomersController(
         }
 
         return this.Ok(ToResponse(result.Value!));
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await commandDispatcher.Send<DeleteCustomerCommand, bool>(
+            new DeleteCustomerCommand(id), cancellationToken);
+
+        if (!result.IsSuccess)
+        {
+            return this.ToProblemDetails(result.Error!);
+        }
+
+        return this.NoContent();
     }
 
     private static CustomerResponse ToResponse(CustomerRecord customer) =>

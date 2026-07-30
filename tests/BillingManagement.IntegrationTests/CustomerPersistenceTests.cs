@@ -9,6 +9,49 @@ namespace BillingManagement.IntegrationTests;
 public sealed class CustomerPersistenceTests
 {
     [Fact]
+    public async Task Store_delete_removes_only_selected_customer_and_reports_missing_id()
+    {
+        var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();
+
+        try
+        {
+            await using var context = SqlServerIntegrationTestDatabase.CreateContext(databaseName);
+            await context.Database.MigrateAsync();
+            var deleted = Customer.Create("Delete", null, null, null, null, null, null, null, null, null, null);
+            var preserved = Customer.Create(
+                "Preserved", "TAX-1", "billing@example.com", "0123", "1 Main Street", "Suite 2",
+                "Bangkok", "10110", "Thailand", "Jane", "Notes");
+            context.Customers.AddRange(deleted, preserved);
+            await context.SaveChangesAsync();
+            context.ChangeTracker.Clear();
+            var store = new CustomerStore(context);
+
+            var found = await store.Delete(deleted.Id);
+            var missing = await store.Delete(Guid.NewGuid());
+            var remaining = await context.Customers.AsNoTracking().SingleAsync();
+
+            Assert.True(found);
+            Assert.False(missing);
+            Assert.Equal(preserved.Id, remaining.Id);
+            Assert.Equal("Preserved", remaining.CustomerName);
+            Assert.Equal("TAX-1", remaining.TaxId);
+            Assert.Equal("billing@example.com", remaining.Email);
+            Assert.Equal("0123", remaining.Phone);
+            Assert.Equal("1 Main Street", remaining.BillingAddressLine1);
+            Assert.Equal("Suite 2", remaining.BillingAddressLine2);
+            Assert.Equal("Bangkok", remaining.CityProvinceState);
+            Assert.Equal("10110", remaining.PostalCode);
+            Assert.Equal("Thailand", remaining.Country);
+            Assert.Equal("Jane", remaining.ContactName);
+            Assert.Equal("Notes", remaining.Notes);
+        }
+        finally
+        {
+            await SqlServerIntegrationTestDatabase.Delete(databaseName);
+        }
+    }
+
+    [Fact]
     public async Task Store_list_returns_all_fields_ordered_by_name_then_id_without_tracking()
     {
         var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();

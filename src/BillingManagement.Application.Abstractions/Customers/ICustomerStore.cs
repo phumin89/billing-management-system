@@ -7,4 +7,6 @@ public interface ICustomerStore
     Task Add(CustomerRecord customer, CancellationToken cancellationToken = default);
 
     Task<bool> Update(CustomerRecord customer, CancellationToken cancellationToken = default);
+
+    Task<bool> Delete(Guid id, CancellationToken cancellationToken = default);
 }

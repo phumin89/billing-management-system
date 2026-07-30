@@ -68,4 +68,9 @@ public sealed class CustomerStore(BillingManagementDbContext dbContext) : ICusto
         await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
+
+    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken = default) =>
+        await dbContext.Customers
+            .Where(customer => customer.Id == id)
+            .ExecuteDeleteAsync(cancellationToken) == 1;
 }
