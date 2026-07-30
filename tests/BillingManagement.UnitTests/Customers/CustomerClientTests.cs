@@ -198,6 +198,66 @@ public sealed class CustomerClientTests
         Assert.Equal("Could not update customer. Check the API connection and try again.", network.Message);
     }
 
+    [Fact]
+    public async Task Delete_sends_exact_customer_id_and_maps_no_content()
+    {
+        var id = Guid.NewGuid();
+        HttpMethod? method = null;
+        string? requestUri = null;
+        var client = CreateClient(request =>
+        {
+            method = request.Method;
+            requestUri = request.RequestUri?.ToString();
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+        });
+
+        var result = await client.Delete(id);
+
+        Assert.True(result.ShouldRemoveCustomer);
+        Assert.Null(result.Message);
+        Assert.Equal(HttpMethod.Delete, method);
+        Assert.Equal($"http://localhost/api/customers/{id}", requestUri);
+    }
+
+    [Fact]
+    public async Task Delete_maps_not_found_to_stale_row_removal()
+    {
+        var result = await CreateClient(new HttpResponseMessage(HttpStatusCode.NotFound))
+            .Delete(Guid.NewGuid());
+
+        Assert.True(result.ShouldRemoveCustomer);
+        Assert.Equal("Customer was not found and was removed from this list.", result.Message);
+    }
+
+    [Fact]
+    public async Task Delete_maps_conflict_to_dependency_message()
+    {
+        var result = await CreateClient(new HttpResponseMessage(HttpStatusCode.Conflict))
+            .Delete(Guid.NewGuid());
+
+        Assert.False(result.ShouldRemoveCustomer);
+        Assert.Equal(
+            "Customer is used by quotations or invoices and cannot be deleted.",
+            result.Message);
+    }
+
+    [Fact]
+    public async Task Delete_maps_unexpected_and_network_failures_to_retry_messages()
+    {
+        var unexpected = await CreateClient(new HttpResponseMessage(HttpStatusCode.InternalServerError))
+            .Delete(Guid.NewGuid());
+        var network = await CreateClient(_ =>
+                Task.FromException<HttpResponseMessage>(new HttpRequestException("Unavailable")))
+            .Delete(Guid.NewGuid());
+
+        Assert.False(unexpected.ShouldRemoveCustomer);
+        Assert.Equal("Could not delete customer. Try again.", unexpected.Message);
+        Assert.False(network.ShouldRemoveCustomer);
+        Assert.Equal(
+            "Could not delete customer. Check the API connection and try again.",
+            network.Message);
+    }
+
     private static CustomerClient CreateClient(HttpResponseMessage response) =>
         CreateClient(_ => Task.FromResult(response));
 

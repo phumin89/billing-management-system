@@ -239,6 +239,106 @@ public sealed class CustomersComponentTests
         Assert.False(Property<bool>(component, "IsEditing"));
     }
 
+    [Fact]
+    public async Task Delete_confirmation_targets_exact_customer_and_cancel_sends_no_request()
+    {
+        var requestCount = 0;
+        var component = CreateDeleteComponent(_ =>
+        {
+            requestCount++;
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+        });
+        var selected = State(component).Customers[1];
+
+        Invoke(component, "BeginDelete", selected);
+        Assert.Same(selected, Field<CustomerResponse>(component, "deletingCustomer"));
+
+        await Invoke<Task>(component, "CloseDeleteSnackbar");
+
+        Assert.Equal(0, requestCount);
+        Assert.Equal(2, State(component).Customers.Count);
+        Assert.False(Field<bool>(component, "showDeleteSnackbar"));
+    }
+
+    [Fact]
+    public async Task Confirm_delete_removes_only_selected_customer_after_no_content()
+    {
+        Guid? requestedId = null;
+        var component = CreateDeleteComponent(request =>
+        {
+            requestedId = Guid.Parse(request.RequestUri!.Segments.Last());
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+        });
+        var selected = State(component).Customers[1];
+        Invoke(component, "BeginDelete", selected);
+
+        await Invoke<Task>(component, "ConfirmDelete");
+
+        Assert.Equal(selected.Id, requestedId);
+        Assert.Equal(["Northstar Studio"], State(component).Customers.Select(customer => customer.CustomerName));
+        Assert.False(Field<bool>(component, "showDeleteSnackbar"));
+    }
+
+    [Fact]
+    public async Task Confirm_delete_removes_stale_customer_and_shows_not_found_message()
+    {
+        var component = CreateDeleteComponent(_ =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound)));
+        Invoke(component, "BeginDelete", State(component).Customers[0]);
+
+        await Invoke<Task>(component, "ConfirmDelete");
+
+        Assert.Single(State(component).Customers);
+        Assert.Equal(
+            "Customer was not found and was removed from this list.",
+            Field<string>(component, "deleteMessage"));
+        Assert.False(Field<bool>(component, "deleteMessageIsError"));
+    }
+
+    [Theory]
+    [InlineData(
+        HttpStatusCode.Conflict,
+        "Customer is used by quotations or invoices and cannot be deleted.")]
+    [InlineData(HttpStatusCode.InternalServerError, "Could not delete customer. Try again.")]
+    public async Task Confirm_delete_failure_keeps_customer_and_shows_retryable_message(
+        HttpStatusCode statusCode,
+        string expectedMessage)
+    {
+        var component = CreateDeleteComponent(_ =>
+            Task.FromResult(new HttpResponseMessage(statusCode)));
+        var selected = State(component).Customers[0];
+        Invoke(component, "BeginDelete", selected);
+
+        await Invoke<Task>(component, "ConfirmDelete");
+
+        Assert.Contains(State(component).Customers, customer => customer.Id == selected.Id);
+        Assert.Equal(expectedMessage, Field<string>(component, "deleteMessage"));
+        Assert.True(Field<bool>(component, "deleteMessageIsError"));
+        Assert.False(Field<bool>(component, "showDeleteSnackbar"));
+    }
+
+    [Fact]
+    public async Task Confirm_delete_blocks_duplicate_request_while_deleting()
+    {
+        var response = new TaskCompletionSource<HttpResponseMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var requestCount = 0;
+        var component = CreateDeleteComponent(_ =>
+        {
+            Interlocked.Increment(ref requestCount);
+            return response.Task;
+        });
+        Invoke(component, "BeginDelete", State(component).Customers[0]);
+
+        var first = Invoke<Task>(component, "ConfirmDelete");
+        var duplicate = Invoke<Task>(component, "ConfirmDelete");
+
+        Assert.Equal(1, requestCount);
+        Assert.True(Field<bool>(component, "isDeleting"));
+        response.SetResult(new HttpResponseMessage(HttpStatusCode.NoContent));
+        await Task.WhenAll(first, duplicate);
+        Assert.False(Field<bool>(component, "isDeleting"));
+    }
+
     private static CustomersPage CreateComponent()
     {
         var state = new CustomerSessionState();
@@ -268,6 +368,17 @@ public sealed class CustomersComponentTests
         Property(component, "Client").SetValue(component, client);
         Invoke(component, "BeginEdit", State(component).Customers.Single());
         return component;
+    }
+
+    private static CustomersPage CreateDeleteComponent(
+        Func<HttpRequestMessage, Task<HttpResponseMessage>> sendAsync)
+    {
+        var state = new CustomerSessionState();
+        state.ReplaceAll([
+            SampleCustomer(),
+            new CustomerResponse { Id = Guid.NewGuid(), CustomerName = "Delete target" }
+        ]);
+        return CreateComponent(state, sendAsync);
     }
 
     private static CustomerResponse SampleCustomer() =>
