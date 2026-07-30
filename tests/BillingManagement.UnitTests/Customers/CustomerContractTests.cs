@@ -29,6 +29,12 @@ public sealed class CustomerContractTests
     }
 
     [Fact]
+    public void Update_customer_request_has_exact_nullable_transport_shape()
+    {
+        AssertContractShape(typeof(UpdateCustomerRequest), includeId: false);
+    }
+
+    [Fact]
     public void Customer_response_has_exact_nullable_transport_shape()
     {
         AssertContractShape(typeof(CustomerResponse), includeId: true);
@@ -39,6 +45,17 @@ public sealed class CustomerContractTests
     {
         var json = JsonSerializer.SerializeToElement(
             new CreateCustomerRequest(),
+            JsonSerializerOptions.Web);
+
+        AssertJsonShape(json, includeId: false);
+        Assert.All(json.EnumerateObject(), property => Assert.Equal(JsonValueKind.Null, property.Value.ValueKind));
+    }
+
+    [Fact]
+    public void Update_customer_request_serializes_web_field_names_and_null_values()
+    {
+        var json = JsonSerializer.SerializeToElement(
+            new UpdateCustomerRequest(),
             JsonSerializerOptions.Web);
 
         AssertJsonShape(json, includeId: false);
