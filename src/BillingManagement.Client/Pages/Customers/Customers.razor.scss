@@ -134,6 +134,11 @@
   margin-top: 4px;
 }
 
+.customers-page .customer-edit-error-summary {
+  padding: 16px 24px 0;
+  color: #b42318;
+}
+
 .customer-edit-actions {
   display: flex;
   align-items: center;
@@ -169,14 +174,22 @@
 }
 
 .customer-edit-save-button {
+  color: #ffffff;
+  background: #181d26;
+  border: 1px solid #181d26;
+  cursor: pointer;
+}
+
+.customer-edit-save-button:disabled {
   color: #7a7f87;
   background: #e6e8eb;
-  border: 1px solid #d1d4d9;
+  border-color: #d1d4d9;
   cursor: not-allowed;
 }
 
 .customer-edit-button:focus-visible,
-.customer-edit-cancel-button:focus-visible {
+.customer-edit-cancel-button:focus-visible,
+.customer-edit-save-button:focus-visible {
   outline: 2px solid #458fff;
   outline-offset: 2px;
 }
@@ -223,6 +236,7 @@
 
   .customers-list-header,
   .customer-edit-header,
+  .customer-edit-error-summary,
   .customers-empty-state {
     padding-inline: 16px;
   }
