@@ -8,6 +8,51 @@ namespace BillingManagement.UnitTests.Customers;
 public sealed class CustomerClientTests
 {
     [Fact]
+    public async Task List_gets_customers_and_returns_response_rows()
+    {
+        HttpMethod? method = null;
+        string? requestUri = null;
+        var customers = new[]
+        {
+            new CustomerResponse { Id = Guid.NewGuid(), CustomerName = "Alpha", Email = "billing@example.com" },
+            new CustomerResponse { Id = Guid.NewGuid(), CustomerName = "Duplicate" }
+        };
+        var client = CreateClient(request =>
+        {
+            method = request.Method;
+            requestUri = request.RequestUri?.ToString();
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(customers)
+            });
+        });
+
+        var result = await client.List();
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(customers.Select(customer => customer.Id), result.Customers.Select(customer => customer.Id));
+        Assert.Equal("billing@example.com", result.Customers[0].Email);
+        Assert.Equal(HttpMethod.Get, method);
+        Assert.Equal("http://localhost/api/customers", requestUri);
+    }
+
+    [Fact]
+    public async Task List_returns_retry_message_for_unexpected_or_network_failure()
+    {
+        var unexpected = await CreateClient(new HttpResponseMessage(HttpStatusCode.InternalServerError)).List();
+        var network = await CreateClient(_ =>
+                Task.FromException<HttpResponseMessage>(new HttpRequestException("Unavailable")))
+            .List();
+
+        Assert.False(unexpected.Succeeded);
+        Assert.Empty(unexpected.Customers);
+        Assert.Equal("Could not load customers. Try again.", unexpected.Message);
+        Assert.False(network.Succeeded);
+        Assert.Empty(network.Customers);
+        Assert.Equal("Could not load customers. Check the API connection and try again.", network.Message);
+    }
+
+    [Fact]
     public async Task Create_posts_request_and_returns_customer()
     {
         HttpMethod? method = null;

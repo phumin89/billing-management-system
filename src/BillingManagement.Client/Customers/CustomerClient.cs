@@ -6,6 +6,28 @@ namespace BillingManagement.Client.Customers;
 
 public sealed class CustomerClient(HttpClient httpClient)
 {
+    public async Task<ListCustomersResult> List(CancellationToken cancellationToken = default)
+    {
+        HttpResponseMessage response;
+        try
+        {
+            response = await httpClient.GetAsync("api/customers", cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            return ListCustomersResult.Failed(
+                "Could not load customers. Check the API connection and try again.");
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return ListCustomersResult.Failed("Could not load customers. Try again.");
+        }
+
+        var customers = await response.Content.ReadFromJsonAsync<List<CustomerResponse>>(cancellationToken) ?? [];
+        return ListCustomersResult.Success(customers);
+    }
+
     public async Task<CreateCustomerResult> Create(
         CreateCustomerRequest request,
         CancellationToken cancellationToken = default)
