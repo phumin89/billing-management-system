@@ -1,4 +1,6 @@
+using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Domain;
+using BillingManagement.Infrastructure.Customers;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,6 +58,39 @@ public sealed class CustomerPersistenceTests
             };
 
             await Assert.ThrowsAsync<SqlException>(() => context.Database.ExecuteSqlRawAsync(command));
+        }
+        finally
+        {
+            await SqlServerIntegrationTestDatabase.Delete(databaseName);
+        }
+    }
+
+    [Fact]
+    public async Task Store_update_persists_normalized_values_and_allows_duplicate_name()
+    {
+        var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();
+
+        try
+        {
+            await using var context = SqlServerIntegrationTestDatabase.CreateContext(databaseName);
+            await context.Database.MigrateAsync();
+            var first = Customer.Create("Duplicate", null, null, null, null, null, null, null, null, null, null);
+            var second = Customer.Create("Original", null, null, null, null, null, null, null, null, null, null);
+            context.Customers.AddRange(first, second);
+            await context.SaveChangesAsync();
+            var store = new CustomerStore(context);
+
+            var updated = await store.Update(new CustomerRecord(
+                second.Id, " Duplicate ", " ", " billing@example.com ", null,
+                null, null, null, null, null, null, null));
+            context.ChangeTracker.Clear();
+            var persisted = await context.Customers.SingleAsync(customer => customer.Id == second.Id);
+
+            Assert.True(updated);
+            Assert.Equal("Duplicate", persisted.CustomerName);
+            Assert.Null(persisted.TaxId);
+            Assert.Equal("billing@example.com", persisted.Email);
+            Assert.Equal(2, await context.Customers.CountAsync(customer => customer.CustomerName == "Duplicate"));
         }
         finally
         {

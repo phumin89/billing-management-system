@@ -4,6 +4,7 @@ using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Commands;
 using BillingManagement.Application.Customers.CreateCustomer;
+using BillingManagement.Application.Customers.UpdateCustomer;
 using BillingManagement.Application.OwnerCompanyProfiles;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfile;
@@ -25,6 +26,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<
             ICommandHandler<CreateCustomerCommand, CustomerRecord>,
             CreateCustomerHandler>();
+        services.AddScoped<
+            ICommandHandler<UpdateCustomerCommand, CustomerRecord>,
+            UpdateCustomerHandler>();
         services.AddScoped<
             ICommandHandler<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>,
             CreateOwnerCompanyProfileHandler>();

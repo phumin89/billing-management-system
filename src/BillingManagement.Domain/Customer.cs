@@ -85,6 +85,32 @@ public sealed class Customer
             billingAddressLine2, cityProvinceState, postalCode, country, contactName, notes);
     }
 
+    public void Update(
+        string customerName,
+        string? taxId,
+        string? email,
+        string? phone,
+        string? billingAddressLine1,
+        string? billingAddressLine2,
+        string? cityProvinceState,
+        string? postalCode,
+        string? country,
+        string? contactName,
+        string? notes)
+    {
+        this.CustomerName = NormalizeRequired(customerName, CustomerConstraints.CustomerNameMaxLength, nameof(customerName));
+        this.TaxId = NormalizeOptional(taxId, CustomerConstraints.TaxIdMaxLength, nameof(taxId));
+        this.Email = NormalizeOptional(email, CustomerConstraints.EmailMaxLength, nameof(email));
+        this.Phone = NormalizeOptional(phone, CustomerConstraints.PhoneMaxLength, nameof(phone));
+        this.BillingAddressLine1 = NormalizeOptional(billingAddressLine1, CustomerConstraints.BillingAddressLine1MaxLength, nameof(billingAddressLine1));
+        this.BillingAddressLine2 = NormalizeOptional(billingAddressLine2, CustomerConstraints.BillingAddressLine2MaxLength, nameof(billingAddressLine2));
+        this.CityProvinceState = NormalizeOptional(cityProvinceState, CustomerConstraints.CityProvinceStateMaxLength, nameof(cityProvinceState));
+        this.PostalCode = NormalizeOptional(postalCode, CustomerConstraints.PostalCodeMaxLength, nameof(postalCode));
+        this.Country = NormalizeOptional(country, CustomerConstraints.CountryMaxLength, nameof(country));
+        this.ContactName = NormalizeOptional(contactName, CustomerConstraints.ContactNameMaxLength, nameof(contactName));
+        this.Notes = NormalizeOptional(notes, CustomerConstraints.NotesMaxLength, nameof(notes));
+    }
+
     private static string NormalizeRequired(string value, int maximumLength, string parameterName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(value, parameterName);
