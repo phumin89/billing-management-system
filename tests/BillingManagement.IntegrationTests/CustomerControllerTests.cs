@@ -18,6 +18,58 @@ namespace BillingManagement.IntegrationTests;
 public sealed class CustomerControllerTests
 {
     [Fact]
+    public async Task Get_empty_store_returns_ok_with_empty_array()
+    {
+        var store = new InMemoryCustomerStore();
+        await using var app = await StartApplication(store);
+        using var client = CreateClient(app);
+
+        var response = await client.GetAsync("/api/customers");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var customers = await response.Content.ReadFromJsonAsync<CustomerResponse[]>();
+        Assert.NotNull(customers);
+        Assert.Empty(customers);
+    }
+
+    [Fact]
+    public async Task Get_existing_customers_returns_all_fields_ordered_by_name_then_id()
+    {
+        var firstDuplicateId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var secondDuplicateId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var store = new InMemoryCustomerStore();
+        store.Customers.Add(new CustomerRecord(
+            secondDuplicateId, "Duplicate", null, null, null, null, null, null, null, null, null, null));
+        store.Customers.Add(new CustomerRecord(
+            Guid.Parse("33333333-3333-3333-3333-333333333333"), "Alpha", "TAX-1",
+            "billing@example.com", "0123", "1 Main Street", "Suite 2", "Bangkok", "10110",
+            "Thailand", "Jane", "Notes"));
+        store.Customers.Add(new CustomerRecord(
+            firstDuplicateId, "Duplicate", null, null, null, null, null, null, null, null, null, null));
+        await using var app = await StartApplication(store);
+        using var client = CreateClient(app);
+
+        var response = await client.GetAsync("/api/customers");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var customers = await response.Content.ReadFromJsonAsync<CustomerResponse[]>();
+        Assert.NotNull(customers);
+        Assert.Equal(["Alpha", "Duplicate", "Duplicate"], customers.Select(customer => customer.CustomerName));
+        Assert.Equal(firstDuplicateId, customers[1].Id);
+        Assert.Equal(secondDuplicateId, customers[2].Id);
+        Assert.Equal("TAX-1", customers[0].TaxId);
+        Assert.Equal("billing@example.com", customers[0].Email);
+        Assert.Equal("0123", customers[0].Phone);
+        Assert.Equal("1 Main Street", customers[0].BillingAddressLine1);
+        Assert.Equal("Suite 2", customers[0].BillingAddressLine2);
+        Assert.Equal("Bangkok", customers[0].CityProvinceState);
+        Assert.Equal("10110", customers[0].PostalCode);
+        Assert.Equal("Thailand", customers[0].Country);
+        Assert.Equal("Jane", customers[0].ContactName);
+        Assert.Equal("Notes", customers[0].Notes);
+    }
+
+    [Fact]
     public async Task Post_invalid_request_returns_field_validation_problem()
     {
         var store = new InMemoryCustomerStore();
@@ -179,6 +231,13 @@ public sealed class CustomerControllerTests
     private sealed class InMemoryCustomerStore : ICustomerStore
     {
         public List<CustomerRecord> Customers { get; } = [];
+
+        public Task<IReadOnlyList<CustomerRecord>> List(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<CustomerRecord>>(
+                this.Customers
+                    .OrderBy(customer => customer.CustomerName)
+                    .ThenBy(customer => customer.Id)
+                    .ToList());
 
         public Task Add(CustomerRecord customer, CancellationToken cancellationToken = default)
         {

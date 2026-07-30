@@ -1,6 +1,7 @@
 using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Customers.CreateCustomer;
+using BillingManagement.Application.Customers.ListCustomers;
 using BillingManagement.Application.Customers.UpdateCustomer;
 using BillingManagement.Contracts.Customers;
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +10,18 @@ namespace BillingManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/customers")]
-public sealed class CustomersController(ICommandDispatcher commandDispatcher) : ControllerBase
+public sealed class CustomersController(
+    ICommandDispatcher commandDispatcher,
+    ListCustomersHandler listHandler) : ControllerBase
 {
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<CustomerResponse>>> List(
+        CancellationToken cancellationToken)
+    {
+        var customers = await listHandler.Handle(new ListCustomersQuery(), cancellationToken);
+        return this.Ok(customers.Select(ToResponse).ToList());
+    }
+
     [HttpPost]
     public async Task<ActionResult<CustomerResponse>> Create(
         CreateCustomerRequest request,

@@ -4,6 +4,7 @@ using BillingManagement.Application.Abstractions.CompanyMedia;
 using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Commands;
+using BillingManagement.Application.Customers.ListCustomers;
 using BillingManagement.Application.Customers.UpdateCustomer;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfile;
@@ -38,6 +39,7 @@ public sealed class ApplicationServiceCollectionExtensionsTests
             provider.GetRequiredService<ICommandHandler<UpdateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>>());
         Assert.IsType<UpdateCustomerHandler>(
             provider.GetRequiredService<ICommandHandler<UpdateCustomerCommand, CustomerRecord>>());
+        Assert.IsType<ListCustomersHandler>(provider.GetRequiredService<ListCustomersHandler>());
         Assert.IsType<AnnotationCommandValidator<CreateOwnerCompanyProfileCommand>>(
             Assert.Single(provider.GetServices<ICommandValidator<CreateOwnerCompanyProfileCommand>>()));
         Assert.IsType<AnnotationCommandValidator<UpdateOwnerCompanyProfileCommand>>(
@@ -52,6 +54,9 @@ public sealed class ApplicationServiceCollectionExtensionsTests
 
     private sealed class StubCustomerStore : ICustomerStore
     {
+        public Task<IReadOnlyList<CustomerRecord>> List(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<CustomerRecord>>([]);
+
         public Task Add(CustomerRecord customer, CancellationToken cancellationToken = default) =>
             Task.CompletedTask;
 

@@ -34,6 +34,9 @@ public sealed class CreateCustomerHandlerTests
     {
         public CustomerRecord? Added { get; private set; }
 
+        public Task<IReadOnlyList<CustomerRecord>> List(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyList<CustomerRecord>>([]);
+
         public Task Add(CustomerRecord customer, CancellationToken cancellationToken = default)
         {
             this.Added = customer;
