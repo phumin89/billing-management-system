@@ -100,11 +100,19 @@ public sealed class MainLayoutStyleTests
     }
 
     [Fact]
-    public void Mobile_company_link_keeps_its_content_width_inside_scrollable_navigation()
+    public void Mobile_navigation_keeps_scrolling_without_rendering_a_scrollbar()
     {
         var source = ReadSourceStyles().ReplaceLineEndings("\n");
         var compiler = ReadClientFile("sasscompiler.json");
 
+        Assert.Contains(
+            ".sidebar {\n    scrollbar-width: none;",
+            source,
+            StringComparison.Ordinal);
+        Assert.Contains(
+            ".sidebar::-webkit-scrollbar {\n    display: none;",
+            source,
+            StringComparison.Ordinal);
         Assert.Contains(
             ".company-link {\n    flex-shrink: 0;",
             source,

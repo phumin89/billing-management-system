@@ -1,4 +1,12 @@
 @media (max-width: 720px) {
+  .sidebar {
+    scrollbar-width: none;
+  }
+
+  .sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
   .company-link {
     flex-shrink: 0;
   }
