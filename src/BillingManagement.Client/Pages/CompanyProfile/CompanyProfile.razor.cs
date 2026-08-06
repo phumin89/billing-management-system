@@ -20,6 +20,7 @@ public partial class CompanyProfile
 
     private ProfileReviewState reviewState = ProfileReviewState.Empty;
     private bool isEditMode;
+    private bool showMediaTray;
     private bool showDeleteSnackbar;
     private bool snackbarClosing;
     private bool isLoading = true;
@@ -121,6 +122,7 @@ public partial class CompanyProfile
         this.reviewState = ProfileReviewState.Empty;
         this.isEditMode = false;
         this.showDeleteSnackbar = false;
+        this.showMediaTray = false;
         this.profile = null;
         this.ClearIconSelection();
         this.ServerIconImageUrl = FallbackIconImageUrl;
@@ -133,6 +135,7 @@ public partial class CompanyProfile
         this.reviewState = ProfileReviewState.Existing;
         this.isEditMode = false;
         this.showDeleteSnackbar = false;
+        this.showMediaTray = false;
     }
 
     private void ShowCreate()
@@ -143,6 +146,7 @@ public partial class CompanyProfile
         this.reviewState = ProfileReviewState.Form;
         this.isEditMode = false;
         this.showDeleteSnackbar = false;
+        this.showMediaTray = false;
     }
 
     private void ShowEdit()
@@ -153,6 +157,22 @@ public partial class CompanyProfile
         this.reviewState = ProfileReviewState.Form;
         this.isEditMode = true;
         this.showDeleteSnackbar = false;
+        this.showMediaTray = false;
+    }
+
+    private void ToggleMediaTray()
+    {
+        if (this.IsCoverRequestInProgress || this.IsIconRequestInProgress)
+        {
+            return;
+        }
+
+        this.showMediaTray = !this.showMediaTray;
+        if (!this.showMediaTray)
+        {
+            this.coverMessage = null;
+            this.iconMessage = null;
+        }
     }
 
     private void ShowDelete()

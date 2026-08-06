@@ -3,15 +3,17 @@
 
 <main class="company-profile-page">
     <header class="company-page-header">
-        <div>
-            <h1>Company profile</h1>
-            <p>Manage company identity and contact details.</p>
-        </div>
+        <h1>Company profile</h1>
+        <p>Manage company identity and contact details.</p>
     </header>
 
     @if (isLoading)
     {
-        <section class="company-card company-empty-card">
+        <section class="company-card company-empty-card" role="status" aria-busy="true">
+            <div class="company-empty-visual" aria-hidden="true">
+                <img class="company-empty-cover" src="images/company-profile/header.svg" alt="" />
+                <img class="company-empty-icon" src="images/company-profile/company-icon.svg" alt="" />
+            </div>
             <div>
                 <h2>Loading company profile</h2>
                 <p>Checking saved seller information.</p>
@@ -21,7 +23,11 @@
     else if (reviewState == ProfileReviewState.Empty)
     {
         <section class="company-card company-empty-card" data-profile-view="empty">
-            <div>
+            <div class="company-empty-visual" aria-hidden="true">
+                <img class="company-empty-cover" src="images/company-profile/header.svg" alt="" />
+                <img class="company-empty-icon" src="images/company-profile/company-icon.svg" alt="" />
+            </div>
+            <div class="company-empty-copy">
                 <h2>No company profile yet</h2>
                 <p>Add company details so document headers show the correct seller information.</p>
             </div>
@@ -38,98 +44,114 @@
                      height="440"
                      @onerror="UseFallbackCover" />
             </div>
-            <div class="company-cover-toolbar" aria-label="Company profile cover">
-                <label class="company-secondary-button company-cover-picker">
-                    <span>Change cover</span>
-                    <InputFile accept="image/png,image/jpeg,image/webp"
-                               OnChange="SelectCover"
-                               disabled="@IsCoverRequestInProgress" />
-                </label>
-                @if (selectedCover is not null)
-                {
-                    <button class="company-primary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="UploadCover">
-                        @(isUploadingCover ? "Saving cover..." : "Save cover")
-                    </button>
-                    <button class="company-secondary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="ClearCoverSelection">Cancel</button>
-                }
-                <button class="company-secondary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="ShowResetCoverConfirmation">
-                    @(isResettingCover ? "Resetting cover..." : "Reset cover")
-                </button>
-            </div>
-
-            @if (!string.IsNullOrWhiteSpace(coverMessage))
-            {
-                <p class="@CoverMessageClass" role="@(coverMessageIsError ? "alert" : "status")">@coverMessage</p>
-            }
-
-            @if (showResetCoverConfirmation)
-            {
-                <div class="company-cover-reset-confirmation" role="alertdialog" aria-label="Reset company cover confirmation">
-                    <p>Reset the company cover to the approved fallback image?</p>
-                    <div class="company-cover-actions">
-                        <button class="company-secondary-button" type="button" disabled="@isResettingCover" @onclick="CancelResetCover">Cancel</button>
-                        <button class="company-danger-button" type="button" disabled="@isResettingCover" @onclick="ResetCover">
-                            @(isResettingCover ? "Resetting cover..." : "Reset cover")
-                        </button>
-                    </div>
-                </div>
-            }
 
             <div class="company-card-content">
-                <div class="company-identity-row">
+                <div class="company-identity-band">
                     <div class="company-identity-summary">
-                        <div class="company-icon-editor">
-                            <img class="company-identity-icon"
-                                 src="@IconImageUrl"
-                                 alt="mi.nie company mark"
-                                 width="80"
-                                 height="80"
-                                 @onerror="UseFallbackIcon" />
-                            <div class="company-icon-toolbar" aria-label="Company profile icon">
-                                <label class="company-icon-action company-icon-picker">
-                                    <span>Change icon</span>
+                        <img class="company-identity-icon"
+                             src="@IconImageUrl"
+                             alt="mi.nie company mark"
+                             width="80"
+                             height="80"
+                             @onerror="UseFallbackIcon" />
+                        <div class="company-identity-copy">
+                            <h2>@DisplayProfile.CompanyName</h2>
+                            <p>Primary owner company profile</p>
+                        </div>
+                    </div>
+                    <div class="company-actions">
+                        <button class="company-secondary-button" type="button" aria-expanded="@showMediaTray" @onclick="ToggleMediaTray">Media</button>
+                        <button class="company-primary-button" type="button" @onclick="ShowEdit">Update</button>
+                        <details class="company-overflow-menu">
+                            <summary aria-label="More company actions"><span aria-hidden="true">...</span></summary>
+                            <div class="company-overflow-actions">
+                                <button type="button" @onclick="ShowDelete">Delete company profile</button>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+
+                @if (showMediaTray || selectedCover is not null || selectedIcon is not null ||
+                    showResetCoverConfirmation || showResetIconConfirmation)
+                {
+                    <div class="company-media-tray" aria-label="Company media controls">
+                        <section class="company-media-control" aria-labelledby="cover-media-title">
+                            <div>
+                                <h3 id="cover-media-title">Cover image</h3>
+                                <p>PNG, JPEG or WebP up to 5 MB.</p>
+                            </div>
+                            <div class="company-media-actions">
+                                <label class="company-secondary-button company-cover-picker">
+                                    <span>Choose cover</span>
+                                    <InputFile accept="image/png,image/jpeg,image/webp"
+                                               OnChange="SelectCover"
+                                               disabled="@IsCoverRequestInProgress" />
+                                </label>
+                                @if (selectedCover is not null)
+                                {
+                                    <button class="company-primary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="UploadCover">
+                                        @(isUploadingCover ? "Saving cover..." : "Upload")
+                                    </button>
+                                    <button class="company-secondary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="ClearCoverSelection">Cancel</button>
+                                }
+                                <button class="company-text-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="ShowResetCoverConfirmation">
+                                    @(isResettingCover ? "Resetting cover..." : "Reset")
+                                </button>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(coverMessage))
+                            {
+                                <p class="@CoverMessageClass" role="@(coverMessageIsError ? "alert" : "status")">@coverMessage</p>
+                            }
+                            @if (showResetCoverConfirmation)
+                            {
+                                <div class="company-media-confirmation" role="alertdialog" aria-label="Reset company cover confirmation">
+                                    <p>Reset to the approved fallback image?</p>
+                                    <div class="company-media-actions">
+                                        <button class="company-secondary-button" type="button" disabled="@isResettingCover" @onclick="CancelResetCover">Cancel</button>
+                                        <button class="company-danger-button" type="button" disabled="@isResettingCover" @onclick="ResetCover">Reset cover</button>
+                                    </div>
+                                </div>
+                            }
+                        </section>
+
+                        <section class="company-media-control" aria-labelledby="icon-media-title">
+                            <div>
+                                <h3 id="icon-media-title">Company icon</h3>
+                                <p>PNG, JPEG or WebP up to 2 MB.</p>
+                            </div>
+                            <div class="company-media-actions">
+                                <label class="company-secondary-button company-icon-picker">
+                                    <span>Choose icon</span>
                                     <InputFile accept="image/png,image/jpeg,image/webp"
                                                OnChange="SelectIcon"
                                                disabled="@IsIconRequestInProgress" />
                                 </label>
                                 @if (selectedIcon is not null)
                                 {
-                                    <button class="company-icon-action is-primary" type="button" disabled="@IsIconRequestInProgress" @onclick="UploadIcon">
-                                        @(isUploadingIcon ? "Saving icon..." : "Save icon")
+                                    <button class="company-primary-button" type="button" disabled="@IsIconRequestInProgress" @onclick="UploadIcon">
+                                        @(isUploadingIcon ? "Saving icon..." : "Upload")
                                     </button>
-                                    <button class="company-icon-action" type="button" disabled="@IsIconRequestInProgress" @onclick="ClearIconSelection">Cancel</button>
+                                    <button class="company-secondary-button" type="button" disabled="@IsIconRequestInProgress" @onclick="ClearIconSelection">Cancel</button>
                                 }
-                                <button class="company-icon-action" type="button" disabled="@IsIconRequestInProgress" @onclick="ShowResetIconConfirmation">
-                                    @(isResettingIcon ? "Resetting icon..." : "Reset icon")
+                                <button class="company-text-button" type="button" disabled="@IsIconRequestInProgress" @onclick="ShowResetIconConfirmation">
+                                    @(isResettingIcon ? "Resetting icon..." : "Reset")
                                 </button>
                             </div>
-                        </div>
-                        <div class="company-identity-copy">
-                            <h2>@DisplayProfile.CompanyName</h2>
-                            <p>Primary owner company profile.</p>
-                        </div>
-                    </div>
-                    <div class="company-actions">
-                        <button class="company-secondary-button" type="button" @onclick="ShowEdit">Update</button>
-                        <button class="company-danger-button" type="button" @onclick="ShowDelete">Delete</button>
-                    </div>
-                </div>
-
-                @if (!string.IsNullOrWhiteSpace(iconMessage))
-                {
-                    <p class="@IconMessageClass" role="@(iconMessageIsError ? "alert" : "status")">@iconMessage</p>
-                }
-
-                @if (showResetIconConfirmation)
-                {
-                    <div class="company-icon-reset-confirmation" role="alertdialog" aria-label="Reset company icon confirmation">
-                        <p>Reset the company icon to the approved fallback image?</p>
-                        <div class="company-icon-reset-actions">
-                            <button class="company-secondary-button" type="button" disabled="@isResettingIcon" @onclick="CancelResetIcon">Cancel</button>
-                            <button class="company-danger-button" type="button" disabled="@isResettingIcon" @onclick="ResetIcon">
-                                @(isResettingIcon ? "Resetting icon..." : "Reset icon")
-                            </button>
-                        </div>
+                            @if (!string.IsNullOrWhiteSpace(iconMessage))
+                            {
+                                <p class="@IconMessageClass" role="@(iconMessageIsError ? "alert" : "status")">@iconMessage</p>
+                            }
+                            @if (showResetIconConfirmation)
+                            {
+                                <div class="company-media-confirmation" role="alertdialog" aria-label="Reset company icon confirmation">
+                                    <p>Reset to the approved fallback image?</p>
+                                    <div class="company-media-actions">
+                                        <button class="company-secondary-button" type="button" disabled="@isResettingIcon" @onclick="CancelResetIcon">Cancel</button>
+                                        <button class="company-danger-button" type="button" disabled="@isResettingIcon" @onclick="ResetIcon">Reset icon</button>
+                                    </div>
+                                </div>
+                            }
+                        </section>
                     </div>
                 }
 
@@ -138,65 +160,47 @@
                     <p class="company-status-message" role="alert">@statusMessage</p>
                 }
 
-                @if (!string.IsNullOrWhiteSpace(DisplayProfile.Email) ||
-                    !string.IsNullOrWhiteSpace(DisplayProfile.Phone))
+                @if (!string.IsNullOrWhiteSpace(DisplayProfile.Email) || !string.IsNullOrWhiteSpace(DisplayProfile.Phone))
                 {
                     <div class="company-contacts" aria-label="Company contacts">
                         @if (!string.IsNullOrWhiteSpace(DisplayProfile.Email))
                         {
-                            <a class="company-contact-link"
-                               href="@($"mailto:{DisplayProfile.Email}")"
-                               aria-label="@($"Email {DisplayProfile.Email}")">
-                                <svg viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
-                                    <path d="m3 7 9 6 9-6" />
-                                </svg>
+                            <a class="company-contact-link" href="@($"mailto:{DisplayProfile.Email}")" aria-label="@($"Email {DisplayProfile.Email}")">
+                                <span class="company-contact-label">Email</span>
                                 <span>@DisplayProfile.Email</span>
                             </a>
                         }
                         @if (!string.IsNullOrWhiteSpace(DisplayProfile.Phone))
                         {
-                            <a class="company-contact-link"
-                               href="@PhoneHref(DisplayProfile.Phone)"
-                               aria-label="@($"Call {DisplayProfile.Phone}")">
-                                <svg viewBox="0 0 24 24" aria-hidden="true">
-                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.8a2 2 0 0 1-.45 2.11L8.07 9.9a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.32 1.84.55 2.8.68A2 2 0 0 1 22 16.92Z" />
-                                </svg>
+                            <a class="company-contact-link" href="@PhoneHref(DisplayProfile.Phone)" aria-label="@($"Call {DisplayProfile.Phone}")">
+                                <span class="company-contact-label">Phone</span>
                                 <span>@DisplayProfile.Phone</span>
                             </a>
                         }
                     </div>
                 }
 
-                <dl class="company-summary-grid">
-                    <div class="full">
-                        <dt>Address</dt>
-                        <dd>@DisplayProfile.AddressLine1, @DisplayProfile.AddressLine2, @DisplayProfile.CityProvinceState, @DisplayProfile.PostalCode, @DisplayProfile.Country</dd>
-                    </div>
-                    <div>
-                        <dt>Tax ID</dt>
-                        <dd>@DisplayProfile.TaxId</dd>
-                    </div>
-                    <div>
-                        <dt>Website</dt>
-                        <dd>@DisplayProfile.Website</dd>
-                    </div>
-                    <div class="full">
-                        <dt>Logo/reference</dt>
-                        <dd>@DisplayProfile.LogoReference</dd>
-                    </div>
-                    <div class="full">
-                        <dt>Registration/business reference</dt>
-                        <dd>@DisplayProfile.RegistrationNumber</dd>
-                    </div>
-                </dl>
+                <section class="company-detail-section" aria-labelledby="company-address-title">
+                    <h3 id="company-address-title">Address</h3>
+                    <p>@DisplayProfile.AddressLine1, @DisplayProfile.AddressLine2, @DisplayProfile.CityProvinceState, @DisplayProfile.PostalCode, @DisplayProfile.Country</p>
+                </section>
+                <section class="company-detail-section" aria-labelledby="company-reference-title">
+                    <h3 id="company-reference-title">Business details</h3>
+                    <dl class="company-summary-grid">
+                        <div><dt>Tax ID</dt><dd>@DisplayProfile.TaxId</dd></div>
+                        <div><dt>Website</dt><dd>@DisplayProfile.Website</dd></div>
+                        <div><dt>Logo/reference</dt><dd>@DisplayProfile.LogoReference</dd></div>
+                        <div><dt>Registration/business reference</dt><dd>@DisplayProfile.RegistrationNumber</dd></div>
+                    </dl>
+                </section>
             </div>
         </section>
     }
     else
     {
         <section class="company-card" data-profile-view="form">
-            <div class="company-card-header">
+            <div class="company-form-header">
+                <img src="images/company-profile/company-icon.svg" alt="" width="48" height="48" />
                 <div>
                     <h2>@(isEditMode ? "Update company profile" : "Create company profile")</h2>
                     <p>Fields marked with * are required.</p>
@@ -205,72 +209,47 @@
 
             @if (!string.IsNullOrWhiteSpace(statusMessage))
             {
-                <p role="alert">@statusMessage</p>
+                <p class="company-status-message" role="alert">@statusMessage</p>
             }
 
             <form class="company-form" @onsubmit="SaveProfile" @onsubmit:preventDefault>
-                <div class="company-form-grid">
-                    <div class="company-field full">
-                        <label for="company-name">Company name*</label>
-                        <input id="company-name" name="company-name" @bind="form.CompanyName" @bind:event="oninput" placeholder="Acme Co., Ltd." />
-                        <span>@FieldError(nameof(form.CompanyName))</span>
+                <section class="company-form-section">
+                    <h3>Company identity</h3>
+                    <div class="company-form-grid">
+                        <div class="company-field full">
+                            <label for="company-name">Company name*</label>
+                            <input id="company-name" name="company-name" @bind="form.CompanyName" @bind:event="oninput" placeholder="Acme Co., Ltd." />
+                            <span>@FieldError(nameof(form.CompanyName))</span>
+                        </div>
+                        <div class="company-field"><label for="tax-id">Tax ID</label><input id="tax-id" name="tax-id" @bind="form.TaxId" @bind:event="oninput" placeholder="0105558123456" /></div>
+                        <div class="company-field"><label for="registration-reference">Registration/business reference</label><input id="registration-reference" name="registration-reference" @bind="form.RegistrationNumber" @bind:event="oninput" placeholder="Business registration reference" /></div>
                     </div>
-                    <div class="company-field full">
-                        <label for="address-line-1">Address line 1*</label>
-                        <input id="address-line-1" name="address-line-1" @bind="form.AddressLine1" @bind:event="oninput" placeholder="Street address" />
-                        <span>@FieldError(nameof(form.AddressLine1))</span>
+                </section>
+
+                <section class="company-form-section">
+                    <h3>Address</h3>
+                    <div class="company-form-grid">
+                        <div class="company-field full"><label for="address-line-1">Address line 1*</label><input id="address-line-1" name="address-line-1" @bind="form.AddressLine1" @bind:event="oninput" placeholder="Street address" /><span>@FieldError(nameof(form.AddressLine1))</span></div>
+                        <div class="company-field full"><label for="address-line-2">Address line 2</label><input id="address-line-2" name="address-line-2" @bind="form.AddressLine2" @bind:event="oninput" placeholder="Suite, floor, building" /></div>
+                        <div class="company-field"><label for="city">City / province / state*</label><input id="city" name="city" @bind="form.CityProvinceState" @bind:event="oninput" placeholder="Bangkok" /><span>@FieldError(nameof(form.CityProvinceState))</span></div>
+                        <div class="company-field"><label for="postal-code">Postal code*</label><input id="postal-code" name="postal-code" @bind="form.PostalCode" @bind:event="oninput" placeholder="10110" /><span>@FieldError(nameof(form.PostalCode))</span></div>
+                        <div class="company-field full"><label for="country">Country*</label><input id="country" name="country" @bind="form.Country" @bind:event="oninput" placeholder="Thailand" /><span>@FieldError(nameof(form.Country))</span></div>
                     </div>
-                    <div class="company-field full">
-                        <label for="address-line-2">Address line 2</label>
-                        <input id="address-line-2" name="address-line-2" @bind="form.AddressLine2" @bind:event="oninput" placeholder="Suite, floor, building" />
+                </section>
+
+                <section class="company-form-section">
+                    <h3>Contact and references</h3>
+                    <div class="company-form-grid">
+                        <div class="company-field"><label for="phone">Phone</label><input id="phone" name="phone" @bind="form.Phone" @bind:event="oninput" placeholder="+66 2 555 0100" /></div>
+                        <div class="company-field"><label for="email">Email</label><input id="email" name="email" type="email" @bind="form.Email" @bind:event="oninput" placeholder="billing@example.com" /><span>@FieldError(nameof(form.Email))</span></div>
+                        <div class="company-field full"><label for="website">Website</label><input id="website" name="website" @bind="form.Website" @bind:event="oninput" placeholder="https://example.com" /></div>
+                        <div class="company-field full"><label for="logo-reference">Logo/reference placeholder</label><input id="logo-reference" name="logo-reference" @bind="form.LogoReference" @bind:event="oninput" placeholder="Logo file name or asset reference" /></div>
                     </div>
-                    <div class="company-field">
-                        <label for="city">City / province / state*</label>
-                        <input id="city" name="city" @bind="form.CityProvinceState" @bind:event="oninput" placeholder="Bangkok" />
-                        <span>@FieldError(nameof(form.CityProvinceState))</span>
-                    </div>
-                    <div class="company-field">
-                        <label for="postal-code">Postal code*</label>
-                        <input id="postal-code" name="postal-code" @bind="form.PostalCode" @bind:event="oninput" placeholder="10110" />
-                        <span>@FieldError(nameof(form.PostalCode))</span>
-                    </div>
-                    <div class="company-field">
-                        <label for="country">Country*</label>
-                        <input id="country" name="country" @bind="form.Country" @bind:event="oninput" placeholder="Thailand" />
-                        <span>@FieldError(nameof(form.Country))</span>
-                    </div>
-                    <div class="company-field">
-                        <label for="tax-id">Tax ID</label>
-                        <input id="tax-id" name="tax-id" @bind="form.TaxId" @bind:event="oninput" placeholder="0105558123456" />
-                    </div>
-                    <div class="company-field">
-                        <label for="phone">Phone</label>
-                        <input id="phone" name="phone" @bind="form.Phone" @bind:event="oninput" placeholder="+66 2 555 0100" />
-                    </div>
-                    <div class="company-field">
-                        <label for="email">Email</label>
-                        <input id="email" name="email" @bind="form.Email" @bind:event="oninput" placeholder="billing@example.com" />
-                        <span>@FieldError(nameof(form.Email))</span>
-                    </div>
-                    <div class="company-field">
-                        <label for="website">Website</label>
-                        <input id="website" name="website" @bind="form.Website" @bind:event="oninput" placeholder="https://example.com" />
-                    </div>
-                    <div class="company-field full">
-                        <label for="logo-reference">Logo/reference placeholder</label>
-                        <input id="logo-reference" name="logo-reference" @bind="form.LogoReference" @bind:event="oninput" placeholder="Logo file name or asset reference" />
-                    </div>
-                    <div class="company-field full">
-                        <label for="registration-reference">Registration/business reference</label>
-                        <input id="registration-reference" name="registration-reference" @bind="form.RegistrationNumber" @bind:event="oninput" placeholder="Business registration reference" />
-                    </div>
-                </div>
+                </section>
 
                 <div class="company-form-actions">
                     <button class="company-secondary-button" type="button" disabled="@isSubmitting" @onclick="ShowExisting">Cancel</button>
-                    <button class="company-primary-button" type="submit" disabled="@isSubmitting">
-                        @(isSubmitting ? "Saving..." : isEditMode ? "Update company profile" : "Create company profile")
-                    </button>
+                    <button class="company-primary-button" type="submit" disabled="@isSubmitting">@(isSubmitting ? "Saving..." : isEditMode ? "Update company profile" : "Create company profile")</button>
                 </div>
             </form>
         </section>
@@ -282,9 +261,7 @@
             <p>Delete company profile? You can create a new one later. Delete is blocked when quotations or invoices use this profile.</p>
             <div class="company-snackbar-actions">
                 <button type="button" @onclick="CloseDeleteSnackbar">Cancel</button>
-                <button type="button" class="danger" disabled="@isDeleting" @onclick="ConfirmDelete">
-                    @(isDeleting ? "Deleting..." : "Delete")
-                </button>
+                <button type="button" class="danger" disabled="@isDeleting" @onclick="ConfirmDelete">@(isDeleting ? "Deleting..." : "Delete")</button>
             </div>
         </div>
     }

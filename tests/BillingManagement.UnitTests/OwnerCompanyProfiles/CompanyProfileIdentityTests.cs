@@ -1,4 +1,5 @@
 using System.Net;
+using System.Reflection;
 using BillingManagement.Client.OwnerCompanyProfiles;
 using BillingManagement.Client.Pages.CompanyProfile;
 using Microsoft.AspNetCore.Components;
@@ -25,7 +26,7 @@ public sealed class CompanyProfileIdentityTests
         Assert.Contains("alt=\"mi.nie company mark\"", markup);
         Assert.True(
             markup.IndexOf("company-identity-cover", StringComparison.Ordinal) <
-            markup.IndexOf("company-identity-row", StringComparison.Ordinal));
+            markup.IndexOf("company-identity-band", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -42,27 +43,97 @@ public sealed class CompanyProfileIdentityTests
     [Fact]
     public async Task Existing_profile_renders_cover_upload_and_reset_controls()
     {
-        var markup = WebUtility.HtmlDecode(await RenderExistingProfile());
+        _ = await RenderExistingProfile();
+        var markup = ReadCompanyProfileMarkup();
 
-        Assert.Contains("Change cover", markup);
+        Assert.Contains("Choose cover", markup);
         Assert.Contains("Reset cover", markup);
         Assert.Contains("accept=\"image/png,image/jpeg,image/webp\"", markup);
     }
 
     [Fact]
-    public async Task Existing_profile_renders_icon_upload_and_reset_controls_near_the_icon()
+    public async Task Existing_profile_renders_icon_upload_and_reset_controls_in_media_tray()
     {
-        var markup = WebUtility.HtmlDecode(await RenderExistingProfile());
+        _ = await RenderExistingProfile();
+        var markup = ReadCompanyProfileMarkup();
 
-        Assert.Contains("Change icon", markup);
-        Assert.Contains("Reset icon", markup);
+        Assert.Contains("Choose icon", markup);
+        Assert.Contains("Company icon", markup);
         Assert.Contains("company-icon-picker", markup);
         Assert.True(
             markup.IndexOf("company-identity-icon", StringComparison.Ordinal) <
-            markup.IndexOf("Change icon", StringComparison.Ordinal));
+            markup.IndexOf("company-media-tray", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Company_profile_uses_identity_band_and_progressive_media_controls()
+    {
+        var markup = ReadCompanyProfileMarkup();
+
+        Assert.Contains("class=\"company-identity-band\"", markup);
+        Assert.Contains("@onclick=\"ToggleMediaTray\"", markup);
+        Assert.Contains("@if (showMediaTray", markup);
+        Assert.Contains("class=\"company-media-tray\"", markup);
         Assert.True(
-            markup.IndexOf("Change icon", StringComparison.Ordinal) <
-            markup.IndexOf("company-identity-copy", StringComparison.Ordinal));
+            markup.IndexOf("company-identity-cover", StringComparison.Ordinal) <
+            markup.IndexOf("company-identity-band", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Existing_profile_keeps_update_primary_and_delete_in_overflow_menu()
+    {
+        var markup = ReadCompanyProfileMarkup();
+
+        Assert.Contains("class=\"company-primary-button\" type=\"button\" @onclick=\"ShowEdit\">Update", markup);
+        Assert.Contains("class=\"company-overflow-menu\"", markup);
+        Assert.Contains("@onclick=\"ShowDelete\">Delete company profile", markup);
+    }
+
+    [Fact]
+    public void Form_groups_fields_and_keeps_email_optional()
+    {
+        var markup = ReadCompanyProfileMarkup();
+
+        Assert.Contains(">Company identity</h3>", markup);
+        Assert.Contains(">Address</h3>", markup);
+        Assert.Contains(">Contact and references</h3>", markup);
+        Assert.Contains("<label for=\"email\">Email</label>", markup);
+        Assert.DoesNotContain("<label for=\"email\">Email*</label>", markup);
+    }
+
+    [Fact]
+    public void Approved_radius_and_accessibility_rules_are_scoped_in_styles()
+    {
+        var styles = ReadCompanyProfileStyles().ReplaceLineEndings("\n");
+
+        Assert.Contains(".company-page-header {\n  margin-bottom: 24px;\n  user-select: none;", styles);
+        Assert.Contains(".company-card {", styles);
+        Assert.Contains("border-radius: 4px;", styles);
+        Assert.Contains(".company-identity-icon {", styles);
+        Assert.Contains("border-radius: 8px;", styles);
+        Assert.Contains(".company-snackbar {", styles);
+        Assert.Contains("border-radius: 6px;", styles);
+        Assert.Contains(".company-contact-link,\n.company-contact-link:visited", styles);
+        Assert.Contains("text-decoration: none;", styles);
+        Assert.Contains("@media (prefers-reduced-motion: reduce)", styles);
+    }
+
+    [Fact]
+    public void Media_tray_toggle_opens_and_closes_inline_controls()
+    {
+        var component = new CompanyProfile();
+        var toggle = typeof(CompanyProfile).GetMethod(
+            "ToggleMediaTray",
+            BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var field = typeof(CompanyProfile).GetField(
+            "showMediaTray",
+            BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        toggle.Invoke(component, null);
+        Assert.True((bool)field.GetValue(component)!);
+
+        toggle.Invoke(component, null);
+        Assert.False((bool)field.GetValue(component)!);
     }
 
     [Fact]
@@ -157,6 +228,31 @@ public sealed class CompanyProfileIdentityTests
         }
 
         throw new FileNotFoundException("Could not find Company profile styles.");
+    }
+
+    private static string ReadCompanyProfileMarkup()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            var path = Path.Combine(
+                directory.FullName,
+                "src",
+                "BillingManagement.Client",
+                "Pages",
+                "CompanyProfile",
+                "CompanyProfile.razor");
+
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new FileNotFoundException("Could not find Company profile markup.");
     }
 
     private sealed class TestNavigationManager : NavigationManager
