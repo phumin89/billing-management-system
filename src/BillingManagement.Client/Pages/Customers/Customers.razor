@@ -46,6 +46,11 @@
                 }
             </div>
 
+            @if (deleteMessage is not null)
+            {
+                <p class="@DeleteMessageClass" role="@(deleteMessageIsError ? "alert" : "status")">@deleteMessage</p>
+            }
+
             @if (isLoading)
             {
                 <div class="customers-load-state" role="status">
@@ -82,7 +87,12 @@
                                     <td>@customer.Email</td>
                                     <td>@customer.Phone</td>
                                     <td>@BillingAddress(customer)</td>
-                                    <td><button class="customer-edit-button" type="button" @onclick="() => BeginEdit(customer)">Edit</button></td>
+                                    <td>
+                                        <div class="customer-row-actions">
+                                            <button class="customer-edit-button" type="button" @onclick="() => BeginEdit(customer)">Edit</button>
+                                            <button class="customer-delete-button" type="button" @onclick="() => BeginDelete(customer)">Delete</button>
+                                        </div>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -99,4 +109,17 @@
             }
         }
     </section>
+
+    @if (showDeleteSnackbar)
+    {
+        <div class="@DeleteSnackbarClass" role="status" aria-label="Delete customer confirmation">
+            <p>Delete customer? You can create a new customer later. Delete is blocked when quotations or invoices use this customer.</p>
+            <div class="customer-delete-snackbar-actions">
+                <button type="button" @onclick="CloseDeleteSnackbar">Cancel</button>
+                <button type="button" class="danger" disabled="@isDeleting" @onclick="ConfirmDelete">
+                    @(isDeleting ? "Deleting..." : "Delete")
+                </button>
+            </div>
+        </div>
+    }
 </main>

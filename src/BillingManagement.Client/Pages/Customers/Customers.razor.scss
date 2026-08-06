@@ -151,6 +151,7 @@
 }
 
 .customer-edit-button,
+.customer-delete-button,
 .customer-edit-cancel-button,
 .customer-edit-save-button {
   min-height: 44px;
@@ -173,6 +174,20 @@
   cursor: pointer;
 }
 
+.customer-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.customer-delete-button {
+  color: #aa2d00;
+  background: #ffffff;
+  border: 1px solid #aa2d00;
+  cursor: pointer;
+}
+
 .customer-edit-save-button {
   color: #ffffff;
   background: #181d26;
@@ -188,10 +203,120 @@
 }
 
 .customer-edit-button:focus-visible,
+.customer-delete-button:focus-visible,
 .customer-edit-cancel-button:focus-visible,
 .customer-edit-save-button:focus-visible {
   outline: 2px solid #458fff;
   outline-offset: 2px;
+}
+
+.customers-page .customer-delete-message {
+  padding: 12px 24px;
+  color: #155724;
+  background: #edf7ef;
+  border-bottom: 1px solid #c7e4cc;
+}
+
+.customers-page .customer-delete-message.is-error {
+  color: #8a2400;
+  background: #fff3ed;
+  border-bottom-color: #f1c7b8;
+}
+
+.customer-delete-snackbar {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 40;
+  width: min(440px, calc(100vw - 48px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  box-sizing: border-box;
+  padding: 16px;
+  color: #ffffff;
+  background: #181d26;
+  border-radius: 8px;
+  box-shadow: 0 18px 40px rgba(24, 29, 38, 0.2);
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  animation: customer-delete-snackbar-enter 220ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  will-change: opacity, transform;
+}
+
+.customer-delete-snackbar.is-closing {
+  animation: customer-delete-snackbar-exit 200ms ease-in forwards;
+}
+
+.customers-page .customer-delete-snackbar p {
+  margin: 0;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.customer-delete-snackbar-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.customer-delete-snackbar button {
+  min-height: 36px;
+  padding: 0 12px;
+  color: #181d26;
+  background: #ffffff;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.customer-delete-snackbar button.danger {
+  width: 92px;
+  box-sizing: border-box;
+  color: #ffffff;
+  background: #aa2d00;
+}
+
+.customer-delete-snackbar button.danger:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@keyframes customer-delete-snackbar-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes customer-delete-snackbar-exit {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-delete-snackbar,
+  .customer-delete-snackbar.is-closing {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
 }
 
 .visually-hidden {
@@ -261,7 +386,8 @@
   .customers-list-header,
   .customer-edit-header,
   .customer-edit-error-summary,
-  .customers-empty-state {
+  .customers-empty-state,
+  .customer-delete-message {
     padding-inline: 16px;
   }
 
@@ -279,5 +405,18 @@
   .customer-edit-actions {
     align-items: stretch;
     flex-direction: column-reverse;
+  }
+
+  .customer-delete-snackbar {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    width: auto;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .customer-delete-snackbar-actions {
+    justify-content: flex-end;
   }
 }

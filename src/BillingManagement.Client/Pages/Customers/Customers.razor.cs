@@ -22,12 +22,18 @@ public partial class Customers
     ];
 
     private CustomerResponse? editingCustomer;
+    private CustomerResponse? deletingCustomer;
     private CreateCustomerRequest? editForm;
     private IReadOnlyDictionary<string, string[]> validationErrors = new Dictionary<string, string[]>();
     private string? statusMessage;
     private string? loadError;
+    private string? deleteMessage;
     private bool isLoading;
     private bool isSubmitting;
+    private bool isDeleting;
+    private bool deleteMessageIsError;
+    private bool showDeleteSnackbar;
+    private bool snackbarClosing;
 
     [Inject]
     private CustomerClient Client { get; set; } = default!;
@@ -96,6 +102,67 @@ public partial class Customers
             ContactName = customer.ContactName,
             Notes = customer.Notes
         };
+    }
+
+    private void BeginDelete(CustomerResponse customer)
+    {
+        this.deletingCustomer = customer;
+        this.deleteMessage = null;
+        this.deleteMessageIsError = false;
+        this.snackbarClosing = false;
+        this.showDeleteSnackbar = true;
+    }
+
+    private string DeleteSnackbarClass => this.snackbarClosing
+        ? "customer-delete-snackbar is-closing"
+        : "customer-delete-snackbar";
+
+    private string DeleteMessageClass => this.deleteMessageIsError
+        ? "customer-delete-message is-error"
+        : "customer-delete-message";
+
+    private async Task CloseDeleteSnackbar() => await this.DismissDeleteSnackbar();
+
+    private async Task ConfirmDelete()
+    {
+        if (this.isDeleting || this.deletingCustomer is null)
+        {
+            return;
+        }
+
+        var customerId = this.deletingCustomer.Id;
+        this.deleteMessage = null;
+        this.isDeleting = true;
+        try
+        {
+            var result = await this.Client.Delete(customerId);
+            if (result.ShouldRemoveCustomer)
+            {
+                this.CustomerState.Remove(customerId);
+            }
+
+            this.deleteMessage = result.Message;
+            this.deleteMessageIsError = !result.ShouldRemoveCustomer;
+            await this.DismissDeleteSnackbar();
+        }
+        finally
+        {
+            this.isDeleting = false;
+        }
+    }
+
+    private async Task DismissDeleteSnackbar()
+    {
+        if (this.snackbarClosing)
+        {
+            return;
+        }
+
+        this.snackbarClosing = true;
+        await Task.Delay(220);
+        this.showDeleteSnackbar = false;
+        this.deletingCustomer = null;
+        this.snackbarClosing = false;
     }
 
     private void CancelEdit()

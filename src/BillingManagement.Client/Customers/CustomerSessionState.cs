@@ -29,4 +29,6 @@ public sealed class CustomerSessionState
 
         this.customers[index] = customer;
     }
+
+    public void Remove(Guid id) => this.customers.RemoveAll(customer => customer.Id == id);
 }

@@ -116,6 +116,32 @@ public sealed class CustomersPageMarkupTests
     }
 
     [Fact]
+    public void Customers_page_defines_delete_confirmation_and_pending_guard()
+    {
+        var markup = ReadClientFile("Pages", "Customers", "Customers.razor");
+
+        Assert.Contains("@onclick=\"() => BeginDelete(customer)\"", markup);
+        Assert.Contains("Delete customer? You can create a new customer later.", markup);
+        Assert.Contains("Delete is blocked when quotations or invoices use this customer.", markup);
+        Assert.Contains("@onclick=\"CloseDeleteSnackbar\"", markup);
+        Assert.Contains("disabled=\"@isDeleting\"", markup);
+        Assert.Contains("Deleting...", markup);
+    }
+
+    [Fact]
+    public void Customers_delete_confirmation_uses_vertical_motion_and_reduced_motion_override()
+    {
+        var styles = ReadClientFile("Pages", "Customers", "Customers.razor.scss")
+            .ReplaceLineEndings("\n");
+
+        Assert.Contains("transform: translate3d(0, 18px, 0);", styles);
+        Assert.DoesNotContain("translate3d(18px", styles);
+        Assert.Contains("@media (prefers-reduced-motion: reduce)", styles);
+        Assert.Contains("animation: none;", styles);
+        Assert.Contains("transform: none;", styles);
+    }
+
+    [Fact]
     public void Primary_navigation_links_to_customers_page()
     {
         var layout = ReadClientFile("Layout", "MainLayout.razor");

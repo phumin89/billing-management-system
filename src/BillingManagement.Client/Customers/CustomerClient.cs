@@ -102,6 +102,41 @@ public sealed class CustomerClient(HttpClient httpClient)
             "Could not update customer. Try again.");
     }
 
+    public async Task<DeleteCustomerResult> Delete(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        HttpResponseMessage response;
+        try
+        {
+            response = await httpClient.DeleteAsync($"api/customers/{id}", cancellationToken);
+        }
+        catch (HttpRequestException)
+        {
+            return DeleteCustomerResult.Failed(
+                "Could not delete customer. Check the API connection and try again.");
+        }
+
+        if (response.StatusCode is HttpStatusCode.NoContent)
+        {
+            return DeleteCustomerResult.Removed();
+        }
+
+        if (response.StatusCode is HttpStatusCode.NotFound)
+        {
+            return DeleteCustomerResult.Removed(
+                "Customer was not found and was removed from this list.");
+        }
+
+        if (response.StatusCode is HttpStatusCode.Conflict)
+        {
+            return DeleteCustomerResult.Failed(
+                "Customer is used by quotations or invoices and cannot be deleted.");
+        }
+
+        return DeleteCustomerResult.Failed("Could not delete customer. Try again.");
+    }
+
     private sealed class ValidationProblemResponse
     {
         public Dictionary<string, string[]> Errors { get; set; } = [];
