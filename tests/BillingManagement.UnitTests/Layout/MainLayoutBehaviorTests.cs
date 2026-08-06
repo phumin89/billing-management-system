@@ -33,6 +33,44 @@ public sealed class MainLayoutBehaviorTests
         Assert.Contains("aria-current=\"page\"", markup);
     }
 
+    [Fact]
+    public void Company_navigation_reveal_tracks_late_geometry_changes_without_a_timer()
+    {
+        var script = ReadClientFile(Path.Combine("Layout", "MainLayout.razor.js"));
+
+        Assert.Contains("new ResizeObserver", script, StringComparison.Ordinal);
+        Assert.Contains("revealStates.get(element)", script, StringComparison.Ordinal);
+        Assert.Contains("observer.observe(container)", script, StringComparison.Ordinal);
+        Assert.Contains("observer.observe(child)", script, StringComparison.Ordinal);
+        Assert.Contains("container.scrollLeft += Math.ceil", script, StringComparison.Ordinal);
+        Assert.Contains("observer.disconnect()", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("element.scrollIntoView", script, StringComparison.Ordinal);
+        Assert.DoesNotContain("setTimeout", script, StringComparison.Ordinal);
+    }
+
+    private static string ReadClientFile(string relativePath)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            var path = Path.Combine(
+                directory.FullName,
+                "src",
+                "BillingManagement.Client",
+                relativePath);
+
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new FileNotFoundException($"Could not find client file '{relativePath}'.");
+    }
+
     private sealed class TestNavigationManager : NavigationManager
     {
         public TestNavigationManager()

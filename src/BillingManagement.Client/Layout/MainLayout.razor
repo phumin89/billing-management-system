@@ -90,7 +90,7 @@
         module ??= await JavaScript.InvokeAsync<IJSObjectReference>(
             "import",
             "./Layout/MainLayout.razor.js");
-        await module.InvokeVoidAsync("scrollIntoView", companyLink);
+        await module.InvokeVoidAsync("observeAndReveal", companyLink);
     }
 
     public async ValueTask DisposeAsync()
@@ -99,6 +99,7 @@
 
         if (module is not null)
         {
+            await module.InvokeVoidAsync("disconnectReveal", companyLink);
             await module.DisposeAsync();
         }
     }
