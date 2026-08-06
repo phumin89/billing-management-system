@@ -20,6 +20,7 @@ public partial class CompanyProfile
 
     private ProfileReviewState reviewState = ProfileReviewState.Empty;
     private bool isEditMode;
+    private bool showOverflowMenu;
     private bool showMediaTray;
     private bool showDeleteSnackbar;
     private bool snackbarClosing;
@@ -175,12 +176,15 @@ public partial class CompanyProfile
         }
     }
 
+    private void ToggleOverflowMenu() => this.showOverflowMenu = !this.showOverflowMenu;
+
     private void ShowDelete()
     {
         this.reviewState = ProfileReviewState.Existing;
         this.isEditMode = false;
         this.statusMessage = null;
         this.snackbarClosing = false;
+        this.showOverflowMenu = false;
         this.showDeleteSnackbar = true;
     }
 

@@ -99,6 +99,19 @@ public sealed class MainLayoutStyleTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Mobile_company_link_keeps_its_content_width_inside_scrollable_navigation()
+    {
+        var source = ReadSourceStyles().ReplaceLineEndings("\n");
+        var compiler = ReadClientFile("sasscompiler.json");
+
+        Assert.Contains(
+            ".company-link {\n    flex-shrink: 0;",
+            source,
+            StringComparison.Ordinal);
+        Assert.Contains("\"Layout\"", compiler, StringComparison.Ordinal);
+    }
+
     private static string ReadStyles()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -122,6 +135,53 @@ public sealed class MainLayoutStyleTests
         }
 
         throw new FileNotFoundException("Could not find generated client stylesheet.");
+    }
+
+    private static string ReadSourceStyles()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            var path = Path.Combine(
+                directory.FullName,
+                "src",
+                "BillingManagement.Client",
+                "Layout",
+                "MainLayout.razor.scss");
+
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new FileNotFoundException("Could not find client source stylesheet.");
+    }
+
+    private static string ReadClientFile(string fileName)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            var path = Path.Combine(
+                directory.FullName,
+                "src",
+                "BillingManagement.Client",
+                fileName);
+
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new FileNotFoundException($"Could not find client file '{fileName}'.");
     }
 
     private static string Rule(string styles, string selectorPattern)

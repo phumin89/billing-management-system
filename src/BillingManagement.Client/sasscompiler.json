@@ -3,5 +3,5 @@
   "Target": "wwwroot/css/app.css",
   "Arguments": "--style=expanded --no-source-map",
   "GenerateScopedCss": true,
-  "ScopedCssFolders": ["Pages", "Components"]
+  "ScopedCssFolders": ["Pages", "Components", "Layout"]
 }

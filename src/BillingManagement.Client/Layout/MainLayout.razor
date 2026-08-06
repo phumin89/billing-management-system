@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
-@implements IDisposable
+@implements IAsyncDisposable
 @inject NavigationManager Navigation
+@inject IJSRuntime JavaScript
 
 <div class="app-shell @(collapsed ? "is-collapsed" : string.Empty)">
     <aside class="@($"sidebar active-{activeNav}")" aria-label="Primary navigation">
@@ -45,7 +46,7 @@
             </a>
         </nav>
 
-        <a class="@CompanyClass" href="/company-profile" title="Company profile" aria-current="@AriaCurrent(NavCompany)" @onclick="() => SetActive(NavCompany)">
+        <a @ref="companyLink" class="@CompanyClass" href="/company-profile" title="Company profile" aria-current="@AriaCurrent(NavCompany)" @onclick="() => SetActive(NavCompany)">
             <span class="company-avatar" aria-hidden="true">BM</span>
             <span class="company-copy sidebar-text">
                 <span>Company profile</span>
@@ -66,19 +67,49 @@
     private const string NavCompany = "company";
 
     private bool collapsed;
+    private bool scrollCompanyLinkIntoView;
     private string activeNav = NavCustomers;
+    private ElementReference companyLink;
+    private IJSObjectReference? module;
 
     protected override void OnInitialized()
     {
         activeNav = GetActiveNav(Navigation.Uri);
+        scrollCompanyLinkIntoView = activeNav == NavCompany;
         Navigation.LocationChanged += OnLocationChanged;
     }
 
-    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!scrollCompanyLinkIntoView)
+        {
+            return;
+        }
+
+        scrollCompanyLinkIntoView = false;
+        module ??= await JavaScript.InvokeAsync<IJSObjectReference>(
+            "import",
+            "./Layout/MainLayout.razor.js");
+        await module.InvokeVoidAsync("scrollIntoView", companyLink);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+
+        if (module is not null)
+        {
+            await module.DisposeAsync();
+        }
+    }
 
     private void Toggle() => collapsed = !collapsed;
 
-    private void SetActive(string item) => activeNav = item;
+    private void SetActive(string item)
+    {
+        activeNav = item;
+        scrollCompanyLinkIntoView = item == NavCompany;
+    }
 
     private string NavClass(string item) => activeNav == item ? "nav-item active" : "nav-item";
 
@@ -89,6 +120,7 @@
     private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs args)
     {
         activeNav = GetActiveNav(args.Location);
+        scrollCompanyLinkIntoView = activeNav == NavCompany;
         _ = InvokeAsync(StateHasChanged);
     }
 
@@ -96,7 +128,12 @@
     {
         var relative = Navigation.ToBaseRelativePath(uri);
         var hashIndex = relative.IndexOf('#');
-        var path = (hashIndex >= 0 ? relative[..hashIndex] : relative).TrimEnd('/');
+        var queryIndex = relative.IndexOf('?');
+        var pathEnd = new[] { hashIndex, queryIndex }
+            .Where(index => index >= 0)
+            .DefaultIfEmpty(relative.Length)
+            .Min();
+        var path = relative[..pathEnd].TrimEnd('/');
         var hash = hashIndex >= 0 ? relative[(hashIndex + 1)..] : string.Empty;
 
         if (path.Equals("company-profile", StringComparison.OrdinalIgnoreCase))

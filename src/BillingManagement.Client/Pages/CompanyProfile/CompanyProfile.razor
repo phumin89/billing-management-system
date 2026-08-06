@@ -62,8 +62,8 @@
                     <div class="company-actions">
                         <button class="company-secondary-button" type="button" aria-expanded="@showMediaTray" @onclick="ToggleMediaTray">Media</button>
                         <button class="company-primary-button" type="button" @onclick="ShowEdit">Update</button>
-                        <details class="company-overflow-menu">
-                            <summary aria-label="More company actions"><span aria-hidden="true">...</span></summary>
+                        <details class="company-overflow-menu" open="@showOverflowMenu">
+                            <summary aria-label="More company actions" @onclick:preventDefault @onclick="ToggleOverflowMenu"><span aria-hidden="true">...</span></summary>
                             <div class="company-overflow-actions">
                                 <button type="button" @onclick="ShowDelete">Delete company profile</button>
                             </div>

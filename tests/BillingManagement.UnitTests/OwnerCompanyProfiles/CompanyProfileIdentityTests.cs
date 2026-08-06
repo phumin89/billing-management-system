@@ -85,8 +85,35 @@ public sealed class CompanyProfileIdentityTests
         var markup = ReadCompanyProfileMarkup();
 
         Assert.Contains("class=\"company-primary-button\" type=\"button\" @onclick=\"ShowEdit\">Update", markup);
-        Assert.Contains("class=\"company-overflow-menu\"", markup);
+        Assert.Contains("class=\"company-overflow-menu\" open=\"@showOverflowMenu\"", markup);
+        Assert.Contains("@onclick:preventDefault @onclick=\"ToggleOverflowMenu\"", markup);
         Assert.Contains("@onclick=\"ShowDelete\">Delete company profile", markup);
+    }
+
+    [Fact]
+    public void Delete_confirmation_closes_the_overflow_menu()
+    {
+        var component = new CompanyProfile();
+        var toggle = typeof(CompanyProfile).GetMethod(
+            "ToggleOverflowMenu",
+            BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var showDelete = typeof(CompanyProfile).GetMethod(
+            "ShowDelete",
+            BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var menuField = typeof(CompanyProfile).GetField(
+            "showOverflowMenu",
+            BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var snackbarField = typeof(CompanyProfile).GetField(
+            "showDeleteSnackbar",
+            BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        toggle.Invoke(component, null);
+        Assert.True((bool)menuField.GetValue(component)!);
+
+        showDelete.Invoke(component, null);
+
+        Assert.False((bool)menuField.GetValue(component)!);
+        Assert.True((bool)snackbarField.GetValue(component)!);
     }
 
     [Fact]
@@ -113,6 +140,8 @@ public sealed class CompanyProfileIdentityTests
         Assert.Contains("border-radius: 8px;", styles);
         Assert.Contains(".company-snackbar {", styles);
         Assert.Contains("border-radius: 6px;", styles);
+        Assert.Contains(".company-overflow-menu summary {", styles);
+        Assert.Contains("box-sizing: border-box;", styles);
         Assert.Contains(".company-contact-link,\n.company-contact-link:visited", styles);
         Assert.Contains("text-decoration: none;", styles);
         Assert.Contains("@media (prefers-reduced-motion: reduce)", styles);

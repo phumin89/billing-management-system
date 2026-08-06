@@ -256,6 +256,7 @@
   line-height: 1;
   cursor: pointer;
   list-style: none;
+  box-sizing: border-box;
 }
 
 .company-overflow-menu summary::-webkit-details-marker {
