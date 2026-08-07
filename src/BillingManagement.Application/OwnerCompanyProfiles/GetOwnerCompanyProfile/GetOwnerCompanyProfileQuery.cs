@@ -1,3 +1,0 @@
-namespace BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProfile;
-
-public sealed record GetOwnerCompanyProfileQuery;
