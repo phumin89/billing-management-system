@@ -14,7 +14,51 @@ nearest `AGENTS.md` as well.
 | `src/BillingManagement.Infrastructure/**` | `src/BillingManagement.Infrastructure/AGENTS.md` |
 | `tests/**` | `tests/AGENTS.md` |
 
-Do not create `AGENTS.override.md`; scoped rules should extend repository rules.
+# AGENTS.md
+
+Repository-wide instructions for the Billing Management System. Global coding rules still apply. Before changing files below a scoped directory, read its nearest `AGENTS.md` as well.
+
+## Scoped Instructions
+| Scope | Additional instructions |
+| :--- | :--- |
+| \`src/**\` | \`src/AGENTS.md\` |
+| \`src/BillingManagement.Client/**\` | \`src/BillingManagement.Client/AGENTS.md\` |
+| \`src/BillingManagement.Api/**\` | \`src/BillingManagement.Api/AGENTS.md\` |
+| \`src/BillingManagement.Infrastructure/**\` | \`src/BillingManagement.Infrastructure/AGENTS.md\` |
+| \`tests/**\` | \`tests/AGENTS.md\` |
+
+Do not create \`AGENTS.override.md\`; scoped rules should extend repository rules.
+
+## Product & Architecture Stack
+- **Technology:** Blazor WASM, ASP.NET Core Web API, SQL Server, EF Core.
+- **Language:** Use `net10.0` (preferred). Prefer built-in DI, logging, and validation mechanisms.
+- **Architecture Principle:** Keep the application modular and in-process. Do not split handlers or persistence into network services unless absolutely necessary for deployment reasons.
+
+**Dependency Flow Diagram:**
+*   Client $\to$ Contracts
+*   Api $\to$ Contracts, Application.Abstractions, Application, Infrastructure
+*   Application $\to$ Application.Abstractions, Domain
+*   Infrastructure $\to$ Application.Abstractions, Domain
+*   Migrator $\to$ Infrastructure
+
+**Forbidden References:** 
+`Domain` cannot reference other projects; `Client` cannot reference `Application`, `Domain`, or `Infrastructure`; etc. (Refer to the full scope for details).
+
+## Development Workflow & Operations
+- **Task Management (Trello):**
+    - Work on one Trello card at a time, owned by a single active owner.
+    - Trello Card Title Requirement: Must start with the visible number (e.g., \`#BMS-123 Task name\`).
+    - Branching: Before implementation, create a local branch named after the ticket number (e.g., \`#BMS-123-short-description\`)\`.
+
+## Verification & Testing Rituals
+1.  **Project Structure:** Use one top-level C# type per \`.cs\` file.
+2.  **C# Changes:** Run \`dotnet format BillingManagement.slnx --verify-no-changes\` followed by focused tests and a full build verification.
+3.  **Runtime/API Changes:** Evidence must include Docker Compose usage to verify runtime behavior.
+4.  **UI Behavior:** Requires real browser checks; DOM evidence is insufficient for visual validation.
+
+**Key Pitfalls & Conventions:**
+*   Never commit secrets, local database, or development environment artifacts.
+*   When checking dates/times (e.g., due date): Always read user profile first to resolve the time zone before performing comparisons.
 
 ## Product And Stack
 
