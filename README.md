@@ -17,11 +17,30 @@ Out of scope for the current MVP: payments, dashboard, multi-role permissions, m
 - `BillingManagement.Client`: Blazor WebAssembly UI.
 - `BillingManagement.Api`: ASP.NET Core API with controllers and OpenAPI.
 - `BillingManagement.Contracts`: shared request/response DTOs.
-- `BillingManagement.Application.Abstractions`: CQRS interfaces and app contracts.
-- `BillingManagement.Application`: commands, queries, handlers, validation.
+- `BillingManagement.Application.Abstractions`: CQRS interfaces, strict command/query results,
+  and application ports.
+- `BillingManagement.Application`: commands, queries, validators, results, and application services.
+- `BillingManagement.Application.Handlers`: command/query handlers and the command validation pipeline.
 - `BillingManagement.Domain`: business entities and rules.
 - `BillingManagement.Infrastructure`: EF Core and SQL Server persistence.
 - `BillingManagement.Migrator`: applies EF Core migrations.
+
+### CQRS and Mediator
+
+The API dispatches in-process commands and queries through
+[Mediator](https://github.com/martinothamar/Mediator). The executable API owns source generation
+and scans both the Application message assembly and Application.Handlers assembly.
+
+- Every command implements the non-generic `ICommand` and returns `CommandResult`.
+- `CommandResult` publicly exposes only `Success` and `Errors` and never carries a payload.
+- Expected command failures use one `CommandErrorType` with one or more messages.
+- Command validation failures are returned as HTTP 400 ProblemDetails under the `general` key.
+- Queries implement `IQuery<TResult>`, where the result implements `IQueryResult`.
+
+Customer writes use `ICustomerStore` with domain aggregates. Customer reads use
+`ICustomerQueries` with read projections, direct lookup, filtering, and bounded pagination.
+The customer list endpoint accepts `searchText`, `pageNumber`, and `pageSize` and returns
+`X-Page-Number`, `X-Page-Size`, and `X-Total-Count` response headers.
 
 ## Local Docker Setup
 
@@ -67,3 +86,6 @@ GitHub Actions runs on PRs and pushes to `master`:
 - integration tests
 
 Frontend unit tests are not configured yet.
+
+The repository uses `.gitattributes` and `.editorconfig` together so .NET files are checked out
+with CRLF consistently on Windows and Linux runners. Shell scripts and workflow YAML remain LF.
