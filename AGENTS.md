@@ -94,19 +94,11 @@ Api, Client, or Infrastructure; Infrastructure referencing Api or Client.
 
 ## Delivery Workflow
 
-- Work one Trello card at a time. One card has one active owner.
-- Trello numbers come from `Card Numbers by Reenhanced`. The title must contain the
-  visible number as `#BMS-123 Task name` before Developer routing.
-- Never infer a number from the card URL, sequence, or nearby cards. Missing number is
-  a hard stop: comment once, leave/move the card blocked, then stop.
-- Before implementation, use the main local checkout and switch to a local branch that
-  starts with the exact card number, for example `#BMS-123-short-description`.
-- Do not use Codex worktrees unless the user explicitly approves one.
+- Work from the user's requested scope and use a focused `codex/` branch for changes.
 - Preserve user changes and unrelated dirty files. Never reset or revert them.
-- Keep the diff limited to the card. Avoid unrelated cleanup, renames, formatting,
+- Keep the diff limited to the requested work. Avoid unrelated cleanup, renames, formatting,
   dependency updates, or generated-file churn.
-- When implementation is complete, push and open a ready-for-review PR, never a draft.
-  Do not start another implementation card before handoff.
+- Push, commit, or open a pull request only when the user asks.
 - Default to autonomous approval inside accepted scope. Ask only for genuine product
   decisions, blockers, destructive actions, secrets, paid installs, or scope expansion.
 
@@ -130,18 +122,6 @@ Api, Client, or Infrastructure; Infrastructure referencing Api or Client.
 - Do not introduce a library without explaining the concrete need.
 - Update the relevant scoped instruction file when architecture intentionally changes.
 
-## Roles And Handoffs
-
-- PM owns priority, routing, approval, and cross-role handoff; it does not implement
-  feature code unless explicitly requested.
-- BA owns scope, business rules, acceptance criteria, and necessary ticket splitting.
-- Designer owns UX flow, screen behavior, visual states, and handoff notes.
-- Developer implements only an approved card routed to Developer.
-- QA independently verifies and accepts/rejects; it does not fix code unless routed.
-- Every completion or blocker requires one concise Trello comment and PM callback:
-  status, card/PR link, decisive output, verification, blocker/gap, next owner.
-- Do not include routine model, skill, or mode confirmations in callbacks.
-
 ## Credit Discipline
 
 - Prefer the main session for small or sequential work. Use at most one agent unless
@@ -152,9 +132,4 @@ Api, Client, or Infrastructure; Infrastructure referencing Api or Client.
 - One verification owner and one verification pass per unchanged revision.
 - Stop after one repeated tooling failure and report the blocker; do not poll or retry
   indefinitely.
-- Avoid broad Trello reads. Prefer direct card URLs and cached list/card identifiers.
-- Trello comments: at most 10 lines unless writing a BA specification.
-- QA result: PASS/FAIL plus at most eight high-signal bullets; detailed logs only for
-  failures or disputed evidence.
-- Keep PM callbacks and command summaries short. Do not repeat Trello content in chat.
 - Stop when meaningful progress is blocked; do not fill time with backlog grooming.

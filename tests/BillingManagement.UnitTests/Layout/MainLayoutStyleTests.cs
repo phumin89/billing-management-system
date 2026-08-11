@@ -115,7 +115,7 @@ public sealed class MainLayoutStyleTests
 
             if (File.Exists(path))
             {
-                return File.ReadAllText(path);
+                return File.ReadAllText(path).ReplaceLineEndings("\n");
             }
 
             directory = directory.Parent;
