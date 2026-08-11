@@ -10,6 +10,16 @@ public sealed class CreateInvoiceHandler(IBillingDocumentStore store) : ICommand
 {
     public async ValueTask<CommandResult> Handle(CreateInvoiceCommand command, CancellationToken cancellationToken = default)
     {
+        if (command.QuotationId == Guid.Empty)
+        {
+            return CommandResult.Failure(CommandErrorType.Validation, "Quotation is required.");
+        }
+
+        if (command.DueDate < command.IssueDate)
+        {
+            return CommandResult.Failure(CommandErrorType.Validation, "Due date cannot precede the issue date.");
+        }
+
         if (await store.InvoiceNumberExists(command.Number.Trim(), cancellationToken))
         {
             return CommandResult.Failure(CommandErrorType.Conflict, "Invoice number already exists.");

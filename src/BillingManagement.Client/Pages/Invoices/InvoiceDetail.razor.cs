@@ -23,4 +23,9 @@ public partial class InvoiceDetail
     {
         await this.JavaScript.InvokeVoidAsync("print");
     }
+
+    private string SellerContacts()
+    {
+        return string.Join(" · ", new[] { this.item?.SellerPhone, this.item?.SellerEmail, this.item?.SellerWebsite }.Where(value => !string.IsNullOrWhiteSpace(value)));
+    }
 }

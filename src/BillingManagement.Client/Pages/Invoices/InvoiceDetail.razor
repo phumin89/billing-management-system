@@ -1,15 +1,23 @@
 @page "/invoices/{Id:guid}"
 
-<PageTitle>Invoice</PageTitle>
+<PageTitle>Billing Management | Invoice</PageTitle>
 <main class="document-page">
-    @if (item is null) { <p>@(error ?? "Loading invoice...")</p> }
+    @if (item is null)
+    {
+        <div class="document-state @(error is null ? string.Empty : "is-error")" role="@(error is null ? "status" : "alert")">
+            <strong>@(error is null ? "Opening invoice" : "The invoice could not be opened")</strong>
+            <span>@(error ?? "Loading the filed document...")</span>
+            @if (error is not null) { <a class="text-link" href="/invoices">Return to invoice archive</a> }
+        </div>
+    }
     else {
-        <div class="document-actions no-print"><a href="/invoices">Back</a><button type="button" @onclick="Print">Print / Save PDF</button></div>
+        <div class="document-actions no-print"><a class="back-link" href="/invoices">Back to archive</a><button class="primary-button" type="button" @onclick="Print">Print / Save PDF</button></div>
         <article class="billing-document">
-            <header><div><span class="document-kicker">Invoice</span><h1>@item.Number</h1></div><div><strong>Issue</strong> @item.IssueDate.ToString("dd MMM yyyy")<br /><strong>Due</strong> @item.DueDate.ToString("dd MMM yyyy")</div></header>
-            <section class="document-customer"><h2>Bill to</h2><strong>@item.CustomerName</strong><p>@item.CustomerAddress</p>@if (item.CustomerTaxId is not null) { <p>Tax ID: @item.CustomerTaxId</p> }</section>
-            <table><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Tax</th><th>Total</th></tr></thead><tbody>@foreach (var line in item.Items) { <tr><td>@line.Description</td><td>@line.Quantity</td><td>@line.UnitPrice.ToString("N2")</td><td>@line.TaxAmount.ToString("N2")</td><td>@line.LineTotal.ToString("N2")</td></tr> }</tbody></table>
+            <header><div class="document-title"><h1>Invoice</h1><span class="document-reference"># @item.Number</span></div><section class="document-issuer"><img src="/images/company-profile/company-icon.svg" alt="Company logo" width="48" height="48" /><div><strong>@item.SellerCompanyName</strong><p>@item.SellerAddress</p><p>@SellerContacts()</p>@if (item.SellerTaxId is not null) { <p>Tax ID: @item.SellerTaxId</p> }</div></section></header>
+            <div class="document-parties"><section class="document-customer"><h2>Bill to</h2><strong>@item.CustomerName</strong><p>@item.CustomerAddress</p>@if (item.CustomerTaxId is not null) { <p>Tax ID: @item.CustomerTaxId</p> }</section><dl class="document-meta"><div><dt>Issue date</dt><dd>@item.IssueDate.ToString("dd MMM yyyy")</dd></div><div><dt>Payment due</dt><dd>@item.DueDate.ToString("dd MMM yyyy")</dd></div></dl></div>
+            <table><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Tax</th><th>Total</th></tr></thead><tbody>@foreach (var line in item.Items) { <tr><td>@line.Description</td><td>@line.Quantity.ToString("0.##")</td><td>@line.UnitPrice.ToString("N2")</td><td>@line.TaxAmount.ToString("N2")</td><td>@line.LineTotal.ToString("N2")</td></tr> }</tbody></table>
             <div class="document-totals"><span>Subtotal</span><strong>@item.Subtotal.ToString("N2")</strong><span>Tax</span><strong>@item.TaxTotal.ToString("N2")</strong><span>Total due</span><strong>@item.Total.ToString("N2") @item.Currency</strong></div>
+            <footer class="document-signatures is-single"><div><span>Authorized by</span><i aria-hidden="true"></i><small>Name / position / date</small></div></footer>
         </article>
     }
 </main>

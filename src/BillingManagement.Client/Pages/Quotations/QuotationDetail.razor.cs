@@ -32,12 +32,18 @@ public partial class QuotationDetail
             var invoice = await this.Client.CreateInvoice(new CreateInvoiceRequest { Number = this.invoiceNumber, QuotationId = this.Id, IssueDate = this.invoiceDate, DueDate = this.dueDate });
             this.Navigation.NavigateTo($"/invoices/{invoice.Id}");
         }
-        catch (HttpRequestException) { this.error = "Could not create invoice. Check the number and dates."; }
+        catch (BillingDocumentClientException exception) { this.error = exception.Message; }
+        catch (HttpRequestException) { this.error = "Could not create invoice. Check the API connection and try again."; }
         finally { this.isCreating = false; }
     }
 
     private async Task Print()
     {
         await this.JavaScript.InvokeVoidAsync("print");
+    }
+
+    private string SellerContacts()
+    {
+        return string.Join(" · ", new[] { this.item?.SellerPhone, this.item?.SellerEmail, this.item?.SellerWebsite }.Where(value => !string.IsNullOrWhiteSpace(value)));
     }
 }

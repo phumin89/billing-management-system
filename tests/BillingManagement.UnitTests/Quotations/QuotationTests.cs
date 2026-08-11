@@ -10,6 +10,7 @@ public sealed class QuotationTests
         var quotation = Quotation.Create(
             Guid.NewGuid(),
             "Q-2026-0001",
+            Seller(),
             Guid.NewGuid(),
             "Acme Co.",
             "123 Main Street",
@@ -23,6 +24,8 @@ public sealed class QuotationTests
         Assert.Equal(210m, quotation.TaxTotal);
         Assert.Equal(3210m, quotation.Total);
         Assert.Equal("Acme Co.", quotation.CustomerName);
+        Assert.Equal("Billing Co.", quotation.SellerCompanyName);
+        Assert.Equal("VAT-SELLER", quotation.SellerTaxId);
     }
 
     [Fact]
@@ -31,6 +34,7 @@ public sealed class QuotationTests
         Assert.Throws<ArgumentException>(() => Quotation.Create(
             Guid.NewGuid(),
             "Q-2026-0001",
+            Seller(),
             Guid.NewGuid(),
             "Acme Co.",
             null,
@@ -39,5 +43,12 @@ public sealed class QuotationTests
             DateOnly.FromDateTime(DateTime.Today.AddDays(30)),
             "THB",
             []));
+    }
+
+    private static SellerSnapshot Seller()
+    {
+        return new SellerSnapshot(
+            "Billing Co.", "1 Seller Street, Bangkok 10110, Thailand", "VAT-SELLER",
+            "0100", "billing@example.com", "https://example.com", "REG-1");
     }
 }

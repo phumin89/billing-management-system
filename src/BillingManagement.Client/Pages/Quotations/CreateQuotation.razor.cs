@@ -34,7 +34,8 @@ public partial class CreateQuotation
             var quotation = await this.Documents.CreateQuotation(this.form);
             this.Navigation.NavigateTo($"/quotations/{quotation.Id}");
         }
-        catch (HttpRequestException) { this.error = "Could not create quotation. Check all fields and try again."; }
+        catch (BillingDocumentClientException exception) { this.error = exception.Message; }
+        catch (HttpRequestException) { this.error = "Could not create quotation. Check the API connection and try again."; }
         finally { this.isSaving = false; }
     }
 

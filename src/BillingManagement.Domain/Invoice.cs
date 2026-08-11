@@ -10,6 +10,13 @@ public sealed class Invoice
 
     public Guid Id { get; private set; }
     public string Number { get; private set; } = string.Empty;
+    public string SellerCompanyName { get; private set; } = string.Empty;
+    public string SellerAddress { get; private set; } = string.Empty;
+    public string? SellerTaxId { get; private set; }
+    public string? SellerPhone { get; private set; }
+    public string? SellerEmail { get; private set; }
+    public string? SellerWebsite { get; private set; }
+    public string? SellerRegistrationNumber { get; private set; }
     public Guid QuotationId { get; private set; }
     public Guid CustomerId { get; private set; }
     public string CustomerName { get; private set; } = string.Empty;
@@ -45,6 +52,13 @@ public sealed class Invoice
         {
             Id = id,
             Number = number.Trim(),
+            SellerCompanyName = quotation.SellerCompanyName,
+            SellerAddress = quotation.SellerAddress,
+            SellerTaxId = quotation.SellerTaxId,
+            SellerPhone = quotation.SellerPhone,
+            SellerEmail = quotation.SellerEmail,
+            SellerWebsite = quotation.SellerWebsite,
+            SellerRegistrationNumber = quotation.SellerRegistrationNumber,
             QuotationId = quotation.Id,
             CustomerId = quotation.CustomerId,
             CustomerName = quotation.CustomerName,

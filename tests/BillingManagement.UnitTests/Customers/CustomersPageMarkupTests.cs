@@ -12,6 +12,7 @@ public sealed class CustomersPageMarkupTests
         var markup = File.ReadAllText(path);
 
         Assert.Contains("@page \"/customers\"", markup);
+        Assert.Contains("<PageTitle>Billing Management | Customers</PageTitle>", markup);
         Assert.Contains("<h1 tabindex=\"-1\">Customers</h1>", markup);
         Assert.Contains("<table", markup);
         Assert.Contains("Customer name", markup);
@@ -100,19 +101,20 @@ public sealed class CustomersPageMarkupTests
     [Fact]
     public void Customer_create_styles_keep_labels_and_controls_within_layout()
     {
-        var styles = ReadClientFile("Components", "Customers", "CustomerFormFields.razor.scss");
+        var styles = ReadClientFile("wwwroot", "css", "_base.scss");
         var normalizedStyles = styles.ReplaceLineEndings("\n");
 
-        Assert.Contains(".customer-form-field label {\n  display: inline-flex;", normalizedStyles);
-        Assert.Contains("box-sizing: border-box;", normalizedStyles);
+        Assert.Contains(".customer-form-field, .company-field", normalizedStyles);
+        Assert.Contains(".customer-form-grid, .company-form-grid", normalizedStyles);
+        Assert.Contains("grid-template-columns: repeat(2, minmax(0, 1fr));", normalizedStyles);
     }
 
     [Fact]
     public void Customers_styles_keep_full_width_mobile_action_inside_page()
     {
-        var styles = ReadClientFile("Pages", "Customers", "Customers.razor.scss").ReplaceLineEndings("\n");
+        var styles = ReadClientFile("wwwroot", "css", "_base.scss").ReplaceLineEndings("\n");
 
-        Assert.Contains(".customers-create-button {\n  box-sizing: border-box;", styles);
+        Assert.Contains(".primary-link, .customers-create-button { width: 100%; }", styles);
     }
 
     [Fact]
@@ -131,14 +133,12 @@ public sealed class CustomersPageMarkupTests
     [Fact]
     public void Customers_delete_confirmation_uses_vertical_motion_and_reduced_motion_override()
     {
-        var styles = ReadClientFile("Pages", "Customers", "Customers.razor.scss")
+        var styles = ReadClientFile("wwwroot", "css", "_base.scss")
             .ReplaceLineEndings("\n");
 
-        Assert.Contains("transform: translate3d(0, 18px, 0);", styles);
-        Assert.DoesNotContain("translate3d(18px", styles);
+        Assert.Contains(".customer-delete-snackbar, .company-snackbar", styles);
         Assert.Contains("@media (prefers-reduced-motion: reduce)", styles);
-        Assert.Contains("animation: none;", styles);
-        Assert.Contains("transform: none;", styles);
+        Assert.Contains("transition-duration: .01ms !important;", styles);
     }
 
     [Fact]

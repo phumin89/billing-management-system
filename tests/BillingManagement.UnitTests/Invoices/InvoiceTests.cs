@@ -10,6 +10,7 @@ public sealed class InvoiceTests
         var quotation = Quotation.Create(
             Guid.NewGuid(),
             "Q-2026-0001",
+            new SellerSnapshot("Billing Co.", "Seller address", "VAT-SELLER", null, null, null, null),
             Guid.NewGuid(),
             "Acme Co.",
             "123 Main Street",
@@ -25,6 +26,7 @@ public sealed class InvoiceTests
         Assert.Equal(quotation.Id, invoice.QuotationId);
         Assert.Equal(quotation.CustomerName, invoice.CustomerName);
         Assert.Equal(quotation.Total, invoice.Total);
+        Assert.Equal(quotation.SellerCompanyName, invoice.SellerCompanyName);
         Assert.Equal(quotation.Items[0].Description, invoice.Items[0].Description);
     }
 }

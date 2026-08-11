@@ -10,6 +10,19 @@ Billing Management System is a small Blazor WebAssembly and ASP.NET Core app for
 - Invoices created from quotations.
 - HTML/print-style PDF download for quotations and invoices.
 
+## Billing Workflow
+
+1. Create the owner company profile used for seller details on billing documents.
+2. Create a customer.
+3. Create a quotation with one or more line items, prices, and tax rates.
+4. Open the quotation and create its invoice.
+5. Open either document and select **Print / Save PDF**.
+
+Quotations snapshot seller details, customer details, currency, line items, prices, and tax
+at creation time. Invoices copy that snapshot from their quotation, so later profile or
+customer edits do not rewrite historical documents. One invoice can be created from each
+quotation, and document numbers must be unique within their document type.
+
 Out of scope for the current MVP: payments, dashboard, multi-role permissions, multi-company tenancy, receipt/credit/debit notes, advanced tax/currency workflows, and generic audit/versioning.
 
 ## Architecture

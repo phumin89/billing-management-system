@@ -16,7 +16,9 @@ public sealed class BillingDocumentPersistenceTests
             await using var context = SqlServerIntegrationTestDatabase.CreateContext(databaseName);
             await context.Database.MigrateAsync();
             var quotation = Quotation.Create(
-                Guid.NewGuid(), "Q-2026-0001", Guid.NewGuid(), "Acme", "Bangkok", "TAX-1",
+                Guid.NewGuid(), "Q-2026-0001",
+                new SellerSnapshot("Billing Co.", "Seller address", "VAT-SELLER", null, null, null, null),
+                Guid.NewGuid(), "Acme", "Bangkok", "TAX-1",
                 new DateOnly(2026, 8, 11), new DateOnly(2026, 9, 10), "THB",
                 [new QuotationItemInput("Consulting", 2, 1500m, 7m)]);
             var store = new BillingDocumentStore(context);
@@ -33,7 +35,9 @@ public sealed class BillingDocumentPersistenceTests
             var invoiceRecord = await store.GetInvoice(invoice.Id);
 
             Assert.Equal(3210m, quotationRecord!.Total);
+            Assert.Equal("Billing Co.", quotationRecord.SellerCompanyName);
             Assert.Equal("Acme", invoiceRecord!.CustomerName);
+            Assert.Equal("Billing Co.", invoiceRecord.SellerCompanyName);
             Assert.Equal(quotation.Id, invoiceRecord.QuotationId);
             Assert.Single(invoiceRecord.Items);
         }

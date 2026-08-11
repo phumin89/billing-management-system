@@ -19,13 +19,11 @@ public sealed class CompanyProfileIdentityTests
         Assert.Contains(">Company profile</h1>", markup);
         Assert.Contains("Manage company identity and contact details.", markup);
         Assert.DoesNotContain("Owner company", markup);
-        Assert.Contains("src=\"images/company-profile/header.svg\"", markup);
-        Assert.Contains("width=\"1200\" height=\"440\"", markup);
+        Assert.DoesNotContain("company-identity-cover", markup);
+        Assert.DoesNotContain("Manage cover image", markup);
         Assert.Contains("src=\"images/company-profile/company-icon.svg\"", markup);
         Assert.Contains("alt=\"mi.nie company mark\"", markup);
-        Assert.True(
-            markup.IndexOf("company-identity-cover", StringComparison.Ordinal) <
-            markup.IndexOf("company-identity-row", StringComparison.Ordinal));
+        Assert.Contains("Company details used on quotations and invoices.", markup);
     }
 
     [Fact]
@@ -40,29 +38,16 @@ public sealed class CompanyProfileIdentityTests
     }
 
     [Fact]
-    public async Task Existing_profile_renders_cover_upload_and_reset_controls()
+    public async Task Existing_profile_renders_only_edit_and_delete_actions()
     {
         var markup = WebUtility.HtmlDecode(await RenderExistingProfile());
 
-        Assert.Contains("Change cover", markup);
-        Assert.Contains("Reset cover", markup);
-        Assert.Contains("accept=\"image/png,image/jpeg,image/webp\"", markup);
-    }
-
-    [Fact]
-    public async Task Existing_profile_renders_icon_upload_and_reset_controls_near_the_icon()
-    {
-        var markup = WebUtility.HtmlDecode(await RenderExistingProfile());
-
-        Assert.Contains("Change icon", markup);
-        Assert.Contains("Reset icon", markup);
-        Assert.Contains("company-icon-picker", markup);
-        Assert.True(
-            markup.IndexOf("company-identity-icon", StringComparison.Ordinal) <
-            markup.IndexOf("Change icon", StringComparison.Ordinal));
-        Assert.True(
-            markup.IndexOf("Change icon", StringComparison.Ordinal) <
-            markup.IndexOf("company-identity-copy", StringComparison.Ordinal));
+        Assert.Contains(">Edit</button>", markup);
+        Assert.Contains(">Delete</button>", markup);
+        Assert.DoesNotContain("Edit profile", markup);
+        Assert.DoesNotContain("Delete profile", markup);
+        Assert.DoesNotContain("Manage logo", markup);
+        Assert.Equal(2, markup.Split("<button", StringSplitOptions.None).Length - 1);
     }
 
     [Fact]
@@ -71,26 +56,8 @@ public sealed class CompanyProfileIdentityTests
         var styles = ReadApplicationStyles().ReplaceLineEndings("\n");
 
         Assert.Contains(
-            "h1[tabindex=\"-1\"]:focus-visible {\n  outline: none;\n}",
+            "h1[tabindex=\"-1\"]:focus-visible {",
             styles);
-    }
-
-    [Fact]
-    public void Cover_picker_styles_reach_the_native_file_input()
-    {
-        var styles = ReadCompanyProfileStyles();
-
-        Assert.Contains(".company-cover-picker ::deep input", styles);
-        Assert.Contains(".company-cover-picker:focus-within", styles);
-    }
-
-    [Fact]
-    public void Icon_picker_styles_reach_the_native_file_input()
-    {
-        var styles = ReadCompanyProfileStyles();
-
-        Assert.Contains(".company-icon-picker ::deep input", styles);
-        Assert.Contains(".company-icon-picker:focus-within", styles);
     }
 
     private static async Task<string> RenderExistingProfile()
@@ -132,31 +99,6 @@ public sealed class CompanyProfileIdentityTests
         }
 
         throw new FileNotFoundException("Could not find application styles.");
-    }
-
-    private static string ReadCompanyProfileStyles()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-
-        while (directory is not null)
-        {
-            var path = Path.Combine(
-                directory.FullName,
-                "src",
-                "BillingManagement.Client",
-                "Pages",
-                "CompanyProfile",
-                "CompanyProfile.razor.scss");
-
-            if (File.Exists(path))
-            {
-                return File.ReadAllText(path);
-            }
-
-            directory = directory.Parent;
-        }
-
-        throw new FileNotFoundException("Could not find Company profile styles.");
     }
 
     private sealed class TestNavigationManager : NavigationManager

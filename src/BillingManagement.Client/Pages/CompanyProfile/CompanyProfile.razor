@@ -1,5 +1,5 @@
 @page "/company-profile"
-<PageTitle>Company profile</PageTitle>
+<PageTitle>Billing Management | Company profile</PageTitle>
 
 <main class="company-profile-page">
     <header class="company-page-header">
@@ -31,107 +31,25 @@
     else if (reviewState == ProfileReviewState.Existing)
     {
         <section class="company-card" data-profile-view="existing">
-            <div class="company-identity-cover">
-                <img src="@CoverImageUrl"
-                     alt="mi.nie company cover"
-                     width="1200"
-                     height="440"
-                     @onerror="UseFallbackCover" />
-            </div>
-            <div class="company-cover-toolbar" aria-label="Company profile cover">
-                <label class="company-secondary-button company-cover-picker">
-                    <span>Change cover</span>
-                    <InputFile accept="image/png,image/jpeg,image/webp"
-                               OnChange="SelectCover"
-                               disabled="@IsCoverRequestInProgress" />
-                </label>
-                @if (selectedCover is not null)
-                {
-                    <button class="company-primary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="UploadCover">
-                        @(isUploadingCover ? "Saving cover..." : "Save cover")
-                    </button>
-                    <button class="company-secondary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="ClearCoverSelection">Cancel</button>
-                }
-                <button class="company-secondary-button" type="button" disabled="@IsCoverRequestInProgress" @onclick="ShowResetCoverConfirmation">
-                    @(isResettingCover ? "Resetting cover..." : "Reset cover")
-                </button>
-            </div>
-
-            @if (!string.IsNullOrWhiteSpace(coverMessage))
-            {
-                <p class="@CoverMessageClass" role="@(coverMessageIsError ? "alert" : "status")">@coverMessage</p>
-            }
-
-            @if (showResetCoverConfirmation)
-            {
-                <div class="company-cover-reset-confirmation" role="alertdialog" aria-label="Reset company cover confirmation">
-                    <p>Reset the company cover to the approved fallback image?</p>
-                    <div class="company-cover-actions">
-                        <button class="company-secondary-button" type="button" disabled="@isResettingCover" @onclick="CancelResetCover">Cancel</button>
-                        <button class="company-danger-button" type="button" disabled="@isResettingCover" @onclick="ResetCover">
-                            @(isResettingCover ? "Resetting cover..." : "Reset cover")
-                        </button>
-                    </div>
-                </div>
-            }
-
             <div class="company-card-content">
                 <div class="company-identity-row">
                     <div class="company-identity-summary">
-                        <div class="company-icon-editor">
-                            <img class="company-identity-icon"
-                                 src="@IconImageUrl"
-                                 alt="mi.nie company mark"
-                                 width="80"
-                                 height="80"
-                                 @onerror="UseFallbackIcon" />
-                            <div class="company-icon-toolbar" aria-label="Company profile icon">
-                                <label class="company-icon-action company-icon-picker">
-                                    <span>Change icon</span>
-                                    <InputFile accept="image/png,image/jpeg,image/webp"
-                                               OnChange="SelectIcon"
-                                               disabled="@IsIconRequestInProgress" />
-                                </label>
-                                @if (selectedIcon is not null)
-                                {
-                                    <button class="company-icon-action is-primary" type="button" disabled="@IsIconRequestInProgress" @onclick="UploadIcon">
-                                        @(isUploadingIcon ? "Saving icon..." : "Save icon")
-                                    </button>
-                                    <button class="company-icon-action" type="button" disabled="@IsIconRequestInProgress" @onclick="ClearIconSelection">Cancel</button>
-                                }
-                                <button class="company-icon-action" type="button" disabled="@IsIconRequestInProgress" @onclick="ShowResetIconConfirmation">
-                                    @(isResettingIcon ? "Resetting icon..." : "Reset icon")
-                                </button>
-                            </div>
-                        </div>
+                        <img class="company-identity-icon"
+                             src="@IconImageUrl"
+                             alt="mi.nie company mark"
+                             width="72"
+                             height="72"
+                             @onerror="UseFallbackIcon" />
                         <div class="company-identity-copy">
                             <h2>@DisplayProfile.CompanyName</h2>
-                            <p>Primary owner company profile.</p>
+                            <p>Company details used on quotations and invoices.</p>
                         </div>
                     </div>
                     <div class="company-actions">
-                        <button class="company-secondary-button" type="button" @onclick="ShowEdit">Update</button>
-                        <button class="company-danger-button" type="button" @onclick="ShowDelete">Delete</button>
+                        <button class="company-primary-button" type="button" @onclick="ShowEdit">Edit</button>
+                        <button class="company-secondary-button is-danger" type="button" @onclick="ShowDelete">Delete</button>
                     </div>
                 </div>
-
-                @if (!string.IsNullOrWhiteSpace(iconMessage))
-                {
-                    <p class="@IconMessageClass" role="@(iconMessageIsError ? "alert" : "status")">@iconMessage</p>
-                }
-
-                @if (showResetIconConfirmation)
-                {
-                    <div class="company-icon-reset-confirmation" role="alertdialog" aria-label="Reset company icon confirmation">
-                        <p>Reset the company icon to the approved fallback image?</p>
-                        <div class="company-icon-reset-actions">
-                            <button class="company-secondary-button" type="button" disabled="@isResettingIcon" @onclick="CancelResetIcon">Cancel</button>
-                            <button class="company-danger-button" type="button" disabled="@isResettingIcon" @onclick="ResetIcon">
-                                @(isResettingIcon ? "Resetting icon..." : "Reset icon")
-                            </button>
-                        </div>
-                    </div>
-                }
 
                 @if (!string.IsNullOrWhiteSpace(statusMessage))
                 {
@@ -252,7 +170,7 @@
                         <input id="email" name="email" @bind="form.Email" @bind:event="oninput" placeholder="billing@example.com" />
                         <span>@FieldError(nameof(form.Email))</span>
                     </div>
-                    <div class="company-field">
+                    <div class="company-field full">
                         <label for="website">Website</label>
                         <input id="website" name="website" @bind="form.Website" @bind:event="oninput" placeholder="https://example.com" />
                     </div>

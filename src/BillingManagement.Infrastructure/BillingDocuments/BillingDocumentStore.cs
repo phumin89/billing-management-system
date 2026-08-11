@@ -64,12 +64,12 @@ public sealed class BillingDocumentStore(BillingManagementDbContext dbContext) :
 
     private static QuotationRecord ToRecord(Quotation quotation)
     {
-        return new QuotationRecord(quotation.Id, quotation.Number, quotation.CustomerId, quotation.CustomerName, quotation.CustomerAddress, quotation.CustomerTaxId, quotation.IssueDate, quotation.ValidUntil, quotation.Currency, quotation.Items.OrderBy(item => item.Position).Select(ToRecord).ToList(), quotation.Subtotal, quotation.TaxTotal, quotation.Total);
+        return new QuotationRecord(quotation.Id, quotation.Number, quotation.SellerCompanyName, quotation.SellerAddress, quotation.SellerTaxId, quotation.SellerPhone, quotation.SellerEmail, quotation.SellerWebsite, quotation.SellerRegistrationNumber, quotation.CustomerId, quotation.CustomerName, quotation.CustomerAddress, quotation.CustomerTaxId, quotation.IssueDate, quotation.ValidUntil, quotation.Currency, quotation.Items.OrderBy(item => item.Position).Select(ToRecord).ToList(), quotation.Subtotal, quotation.TaxTotal, quotation.Total);
     }
 
     private static InvoiceRecord ToRecord(Invoice invoice)
     {
-        return new InvoiceRecord(invoice.Id, invoice.Number, invoice.QuotationId, invoice.CustomerId, invoice.CustomerName, invoice.CustomerAddress, invoice.CustomerTaxId, invoice.IssueDate, invoice.DueDate, invoice.Currency, invoice.Items.OrderBy(item => item.Position).Select(ToRecord).ToList(), invoice.Subtotal, invoice.TaxTotal, invoice.Total);
+        return new InvoiceRecord(invoice.Id, invoice.Number, invoice.SellerCompanyName, invoice.SellerAddress, invoice.SellerTaxId, invoice.SellerPhone, invoice.SellerEmail, invoice.SellerWebsite, invoice.SellerRegistrationNumber, invoice.QuotationId, invoice.CustomerId, invoice.CustomerName, invoice.CustomerAddress, invoice.CustomerTaxId, invoice.IssueDate, invoice.DueDate, invoice.Currency, invoice.Items.OrderBy(item => item.Position).Select(ToRecord).ToList(), invoice.Subtotal, invoice.TaxTotal, invoice.Total);
     }
 
     private static BillingDocumentItemRecord ToRecord(QuotationItem item)
