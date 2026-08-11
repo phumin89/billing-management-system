@@ -1,10 +1,12 @@
-using BillingManagement.Application.Abstractions.Commands;
+using System.ComponentModel.DataAnnotations;
 using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Customers.CreateCustomer;
 using BillingManagement.Application.Customers.DeleteCustomer;
+using BillingManagement.Application.Customers.GetCustomer;
 using BillingManagement.Application.Customers.ListCustomers;
 using BillingManagement.Application.Customers.UpdateCustomer;
 using BillingManagement.Contracts.Customers;
+using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BillingManagement.Api.Controllers;
@@ -12,15 +14,21 @@ namespace BillingManagement.Api.Controllers;
 [ApiController]
 [Route("api/customers")]
 public sealed class CustomersController(
-    ICommandDispatcher commandDispatcher,
-    ListCustomersHandler listHandler) : ControllerBase
+    ISender sender) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<CustomerResponse>>> List(
-        CancellationToken cancellationToken)
+        [FromQuery] string? searchText,
+        [FromQuery, Range(1, int.MaxValue)] int pageNumber = 1,
+        [FromQuery, Range(1, 100)] int pageSize = 100,
+        CancellationToken cancellationToken = default)
     {
-        var customers = await listHandler.Handle(new ListCustomersQuery(), cancellationToken);
-        return this.Ok(customers.Select(ToResponse).ToList());
+        var result = await sender.Send(
+            new ListCustomersQuery(searchText, pageNumber, pageSize), cancellationToken);
+        this.Response.Headers.Append("X-Page-Number", result.PageNumber.ToString());
+        this.Response.Headers.Append("X-Page-Size", result.PageSize.ToString());
+        this.Response.Headers.Append("X-Total-Count", result.TotalCount.ToString());
+        return this.Ok(result.Customers.Select(ToResponse).ToList());
     }
 
     [HttpPost]
@@ -28,8 +36,10 @@ public sealed class CustomersController(
         CreateCustomerRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await commandDispatcher.Send<CreateCustomerCommand, CustomerRecord>(
+        var customerId = Guid.NewGuid();
+        var result = await sender.Send(
             new CreateCustomerCommand(
+                customerId,
                 request.CustomerName ?? string.Empty,
                 request.TaxId,
                 request.Email,
@@ -43,12 +53,13 @@ public sealed class CustomersController(
                 request.Notes),
             cancellationToken);
 
-        if (!result.IsSuccess)
+        if (!result.Success)
         {
-            return this.ToProblemDetails(result.Error!);
+            return this.ToProblemDetails(result);
         }
 
-        var response = ToResponse(result.Value!);
+        var customer = await sender.Send(new GetCustomerQuery(customerId), cancellationToken);
+        var response = ToResponse(customer.Customer!);
         return this.StatusCode(StatusCodes.Status201Created, response);
     }
 
@@ -58,7 +69,7 @@ public sealed class CustomersController(
         UpdateCustomerRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await commandDispatcher.Send<UpdateCustomerCommand, CustomerRecord>(
+        var result = await sender.Send(
             new UpdateCustomerCommand(
                 id,
                 request.CustomerName ?? string.Empty,
@@ -74,23 +85,24 @@ public sealed class CustomersController(
                 request.Notes),
             cancellationToken);
 
-        if (!result.IsSuccess)
+        if (!result.Success)
         {
-            return this.ToProblemDetails(result.Error!);
+            return this.ToProblemDetails(result);
         }
 
-        return this.Ok(ToResponse(result.Value!));
+        var customer = await sender.Send(new GetCustomerQuery(id), cancellationToken);
+        return this.Ok(ToResponse(customer.Customer!));
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var result = await commandDispatcher.Send<DeleteCustomerCommand, bool>(
+        var result = await sender.Send(
             new DeleteCustomerCommand(id), cancellationToken);
 
-        if (!result.IsSuccess)
+        if (!result.Success)
         {
-            return this.ToProblemDetails(result.Error!);
+            return this.ToProblemDetails(result);
         }
 
         return this.NoContent();

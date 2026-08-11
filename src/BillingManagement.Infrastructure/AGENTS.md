@@ -2,7 +2,8 @@
 
 Applies to EF Core, SQL Server, repositories, and migrations.
 
-- Infrastructure implements Application boundaries and references Domain; never Api or Client.
+- Infrastructure implements Application boundaries and references Domain; never
+  Application.Handlers, Api, or Client.
 - Persistence models/entities must not leak as public API contracts or UI models.
 - Register `DbContext` as scoped. Use `IDbContextFactory` only when the execution model needs it.
 - Keep connection strings in configuration, user secrets, or deployment settings. Never

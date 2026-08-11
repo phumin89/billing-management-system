@@ -1,3 +1,6 @@
+using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
+using BillingManagement.Application.Abstractions.Queries;
+
 namespace BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProfile;
 
-public sealed record GetOwnerCompanyProfileQuery;
+public sealed record GetOwnerCompanyProfileQuery : IQuery<GetOwnerCompanyProfileResult>;

@@ -5,10 +5,10 @@ namespace BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProf
 
 public sealed class GetOwnerCompanyProfileHandler(
     IOwnerCompanyProfileStore store)
-    : IQueryHandler<GetOwnerCompanyProfileQuery, OwnerCompanyProfileRecord?>
+    : IQueryHandler<GetOwnerCompanyProfileQuery, GetOwnerCompanyProfileResult>
 {
-    public Task<OwnerCompanyProfileRecord?> Handle(
+    public async ValueTask<GetOwnerCompanyProfileResult> Handle(
         GetOwnerCompanyProfileQuery query,
         CancellationToken cancellationToken = default) =>
-        store.GetAsync(cancellationToken);
+        new(await store.GetAsync(cancellationToken));
 }

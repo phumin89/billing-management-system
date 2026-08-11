@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using BillingManagement.Api;
 using BillingManagement.Api.Controllers;
 using BillingManagement.Application;
-using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.CompanyMedia;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.Abstractions.Results;
@@ -12,6 +12,7 @@ using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfi
 using BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
 using BillingManagement.Contracts.OwnerCompanyProfiles;
+using Mediator;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
@@ -46,8 +47,8 @@ public sealed class OwnerCompanyProfileControllerTests
         Assert.NotNull(updateProblem);
         Assert.Equal(400, createProblem.Status);
         Assert.Equal(400, updateProblem.Status);
-        AssertValidationErrors(ExpectedRequiredErrors(), createProblem.Errors);
-        AssertValidationErrors(ExpectedRequiredErrors(), updateProblem.Errors);
+        Assert.Equal(ExpectedRequiredMessages(), createProblem.Errors["general"]);
+        Assert.Equal(ExpectedRequiredMessages(), updateProblem.Errors["general"]);
         Assert.Equal("validation_failed", ProblemCode(createProblem));
         Assert.Equal("validation_failed", ProblemCode(updateProblem));
     }
@@ -67,7 +68,7 @@ public sealed class OwnerCompanyProfileControllerTests
         Assert.NotNull(problem);
         Assert.Equal(409, problem.Status);
         Assert.Equal("Owner company profile already exists.", problem.Detail);
-        Assert.Equal("owner_company_profile.already_exists", ProblemCode(problem));
+        Assert.Equal("conflict", ProblemCode(problem));
     }
 
     [Fact]
@@ -85,7 +86,7 @@ public sealed class OwnerCompanyProfileControllerTests
         Assert.NotNull(problem);
         Assert.Equal(404, problem.Status);
         Assert.Equal("Owner company profile was not found.", problem.Detail);
-        Assert.Equal("owner_company_profile.not_found", ProblemCode(problem));
+        Assert.Equal("not_found", ProblemCode(problem));
     }
 
     [Fact]
@@ -140,7 +141,7 @@ public sealed class OwnerCompanyProfileControllerTests
         Assert.NotNull(problem);
         Assert.Equal(404, problem.Status);
         Assert.Equal("Owner company profile was not found.", problem.Detail);
-        Assert.Equal("owner_company_profile.not_found", ProblemCode(problem));
+        Assert.Equal("not_found", ProblemCode(problem));
         Assert.Null(await store.GetAsync());
     }
 
@@ -162,7 +163,7 @@ public sealed class OwnerCompanyProfileControllerTests
         Assert.Equal(
             "Company profile is used by quotations or invoices and cannot be deleted.",
             problem.Detail);
-        Assert.Equal("owner_company_profile.in_use", ProblemCode(problem));
+        Assert.Equal("conflict", ProblemCode(problem));
         Assert.NotNull(await store.GetAsync());
     }
 
@@ -209,8 +210,8 @@ public sealed class OwnerCompanyProfileControllerTests
         Assert.NotNull(createProblem);
         Assert.NotNull(updateProblem);
         string[] expected = ["Must not exceed 254 characters.", "Email format is invalid."];
-        Assert.Equal(expected, createProblem.Errors["Email"]);
-        Assert.Equal(expected, updateProblem.Errors["Email"]);
+        Assert.Equal(expected, createProblem.Errors["general"]);
+        Assert.Equal(expected, updateProblem.Errors["general"]);
     }
 
     [Theory]
@@ -278,52 +279,50 @@ public sealed class OwnerCompanyProfileControllerTests
     }
 
     [Fact]
-    public async Task Create_dispatches_command_and_preserves_validation_problem_details()
+    public async Task Create_dispatches_command_and_maps_general_validation_messages()
     {
         var errors = new Dictionary<string, string[]>
         {
             ["CompanyName"] = ["Company name is required.", "Must not exceed 200 characters."]
         };
-        var dispatcher = new StubCommandDispatcher(
-            ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.Validation(
-                "validation_failed",
-                "One or more validation errors occurred.",
-                errors)));
+        var dispatcher = new StubSender(
+            CommandResult.Failure(
+                CommandErrorType.Validation,
+                [.. errors.Values.SelectMany(messages => messages)]));
         var controller = CreateController(dispatcher, new StubStore());
 
         var response = await controller.Create(new CreateOwnerCompanyProfileRequest(), default);
 
         Assert.IsType<CreateOwnerCompanyProfileCommand>(dispatcher.Command);
-        AssertValidationProblem(response.Result, errors);
+        AssertValidationProblem(response.Result, errors.Values.SelectMany(messages => messages));
     }
 
     [Fact]
-    public async Task Update_dispatches_command_and_preserves_validation_problem_details()
+    public async Task Update_dispatches_command_and_maps_general_validation_messages()
     {
         var errors = new Dictionary<string, string[]>
         {
             ["Email"] = ["Email format is invalid."]
         };
-        var dispatcher = new StubCommandDispatcher(
-            ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.Validation(
-                "validation_failed",
-                "One or more validation errors occurred.",
-                errors)));
+        var dispatcher = new StubSender(
+            CommandResult.Failure(
+                CommandErrorType.Validation,
+                [.. errors.Values.SelectMany(messages => messages)]));
         var controller = CreateController(dispatcher, new StubStore(ExistingProfile()));
 
         var response = await controller.Update(new UpdateOwnerCompanyProfileRequest(), default);
 
         Assert.IsType<UpdateOwnerCompanyProfileCommand>(dispatcher.Command);
-        AssertValidationProblem(response.Result, errors);
+        AssertValidationProblem(response.Result, errors.Values.SelectMany(messages => messages));
     }
 
     [Fact]
     public async Task Create_maps_handler_conflict_problem_details()
     {
-        var dispatcher = new StubCommandDispatcher(
-            ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.Conflict(
-                "owner_company_profile.already_exists",
-                "Owner company profile already exists.")));
+        var dispatcher = new StubSender(
+            CommandResult.Failure(
+                CommandErrorType.Conflict,
+                "Owner company profile already exists."));
         var controller = CreateController(dispatcher, new StubStore(ExistingProfile()));
 
         var response = await controller.Create(ValidCreateRequest("billing@example.com"), default);
@@ -331,17 +330,17 @@ public sealed class OwnerCompanyProfileControllerTests
         AssertProblem(
             response.Result,
             409,
-            "owner_company_profile.already_exists",
+            "conflict",
             "Owner company profile already exists.");
     }
 
     [Fact]
     public async Task Update_maps_handler_failure_problem_details()
     {
-        var dispatcher = new StubCommandDispatcher(
-            ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.Failure(
-                "owner_company_profile.update_failed",
-                "Owner company profile could not be updated.")));
+        var dispatcher = new StubSender(
+            CommandResult.Failure(
+                CommandErrorType.Failure,
+                "Owner company profile could not be updated."));
         var controller = CreateController(dispatcher, new StubStore(ExistingProfile()));
 
         var response = await controller.Update(ValidUpdateRequest("billing@example.com"), default);
@@ -349,21 +348,54 @@ public sealed class OwnerCompanyProfileControllerTests
         AssertProblem(
             response.Result,
             400,
-            "owner_company_profile.update_failed",
+            "failure",
             "Owner company profile could not be updated.");
     }
 
-    private sealed class StubCommandDispatcher(object response) : ICommandDispatcher
+    private sealed class StubSender(object response) : ISender
     {
         public object? Command { get; private set; }
 
-        public Task<ApplicationResult<TResult>> Send<TCommand, TResult>(
-            TCommand command,
+        public ValueTask<TResult> Send<TResult>(
+            ICommand<TResult> command,
             CancellationToken cancellationToken = default)
         {
             this.Command = command;
-            return Task.FromResult((ApplicationResult<TResult>)response);
+            return ValueTask.FromResult((TResult)response);
         }
+
+        public ValueTask<TResult> Send<TResult>(
+            IRequest<TResult> request,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public ValueTask<TResult> Send<TResult>(
+            IQuery<TResult> query,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public ValueTask<object?> Send(object message, CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public IAsyncEnumerable<TResult> CreateStream<TResult>(
+            IStreamQuery<TResult> query,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public IAsyncEnumerable<TResult> CreateStream<TResult>(
+            IStreamRequest<TResult> request,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public IAsyncEnumerable<TResult> CreateStream<TResult>(
+            IStreamCommand<TResult> command,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
+
+        public IAsyncEnumerable<object?> CreateStream(
+            object message,
+            CancellationToken cancellationToken = default) =>
+            throw new NotSupportedException();
     }
 
     private static OwnerCompanyProfileController CreateController(StubStore store)
@@ -372,10 +404,10 @@ public sealed class OwnerCompanyProfileControllerTests
         services.AddControllers();
         services.AddSingleton<IOwnerCompanyProfileStore>(store);
         services.AddBillingManagementApplication();
+        services.AddBillingManagementMediator();
         var provider = services.BuildServiceProvider();
         return new OwnerCompanyProfileController(
-            provider.GetRequiredService<ICommandDispatcher>(),
-            provider.GetRequiredService<GetOwnerCompanyProfileHandler>())
+            provider.GetRequiredService<ISender>())
         {
             ControllerContext = new ControllerContext
             {
@@ -385,16 +417,14 @@ public sealed class OwnerCompanyProfileControllerTests
     }
 
     private static OwnerCompanyProfileController CreateController(
-        ICommandDispatcher dispatcher,
+        ISender dispatcher,
         StubStore store)
     {
         var provider = new ServiceCollection()
             .AddControllers()
             .Services
             .BuildServiceProvider();
-        return new OwnerCompanyProfileController(
-            dispatcher,
-            new GetOwnerCompanyProfileHandler(store))
+        return new OwnerCompanyProfileController(dispatcher)
         {
             ControllerContext = new ControllerContext
             {
@@ -416,6 +446,7 @@ public sealed class OwnerCompanyProfileControllerTests
         builder.Services.AddSingleton<IOwnerCompanyProfileStore>(store);
         builder.Services.AddSingleton<ICompanyMediaStore, StubMediaStore>();
         builder.Services.AddBillingManagementApplication();
+        builder.Services.AddBillingManagementMediator();
         builder.Services.AddProblemDetails();
 
         var app = builder.Build();
@@ -477,22 +508,18 @@ public sealed class OwnerCompanyProfileControllerTests
         var objectResult = Assert.IsType<BadRequestObjectResult>(result);
         var problem = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
         Assert.Equal(400, problem.Status);
-        Assert.Equal(["Email format is invalid."], problem.Errors["Email"]);
+        Assert.Equal(["Email format is invalid."], problem.Errors["general"]);
     }
 
     private static void AssertValidationProblem(
         ActionResult? result,
-        IReadOnlyDictionary<string, string[]> expectedErrors)
+        IEnumerable<string> expectedMessages)
     {
         var objectResult = Assert.IsType<BadRequestObjectResult>(result);
         var problem = Assert.IsType<ValidationProblemDetails>(objectResult.Value);
         Assert.Equal(400, problem.Status);
-        Assert.Equal(expectedErrors.Keys, problem.Errors.Keys);
-
-        foreach (var error in expectedErrors)
-        {
-            Assert.Equal(error.Value, problem.Errors[error.Key]);
-        }
+        Assert.Equal(["general"], problem.Errors.Keys);
+        Assert.Equal(expectedMessages, problem.Errors["general"]);
     }
 
     private static void AssertProblem(
@@ -539,29 +566,20 @@ public sealed class OwnerCompanyProfileControllerTests
         Assert.Equal("icon", await new StreamReader(content).ReadToEndAsync());
     }
 
-    private static void AssertValidationErrors(
-        IReadOnlyDictionary<string, string[]> expected,
-        IDictionary<string, string[]> actual)
-    {
-        Assert.Equal(expected.Keys.Order(), actual.Keys.Order());
-        foreach (var error in expected)
-        {
-            Assert.Equal(error.Value, actual[error.Key]);
-        }
-    }
-
     private static string? ProblemCode(ProblemDetails problem) =>
         Assert.IsType<JsonElement>(problem.Extensions["code"]).GetString();
 
-    private static IReadOnlyDictionary<string, string[]> ExpectedRequiredErrors() =>
-        new Dictionary<string, string[]>
-        {
-            ["CompanyName"] = ["Company name is required."],
-            ["AddressLine1"] = ["Address line 1 is required."],
-            ["City"] = ["City / province / state is required."],
-            ["PostalCode"] = ["Postal code is required."],
-            ["Country"] = ["Country is required."]
-        };
+    private static string[] ExpectedRequiredMessages()
+    {
+        return
+        [
+            "Company name is required.",
+            "Address line 1 is required.",
+            "City / province / state is required.",
+            "Postal code is required.",
+            "Country is required."
+        ];
+    }
 
     private sealed class StubStore(
         OwnerCompanyProfileRecord? profile = null,

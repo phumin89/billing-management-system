@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using BillingManagement.Application.Abstractions.Commands;
+using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Application.Validation;
 using BillingManagement.Domain;
 
@@ -29,4 +31,4 @@ public sealed record UpdateCustomerCommand(
     [property: TrimmedMaxLength(CustomerConstraints.ContactNameMaxLength)]
     string? ContactName,
     [property: TrimmedMaxLength(CustomerConstraints.NotesMaxLength)]
-    string? Notes);
+    string? Notes) : ICommand;

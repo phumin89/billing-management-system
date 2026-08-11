@@ -24,7 +24,7 @@ public sealed class DeleteOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(new DeleteOwnerCompanyProfileCommand());
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.Success);
         Assert.Equal([coverKey, iconKey], mediaStore.DeletedKeys);
     }
 
@@ -40,7 +40,7 @@ public sealed class DeleteOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(new DeleteOwnerCompanyProfileCommand());
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.Success);
         Assert.Equal([coverKey, iconKey], mediaStore.DeletedKeys);
     }
 
@@ -54,7 +54,7 @@ public sealed class DeleteOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(new DeleteOwnerCompanyProfileCommand());
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.Success);
         Assert.Empty(mediaStore.DeletedKeys);
     }
 
@@ -71,7 +71,7 @@ public sealed class DeleteOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(new DeleteOwnerCompanyProfileCommand());
 
-        Assert.False(result.IsSuccess);
+        Assert.False(result.Success);
         Assert.Empty(mediaStore.DeletedKeys);
     }
 
@@ -89,7 +89,7 @@ public sealed class DeleteOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(new DeleteOwnerCompanyProfileCommand());
 
-        Assert.True(result.IsSuccess);
+        Assert.True(result.Success);
         Assert.Equal([coverKey, iconKey], mediaStore.DeletedKeys);
         Assert.Equal(LogLevel.Warning, Assert.Single(logger.LogLevels));
     }
@@ -101,9 +101,8 @@ public sealed class DeleteOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(new DeleteOwnerCompanyProfileCommand());
 
-        Assert.True(result.IsSuccess);
-        Assert.True(result.Value);
-        Assert.Null(result.Error);
+        Assert.True(result.Success);
+        Assert.Empty(result.Errors);
     }
 
     [Fact]
@@ -113,11 +112,10 @@ public sealed class DeleteOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(new DeleteOwnerCompanyProfileCommand());
 
-        Assert.False(result.IsSuccess);
-        Assert.NotNull(result.Error);
-        Assert.Equal(ApplicationErrorKind.NotFound, result.Error.Kind);
-        Assert.Equal("owner_company_profile.not_found", result.Error.Code);
-        Assert.Equal("Owner company profile was not found.", result.Error.Message);
+        Assert.False(result.Success);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal(CommandErrorType.NotFound, error.Key);
+        Assert.Equal(["Owner company profile was not found."], error.Value);
     }
 
     [Fact]
@@ -127,13 +125,12 @@ public sealed class DeleteOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(new DeleteOwnerCompanyProfileCommand());
 
-        Assert.False(result.IsSuccess);
-        Assert.NotNull(result.Error);
-        Assert.Equal(ApplicationErrorKind.Conflict, result.Error.Kind);
-        Assert.Equal("owner_company_profile.in_use", result.Error.Code);
+        Assert.False(result.Success);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal(CommandErrorType.Conflict, error.Key);
         Assert.Equal(
-            "Company profile is used by quotations or invoices and cannot be deleted.",
-            result.Error.Message);
+            ["Company profile is used by quotations or invoices and cannot be deleted."],
+            error.Value);
     }
 
     private static OwnerCompanyProfileRecord Profile(string? coverKey = null, string? iconKey = null) =>

@@ -5,19 +5,17 @@ using BillingManagement.Application.Abstractions.Results;
 namespace BillingManagement.Application.Customers.DeleteCustomer;
 
 public sealed class DeleteCustomerHandler(ICustomerStore store)
-    : ICommandHandler<DeleteCustomerCommand, bool>
+    : ICommandHandler<DeleteCustomerCommand>
 {
-    public async Task<ApplicationResult<bool>> Handle(
+    public async ValueTask<CommandResult> Handle(
         DeleteCustomerCommand command,
         CancellationToken cancellationToken = default)
     {
         if (!await store.Delete(command.Id, cancellationToken))
         {
-            return ApplicationResult<bool>.Failure(ApplicationError.NotFound(
-                "customer.not_found",
-                "Customer was not found."));
+            return CommandResult.Failure(CommandErrorType.NotFound, "Customer was not found.");
         }
 
-        return ApplicationResult<bool>.Success(true);
+        return CommandResult.Succeeded();
     }
 }

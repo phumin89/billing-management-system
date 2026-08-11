@@ -108,15 +108,14 @@ public sealed class OwnerCompanyProfileStoreTests
             var secondHandler = new CreateOwnerCompanyProfileHandler(new OwnerCompanyProfileStore(secondContext));
 
             var results = await Task.WhenAll(
-                firstHandler.Handle(ValidCommand("First Co")),
-                secondHandler.Handle(ValidCommand("Second Co")));
+                firstHandler.Handle(ValidCommand("First Co")).AsTask(),
+                secondHandler.Handle(ValidCommand("Second Co")).AsTask());
 
-            Assert.Single(results, result => result.IsSuccess);
-            var duplicate = Assert.Single(results, result => !result.IsSuccess);
-            Assert.NotNull(duplicate.Error);
-            Assert.Equal(ApplicationErrorKind.Conflict, duplicate.Error.Kind);
-            Assert.Equal("owner_company_profile.already_exists", duplicate.Error.Code);
-            Assert.Equal("Owner company profile already exists.", duplicate.Error.Message);
+            Assert.Single(results, result => result.Success);
+            var duplicate = Assert.Single(results, result => !result.Success);
+            var error = Assert.Single(duplicate.Errors);
+            Assert.Equal(CommandErrorType.Conflict, error.Key);
+            Assert.Equal(["Owner company profile already exists."], error.Value);
 
             await using var verification = SqlServerIntegrationTestDatabase.CreateContext(databaseName);
             Assert.Equal(1, await verification.OwnerCompanyProfiles.CountAsync());

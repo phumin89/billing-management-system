@@ -1,4 +1,5 @@
 using BillingManagement.Application.Abstractions.Customers;
+using BillingManagement.Application.Abstractions.Queries;
 using BillingManagement.Domain;
 using BillingManagement.Infrastructure.Customers;
 using Microsoft.Data.SqlClient;
@@ -75,7 +76,8 @@ public sealed class CustomerPersistenceTests
             context.ChangeTracker.Clear();
             var store = new CustomerStore(context);
 
-            var customers = await store.List();
+            var page = await store.Search(new CustomerSearchCriteria(), new PageRequest());
+            var customers = page.Items;
 
             Assert.Equal(["Alpha", "Duplicate", "Duplicate"], customers.Select(customer => customer.CustomerName));
             Assert.Equal(firstDuplicateId, customers[1].Id);
@@ -90,6 +92,7 @@ public sealed class CustomerPersistenceTests
             Assert.Equal("Thailand", customers[0].Country);
             Assert.Equal("Jane", customers[0].ContactName);
             Assert.Equal("Notes", customers[0].Notes);
+            Assert.Equal(3, page.TotalCount);
             Assert.Empty(context.ChangeTracker.Entries());
         }
         finally
@@ -170,7 +173,7 @@ public sealed class CustomerPersistenceTests
             await context.SaveChangesAsync();
             var store = new CustomerStore(context);
 
-            var updated = await store.Update(new CustomerRecord(
+            var updated = await store.Update(Customer.Create(
                 second.Id, " Duplicate ", " ", " billing@example.com ", null,
                 null, null, null, null, null, null, null));
             context.ChangeTracker.Clear();

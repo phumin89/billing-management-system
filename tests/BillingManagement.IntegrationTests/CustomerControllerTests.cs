@@ -1,9 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
+using BillingManagement.Api;
 using BillingManagement.Api.Controllers;
 using BillingManagement.Application;
 using BillingManagement.Application.Abstractions.Customers;
+using BillingManagement.Application.Abstractions.Queries;
 using BillingManagement.Contracts.Customers;
+using BillingManagement.Domain;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
@@ -70,6 +73,45 @@ public sealed class CustomerControllerTests
     }
 
     [Fact]
+    public async Task Get_with_search_and_page_returns_matching_page_and_pagination_headers()
+    {
+        var store = new InMemoryCustomerStore();
+        store.Customers.Add(new CustomerRecord(
+            Guid.NewGuid(), "Alpha", "TAX-ALPHA", null, null, null, null, null, null, null, null, null));
+        store.Customers.Add(new CustomerRecord(
+            Guid.NewGuid(), "Beta", null, "billing@beta.example", null, null, null, null, null, null, null, null));
+        store.Customers.Add(new CustomerRecord(
+            Guid.NewGuid(), "Beta Two", null, "accounts@beta.example", null, null, null, null, null, null, null, null));
+        await using var app = await StartApplication(store);
+        using var client = CreateClient(app);
+
+        var response = await client.GetAsync("/api/customers?searchText=beta&pageNumber=2&pageSize=1");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var customers = await response.Content.ReadFromJsonAsync<CustomerResponse[]>();
+        Assert.NotNull(customers);
+        Assert.Equal("Beta Two", Assert.Single(customers).CustomerName);
+        Assert.Equal("2", response.Headers.GetValues("X-Page-Number").Single());
+        Assert.Equal("1", response.Headers.GetValues("X-Page-Size").Single());
+        Assert.Equal("2", response.Headers.GetValues("X-Total-Count").Single());
+    }
+
+    [Theory]
+    [InlineData("pageNumber=0")]
+    [InlineData("pageSize=0")]
+    [InlineData("pageSize=101")]
+    public async Task Get_with_invalid_page_returns_bad_request(string query)
+    {
+        var store = new InMemoryCustomerStore();
+        await using var app = await StartApplication(store);
+        using var client = CreateClient(app);
+
+        var response = await client.GetAsync($"/api/customers?{query}");
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Post_invalid_request_returns_field_validation_problem()
     {
         var store = new InMemoryCustomerStore();
@@ -86,8 +128,9 @@ public sealed class CustomerControllerTests
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
         Assert.NotNull(problem);
-        Assert.Equal(["Customer name is required."], problem.Errors["CustomerName"]);
-        Assert.Equal(["Email format is invalid."], problem.Errors["Email"]);
+        Assert.Equal(
+            ["Customer name is required.", "Email format is invalid."],
+            problem.Errors["general"]);
         Assert.Empty(store.Customers);
     }
 
@@ -136,8 +179,9 @@ public sealed class CustomerControllerTests
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
         Assert.NotNull(problem);
-        Assert.Equal(["Customer name is required."], problem.Errors["CustomerName"]);
-        Assert.Equal(["Email format is invalid."], problem.Errors["Email"]);
+        Assert.Equal(
+            ["Customer name is required.", "Email format is invalid."],
+            problem.Errors["general"]);
         Assert.Empty(store.Customers);
     }
 
@@ -231,7 +275,7 @@ public sealed class CustomerControllerTests
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private static async Task<WebApplication> StartApplication(ICustomerStore store)
+    private static async Task<WebApplication> StartApplication(InMemoryCustomerStore store)
     {
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -239,8 +283,10 @@ public sealed class CustomerControllerTests
         });
         builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Services.AddControllers().AddApplicationPart(typeof(CustomersController).Assembly);
-        builder.Services.AddSingleton(store);
+        builder.Services.AddSingleton<ICustomerStore>(store);
+        builder.Services.AddSingleton<ICustomerQueries>(store);
         builder.Services.AddBillingManagementApplication();
+        builder.Services.AddBillingManagementMediator();
         builder.Services.AddProblemDetails();
 
         var app = builder.Build();
@@ -260,24 +306,48 @@ public sealed class CustomerControllerTests
     private static UpdateCustomerRequest ValidUpdateRequest(string customerName) =>
         new() { CustomerName = customerName };
 
-    private sealed class InMemoryCustomerStore : ICustomerStore
+    private sealed class InMemoryCustomerStore : ICustomerStore, ICustomerQueries
     {
         public List<CustomerRecord> Customers { get; } = [];
 
-        public Task<IReadOnlyList<CustomerRecord>> List(CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<CustomerRecord>>(
-                this.Customers
-                    .OrderBy(customer => customer.CustomerName)
-                    .ThenBy(customer => customer.Id)
-                    .ToList());
-
-        public Task Add(CustomerRecord customer, CancellationToken cancellationToken = default)
+        public Task<CustomerRecord?> GetById(Guid id, CancellationToken cancellationToken = default)
         {
-            this.Customers.Add(customer);
+            return Task.FromResult(this.Customers.FirstOrDefault(customer => customer.Id == id));
+        }
+
+        public Task<CustomerPage> Search(
+            CustomerSearchCriteria criteria,
+            PageRequest page,
+            CancellationToken cancellationToken = default)
+        {
+            var query = this.Customers.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(criteria.SearchText))
+            {
+                query = query.Where(customer =>
+                    customer.CustomerName.Contains(criteria.SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    (customer.Email?.Contains(criteria.SearchText, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (customer.TaxId?.Contains(criteria.SearchText, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            var matches = query
+                .OrderBy(customer => customer.CustomerName)
+                .ThenBy(customer => customer.Id)
+                .ToList();
+            var items = matches
+                .Skip((page.PageNumber - 1) * page.PageSize)
+                .Take(page.PageSize)
+                .ToList();
+
+            return Task.FromResult(new CustomerPage(items, page.PageNumber, page.PageSize, matches.Count));
+        }
+
+        public Task Add(Customer customer, CancellationToken cancellationToken = default)
+        {
+            this.Customers.Add(ToRecord(customer));
             return Task.CompletedTask;
         }
 
-        public Task<bool> Update(CustomerRecord customer, CancellationToken cancellationToken = default)
+        public Task<bool> Update(Customer customer, CancellationToken cancellationToken = default)
         {
             var index = this.Customers.FindIndex(existing => existing.Id == customer.Id);
             if (index < 0)
@@ -285,11 +355,28 @@ public sealed class CustomerControllerTests
                 return Task.FromResult(false);
             }
 
-            this.Customers[index] = customer;
+            this.Customers[index] = ToRecord(customer);
             return Task.FromResult(true);
         }
 
         public Task<bool> Delete(Guid id, CancellationToken cancellationToken = default) =>
             Task.FromResult(this.Customers.RemoveAll(customer => customer.Id == id) == 1);
+
+        private static CustomerRecord ToRecord(Customer customer)
+        {
+            return new CustomerRecord(
+                customer.Id,
+                customer.CustomerName,
+                customer.TaxId,
+                customer.Email,
+                customer.Phone,
+                customer.BillingAddressLine1,
+                customer.BillingAddressLine2,
+                customer.CityProvinceState,
+                customer.PostalCode,
+                customer.Country,
+                customer.ContactName,
+                customer.Notes);
+        }
     }
 }

@@ -13,11 +13,10 @@ public sealed class UpdateOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(ValidCommand());
 
-        Assert.False(result.IsSuccess);
-        Assert.NotNull(result.Error);
-        Assert.Equal(ApplicationErrorKind.NotFound, result.Error.Kind);
-        Assert.Equal("owner_company_profile.not_found", result.Error.Code);
-        Assert.Equal("Owner company profile was not found.", result.Error.Message);
+        Assert.False(result.Success);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal(CommandErrorType.NotFound, error.Key);
+        Assert.Equal(["Owner company profile was not found."], error.Value);
     }
 
     [Fact]
@@ -43,11 +42,10 @@ public sealed class UpdateOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(ValidCommand());
 
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value);
-        Assert.Equal(store.Profile!.Id, result.Value.Id);
-        Assert.Equal("Acme Updated", result.Value.CompanyName);
-        Assert.Equal("Chiang Mai", result.Value.City);
+        Assert.True(result.Success);
+        Assert.NotNull(store.Profile);
+        Assert.Equal("Acme Updated", store.Profile.CompanyName);
+        Assert.Equal("Chiang Mai", store.Profile.City);
     }
 
     private static UpdateOwnerCompanyProfileCommand ValidCommand() =>

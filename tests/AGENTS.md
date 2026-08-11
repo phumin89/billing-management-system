@@ -5,6 +5,10 @@ Applies to unit and integration tests.
 - Test behavior and invariants, not private implementation details.
 - Use clear condition/action/result names and Arrange/Act/Assert structure.
 - Unit-test Domain rules, validators, and handlers with real collaborators when cheap.
+- Handler unit tests reference Application.Handlers while using messages/results from
+  Application. Keep assembly-boundary registration covered by a focused DI test.
+- Assert command validation messages under the general ProblemDetails key. Do not expect
+  field-level keys unless the tested endpoint uses a separate result contract that carries them.
 - Integration-test HTTP contracts, EF mappings, migrations, and SQL Server behavior at
   meaningful boundaries.
 - Mock external or hard boundaries, not simple domain objects.

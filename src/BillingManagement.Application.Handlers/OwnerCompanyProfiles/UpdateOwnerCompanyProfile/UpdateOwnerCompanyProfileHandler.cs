@@ -7,9 +7,9 @@ namespace BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyP
 
 public sealed class UpdateOwnerCompanyProfileHandler(
     IOwnerCompanyProfileStore store)
-    : ICommandHandler<UpdateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>
+    : ICommandHandler<UpdateOwnerCompanyProfileCommand>
 {
-    public async Task<ApplicationResult<OwnerCompanyProfileRecord>> Handle(
+    public async ValueTask<CommandResult> Handle(
         UpdateOwnerCompanyProfileCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -40,13 +40,15 @@ public sealed class UpdateOwnerCompanyProfileHandler(
             return MissingProfile();
         }
 
-        return ApplicationResult<OwnerCompanyProfileRecord>.Success(profile);
+        return CommandResult.Succeeded();
     }
 
-    private static ApplicationResult<OwnerCompanyProfileRecord> MissingProfile() =>
-        ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.NotFound(
-            "owner_company_profile.not_found",
-            "Owner company profile was not found."));
+    private static CommandResult MissingProfile()
+    {
+        return CommandResult.Failure(
+            CommandErrorType.NotFound,
+            "Owner company profile was not found.");
+    }
 
     private static OwnerCompanyProfileRecord ToRecord(OwnerCompanyProfile profile) =>
         new(

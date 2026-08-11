@@ -7,9 +7,9 @@ namespace BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyP
 
 public sealed class CreateOwnerCompanyProfileHandler(
     IOwnerCompanyProfileStore store)
-    : ICommandHandler<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>
+    : ICommandHandler<CreateOwnerCompanyProfileCommand>
 {
-    public async Task<ApplicationResult<OwnerCompanyProfileRecord>> Handle(
+    public async ValueTask<CommandResult> Handle(
         CreateOwnerCompanyProfileCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -38,13 +38,15 @@ public sealed class CreateOwnerCompanyProfileHandler(
             return DuplicateProfile();
         }
 
-        return ApplicationResult<OwnerCompanyProfileRecord>.Success(profile);
+        return CommandResult.Succeeded();
     }
 
-    private static ApplicationResult<OwnerCompanyProfileRecord> DuplicateProfile() =>
-        ApplicationResult<OwnerCompanyProfileRecord>.Failure(ApplicationError.Conflict(
-            "owner_company_profile.already_exists",
-            "Owner company profile already exists."));
+    private static CommandResult DuplicateProfile()
+    {
+        return CommandResult.Failure(
+            CommandErrorType.Conflict,
+            "Owner company profile already exists.");
+    }
 
     private static OwnerCompanyProfileRecord ToRecord(OwnerCompanyProfile profile) =>
         new(

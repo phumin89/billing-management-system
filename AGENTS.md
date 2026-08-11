@@ -9,56 +9,45 @@ nearest `AGENTS.md` as well.
 | Scope | Additional instructions |
 | --- | --- |
 | `src/**` | `src/AGENTS.md` |
+| `src/BillingManagement.Application.Handlers/**` | `src/BillingManagement.Application.Handlers/AGENTS.md` |
 | `src/BillingManagement.Client/**` | `src/BillingManagement.Client/AGENTS.md` |
 | `src/BillingManagement.Api/**` | `src/BillingManagement.Api/AGENTS.md` |
 | `src/BillingManagement.Infrastructure/**` | `src/BillingManagement.Infrastructure/AGENTS.md` |
 | `tests/**` | `tests/AGENTS.md` |
 
-# AGENTS.md
+Do not create `AGENTS.override.md`; scoped rules should extend repository rules.
 
-Repository-wide instructions for the Billing Management System. Global coding rules still apply. Before changing files below a scoped directory, read its nearest `AGENTS.md` as well.
+## Engineering Practice
 
-## Scoped Instructions
-| Scope | Additional instructions |
-| :--- | :--- |
-| \`src/**\` | \`src/AGENTS.md\` |
-| \`src/BillingManagement.Client/**\` | \`src/BillingManagement.Client/AGENTS.md\` |
-| \`src/BillingManagement.Api/**\` | \`src/BillingManagement.Api/AGENTS.md\` |
-| \`src/BillingManagement.Infrastructure/**\` | \`src/BillingManagement.Infrastructure/AGENTS.md\` |
-| \`tests/**\` | \`tests/AGENTS.md\` |
-
-Do not create \`AGENTS.override.md\`; scoped rules should extend repository rules.
-
-## Product & Architecture Stack
-- **Technology:** Blazor WASM, ASP.NET Core Web API, SQL Server, EF Core.
-- **Language:** Use `net10.0` (preferred). Prefer built-in DI, logging, and validation mechanisms.
-- **Architecture Principle:** Keep the application modular and in-process. Do not split handlers or persistence into network services unless absolutely necessary for deployment reasons.
-
-**Dependency Flow Diagram:**
-*   Client $\to$ Contracts
-*   Api $\to$ Contracts, Application.Abstractions, Application, Infrastructure
-*   Application $\to$ Application.Abstractions, Domain
-*   Infrastructure $\to$ Application.Abstractions, Domain
-*   Migrator $\to$ Infrastructure
-
-**Forbidden References:** 
-`Domain` cannot reference other projects; `Client` cannot reference `Application`, `Domain`, or `Infrastructure`; etc. (Refer to the full scope for details).
-
-## Development Workflow & Operations
-- **Task Management (Trello):**
-    - Work on one Trello card at a time, owned by a single active owner.
-    - Trello Card Title Requirement: Must start with the visible number (e.g., \`#BMS-123 Task name\`).
-    - Branching: Before implementation, create a local branch named after the ticket number (e.g., \`#BMS-123-short-description\`)\`.
-
-## Verification & Testing Rituals
-1.  **Project Structure:** Use one top-level C# type per \`.cs\` file.
-2.  **C# Changes:** Run \`dotnet format BillingManagement.slnx --verify-no-changes\` followed by focused tests and a full build verification.
-3.  **Runtime/API Changes:** Evidence must include Docker Compose usage to verify runtime behavior.
-4.  **UI Behavior:** Requires real browser checks; DOM evidence is insufficient for visual validation.
-
-**Key Pitfalls & Conventions:**
-*   Never commit secrets, local database, or development environment artifacts.
-*   When checking dates/times (e.g., due date): Always read user profile first to resolve the time zone before performing comparisons.
+- Prefer correct, simple, explicit, readable code over clever or speculative architecture.
+- Keep the happy path flat with guard clauses and early returns. Avoid `else` after a
+  terminating statement and review code that reaches three indentation levels.
+- Use block-bodied methods. Expression-bodied properties and simple lambdas remain acceptable.
+- Keep methods focused, at one level of abstraction, and normally below 20 lines. Extract
+  named operations when a block or LINQ pipeline mixes multiple concerns.
+- Use intent-revealing domain names. Avoid vague `data`, `info`, `manager`, `processor`,
+  `helper`, `util`, and `common` names unless their tiny local scope makes intent obvious.
+- Prefer parameter objects when four or more values form one concept. Avoid boolean flags,
+  output parameters, hidden side effects, and long primitive parameter lists.
+- Commands change state; queries answer questions. Do not combine both responsibilities.
+- Every application command implements the non-generic `ICommand` and returns the single
+  concrete `CommandResult`. Its only public instance properties are `Success` and `Errors`;
+  do not add payloads, self-referential result generics, or hidden validation state.
+- Domain objects hide state and protect business rules. Requests, responses, records, and
+  persistence projections are plain data structures and must not masquerade as domain objects.
+- Use small, capability-focused interfaces. Add abstractions only for real boundaries or
+  demonstrated variation; prefer small duplication over the wrong abstraction.
+- Validate expected input at system boundaries and represent expected business failures with
+  result types. Reserve exceptions for exceptional or invalid internal states; never swallow them.
+- Keep controllers thin, business rules in Domain/Application, and framework/database details
+  in outer adapters. Dependencies must point inward.
+- Use readable LINQ. Split long pipelines into named stages when they combine filtering,
+  ordering, projection, paging, mutation, side effects, or error handling.
+- Tests follow Arrange/Act/Assert, describe behavior, and remain fast, independent, repeatable,
+  and self-validating. Use TDD for behavior changes and tricky rules, not mechanical wiring.
+- Improve touched code safely, but do not mix the requested change with unrelated broad cleanup.
+- Follow `.editorconfig` line endings and never leave mixed endings in one file. .NET source and
+  project files use CRLF; do not impose CRLF on shell scripts or other Unix-executed files.
 
 ## Product And Stack
 
@@ -76,6 +65,7 @@ src/
   BillingManagement.Contracts
   BillingManagement.Application.Abstractions
   BillingManagement.Application
+  BillingManagement.Application.Handlers
   BillingManagement.Domain
   BillingManagement.Infrastructure
   BillingManagement.Migrator
@@ -88,15 +78,19 @@ Dependency direction:
 
 ```text
 Client -> Contracts
-Api -> Contracts, Application.Abstractions, Application, Infrastructure
+Api -> Contracts, Application.Abstractions, Application, Application.Handlers, Infrastructure
+Application.Abstractions -> Domain
 Application -> Application.Abstractions, Domain
+Application.Handlers -> Application, Application.Abstractions, Domain
 Infrastructure -> Application.Abstractions, Domain
 Migrator -> Infrastructure
 ```
 
 Forbidden: `Domain` referencing another project; `Client` referencing Application,
-Domain, Infrastructure, or EF Core; Contracts referencing Application or Infrastructure;
-Application referencing Api or Client; Infrastructure referencing Api or Client.
+Application.Handlers, Domain, Infrastructure, or EF Core; Contracts referencing Application,
+Application.Handlers, or Infrastructure;
+Application referencing Application.Handlers, Api, or Client; Application.Handlers referencing
+Api, Client, or Infrastructure; Infrastructure referencing Api or Client.
 
 ## Delivery Workflow
 

@@ -1,10 +1,13 @@
 using System.ComponentModel.DataAnnotations;
+using BillingManagement.Application.Abstractions.Commands;
+using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Application.Validation;
 using BillingManagement.Domain;
 
 namespace BillingManagement.Application.Customers.CreateCustomer;
 
 public sealed record CreateCustomerCommand(
+    Guid Id,
     [property: RequiredText("Customer name is required.")]
     [property: TrimmedMaxLength(CustomerConstraints.CustomerNameMaxLength)]
     string CustomerName,
@@ -28,4 +31,4 @@ public sealed record CreateCustomerCommand(
     [property: TrimmedMaxLength(CustomerConstraints.ContactNameMaxLength)]
     string? ContactName,
     [property: TrimmedMaxLength(CustomerConstraints.NotesMaxLength)]
-    string? Notes);
+    string? Notes) : ICommand;

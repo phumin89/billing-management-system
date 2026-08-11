@@ -49,5 +49,5 @@ public sealed class CreateCustomerCommandValidationTests
     }
 
     private static CreateCustomerCommand ValidCommand() =>
-        new("Acme", null, "billing@example.com", null, null, null, null, null, null, null, null);
+        new(Guid.NewGuid(), "Acme", null, "billing@example.com", null, null, null, null, null, null, null, null);
 }
