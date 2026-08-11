@@ -10,6 +10,13 @@ public sealed class Quotation
 
     public Guid Id { get; private set; }
     public string Number { get; private set; } = string.Empty;
+    public string SellerCompanyName { get; private set; } = string.Empty;
+    public string SellerAddress { get; private set; } = string.Empty;
+    public string? SellerTaxId { get; private set; }
+    public string? SellerPhone { get; private set; }
+    public string? SellerEmail { get; private set; }
+    public string? SellerWebsite { get; private set; }
+    public string? SellerRegistrationNumber { get; private set; }
     public Guid CustomerId { get; private set; }
     public string CustomerName { get; private set; } = string.Empty;
     public string? CustomerAddress { get; private set; }
@@ -25,6 +32,7 @@ public sealed class Quotation
     public static Quotation Create(
         Guid id,
         string number,
+        SellerSnapshot seller,
         Guid customerId,
         string customerName,
         string? customerAddress,
@@ -40,6 +48,8 @@ public sealed class Quotation
         }
 
         ArgumentException.ThrowIfNullOrWhiteSpace(number);
+        ArgumentException.ThrowIfNullOrWhiteSpace(seller.CompanyName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(seller.Address);
         ArgumentException.ThrowIfNullOrWhiteSpace(customerName);
         ArgumentException.ThrowIfNullOrWhiteSpace(currency);
         if (validUntil < issueDate)
@@ -56,6 +66,13 @@ public sealed class Quotation
         {
             Id = id,
             Number = number.Trim(),
+            SellerCompanyName = seller.CompanyName.Trim(),
+            SellerAddress = seller.Address.Trim(),
+            SellerTaxId = NormalizeOptional(seller.TaxId),
+            SellerPhone = NormalizeOptional(seller.Phone),
+            SellerEmail = NormalizeOptional(seller.Email),
+            SellerWebsite = NormalizeOptional(seller.Website),
+            SellerRegistrationNumber = NormalizeOptional(seller.RegistrationNumber),
             CustomerId = customerId,
             CustomerName = customerName.Trim(),
             CustomerAddress = NormalizeOptional(customerAddress),

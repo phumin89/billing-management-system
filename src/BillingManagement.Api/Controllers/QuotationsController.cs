@@ -44,7 +44,7 @@ public sealed class QuotationsController(ISender sender) : ControllerBase
 
     private static QuotationResponse ToResponse(QuotationRecord item)
     {
-        return new QuotationResponse(item.Id, item.Number, item.CustomerId, item.CustomerName, item.CustomerAddress, item.CustomerTaxId, item.IssueDate, item.ValidUntil, item.Currency, item.Items.Select(ToResponse).ToList(), item.Subtotal, item.TaxTotal, item.Total);
+        return new QuotationResponse(item.Id, item.Number, item.SellerCompanyName, item.SellerAddress, item.SellerTaxId, item.SellerPhone, item.SellerEmail, item.SellerWebsite, item.SellerRegistrationNumber, item.CustomerId, item.CustomerName, item.CustomerAddress, item.CustomerTaxId, item.IssueDate, item.ValidUntil, item.Currency, item.Items.Select(ToResponse).ToList(), item.Subtotal, item.TaxTotal, item.Total);
     }
 
     private static BillingDocumentItemResponse ToResponse(BillingDocumentItemRecord item)

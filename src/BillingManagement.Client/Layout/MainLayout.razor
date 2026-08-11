@@ -2,13 +2,21 @@
 @implements IDisposable
 @inject NavigationManager Navigation
 
+<!--
+THESIS: Sober editorial workflow software, refusing the generic metric-card dashboard.
+OWN-WORLD: White canvas, dark ink, soft-gray structure, near-black actions, and sparing coral, forest, peach, and mint signatures.
+STORY: Find a record, prepare it clearly, then issue a document that feels final and trustworthy.
+FIRST VIEWPORT: A precise white index rail frames a broad quiet workspace; title and primary action anchor the top line.
+FORM: DESIGN.md-led editorial workflow system, user-pinned after seed 05cf529d.
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
 <div class="app-shell @(collapsed ? "is-collapsed" : string.Empty)">
     <aside class="@($"sidebar active-{activeNav}")" aria-label="Primary navigation">
         <span class="sidebar-indicator" aria-hidden="true"></span>
         <div class="sidebar-top">
             <a class="brand" href="/" aria-label="Billing Management">
                 <span class="brand-mark">BM</span>
-                <span class="sidebar-text">Billing Management</span>
+                <span class="brand-copy sidebar-text"><strong>Billing</strong><small>Document registry</small></span>
             </a>
 
             <button class="sidebar-toggle" type="button" @onclick="Toggle" aria-label="Toggle sidebar" aria-expanded="@(!collapsed)">
@@ -46,7 +54,11 @@
         </nav>
 
         <a class="@CompanyClass" href="/company-profile" title="Company profile" aria-current="@AriaCurrent(NavCompany)" @onclick="() => SetActive(NavCompany)">
-            <span class="company-avatar" aria-hidden="true">BM</span>
+            <span class="company-avatar" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4h2a2 2 0 0 1 2 2v10h-6v-4h-4v4H4Zm4-14h2V5H8v2Zm4 0h2V5h-2v2ZM8 11h2V9H8v2Zm4 0h2V9h-2v2Zm4 4h2v-2h-2v2Z" />
+                </svg>
+            </span>
             <span class="company-copy sidebar-text">
                 <span>Company profile</span>
                 <small>Owner settings</small>
@@ -54,9 +66,9 @@
         </a>
     </aside>
 
-    <main class="content-shell">
+    <div class="content-shell">
         @Body
-    </main>
+    </div>
 </div>
 
 @code {

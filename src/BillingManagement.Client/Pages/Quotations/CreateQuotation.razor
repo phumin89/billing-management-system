@@ -1,13 +1,13 @@
 @page "/quotations/create"
 
-<PageTitle>New quotation</PageTitle>
+<PageTitle>Billing Management | New quotation</PageTitle>
 <main class="document-page">
-    <a href="/quotations">Back to quotations</a><header><h1>New quotation</h1><p>Prices and customer details are saved as a document snapshot.</p></header>
+    <a class="back-link" href="/quotations">Back to quotation register</a><header class="document-form-header"><h1>Prepare quotation</h1><p>Customer, seller, price, and tax details are fixed when this document is filed.</p></header>
     <form class="document-form" @onsubmit="Save" @onsubmit:preventDefault>
         @if (error is not null) { <p role="alert">@error</p> }
         <div class="document-form-grid"><label>Quotation number <input required @bind="form.Number" /></label><label>Customer <select required @bind="form.CustomerId"><option value="@Guid.Empty">Select customer</option>@foreach (var customer in customers) { <option value="@customer.Id">@customer.CustomerName</option> }</select></label><label>Issue date <input type="date" @bind="form.IssueDate" /></label><label>Valid until <input type="date" @bind="form.ValidUntil" /></label><label>Currency <input maxlength="3" required @bind="form.Currency" /></label></div>
-        <h2>Line items</h2>
+        <div class="form-section-heading"><h2>Line items</h2><span>Goods and services included in this offer</span></div>
         @for (var index = 0; index < form.Items.Count; index++) { var lineIndex = index; <div class="line-item"><label>Description <input required @bind="form.Items[lineIndex].Description" /></label><label>Quantity <input type="number" min="0.0001" step="0.0001" @bind="form.Items[lineIndex].Quantity" /></label><label>Unit price <input type="number" min="0" step="0.01" @bind="form.Items[lineIndex].UnitPrice" /></label><label>Tax % <input type="number" min="0" max="100" step="0.01" @bind="form.Items[lineIndex].TaxRate" /></label>@if (form.Items.Count > 1) { <button type="button" @onclick="() => RemoveLine(lineIndex)">Remove</button> }</div> }
-        <button type="button" @onclick="AddLine">Add line</button><div class="document-actions"><a href="/quotations">Cancel</a><button type="submit" disabled="@isSaving">@(isSaving ? "Saving..." : "Create quotation")</button></div>
+        <button class="secondary-button add-line-button" type="button" @onclick="AddLine">Add another line</button><div class="document-actions"><a href="/quotations">Cancel</a><button class="primary-button" type="submit" disabled="@isSaving">@(isSaving ? "Filing quotation..." : "File quotation")</button></div>
     </form>
 </main>

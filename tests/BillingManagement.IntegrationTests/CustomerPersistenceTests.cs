@@ -10,6 +10,30 @@ namespace BillingManagement.IntegrationTests;
 public sealed class CustomerPersistenceTests
 {
     [Fact]
+    public async Task Store_get_by_id_filters_entity_before_projecting_record()
+    {
+        var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();
+
+        try
+        {
+            await using var context = SqlServerIntegrationTestDatabase.CreateContext(databaseName);
+            await context.Database.MigrateAsync();
+            var customer = Customer.Create("Acme", null, null, null, null, null, null, null, null, null, null);
+            context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+
+            var record = await new CustomerStore(context).GetById(customer.Id);
+
+            Assert.NotNull(record);
+            Assert.Equal(customer.Id, record.Id);
+        }
+        finally
+        {
+            await SqlServerIntegrationTestDatabase.Delete(databaseName);
+        }
+    }
+
+    [Fact]
     public async Task Store_delete_removes_only_selected_customer_and_reports_missing_id()
     {
         var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();

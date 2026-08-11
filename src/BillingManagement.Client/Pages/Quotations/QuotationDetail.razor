@@ -1,16 +1,24 @@
 @page "/quotations/{Id:guid}"
 
-<PageTitle>Quotation</PageTitle>
+<PageTitle>Billing Management | Quotation</PageTitle>
 <main class="document-page">
-    @if (item is null) { <p>@(error ?? "Loading quotation...")</p> }
+    @if (item is null)
+    {
+        <div class="document-state @(error is null ? string.Empty : "is-error")" role="@(error is null ? "status" : "alert")">
+            <strong>@(error is null ? "Opening quotation" : "The quotation could not be opened")</strong>
+            <span>@(error ?? "Loading the filed document...")</span>
+            @if (error is not null) { <a class="text-link" href="/quotations">Return to quotation register</a> }
+        </div>
+    }
     else {
-        <div class="document-actions no-print"><a href="/quotations">Back</a><button type="button" @onclick="Print">Print / Save PDF</button></div>
+        <div class="document-actions no-print"><a class="back-link" href="/quotations">Back to register</a><button class="primary-button" type="button" @onclick="Print">Print / Save PDF</button></div>
         <article class="billing-document">
-            <header><div><span class="document-kicker">Quotation</span><h1>@item.Number</h1></div><div><strong>Issue</strong> @item.IssueDate.ToString("dd MMM yyyy")<br /><strong>Valid until</strong> @item.ValidUntil.ToString("dd MMM yyyy")</div></header>
-            <section class="document-customer"><h2>Bill to</h2><strong>@item.CustomerName</strong><p>@item.CustomerAddress</p>@if (item.CustomerTaxId is not null) { <p>Tax ID: @item.CustomerTaxId</p> }</section>
-            <table><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Tax</th><th>Total</th></tr></thead><tbody>@foreach (var line in item.Items) { <tr><td>@line.Description</td><td>@line.Quantity</td><td>@line.UnitPrice.ToString("N2")</td><td>@line.TaxAmount.ToString("N2")</td><td>@line.LineTotal.ToString("N2")</td></tr> }</tbody></table>
+            <header><div class="document-title"><h1>Quotation</h1><span class="document-reference"># @item.Number</span></div><section class="document-issuer"><img src="/images/company-profile/company-icon.svg" alt="Company logo" width="48" height="48" /><div><strong>@item.SellerCompanyName</strong><p>@item.SellerAddress</p><p>@SellerContacts()</p>@if (item.SellerTaxId is not null) { <p>Tax ID: @item.SellerTaxId</p> }</div></section></header>
+            <div class="document-parties"><section class="document-customer"><h2>Prepared for</h2><strong>@item.CustomerName</strong><p>@item.CustomerAddress</p>@if (item.CustomerTaxId is not null) { <p>Tax ID: @item.CustomerTaxId</p> }</section><dl class="document-meta"><div><dt>Issue date</dt><dd>@item.IssueDate.ToString("dd MMM yyyy")</dd></div><div><dt>Valid until</dt><dd>@item.ValidUntil.ToString("dd MMM yyyy")</dd></div></dl></div>
+            <table><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Tax</th><th>Total</th></tr></thead><tbody>@foreach (var line in item.Items) { <tr><td>@line.Description</td><td>@line.Quantity.ToString("0.##")</td><td>@line.UnitPrice.ToString("N2")</td><td>@line.TaxAmount.ToString("N2")</td><td>@line.LineTotal.ToString("N2")</td></tr> }</tbody></table>
             <div class="document-totals"><span>Subtotal</span><strong>@item.Subtotal.ToString("N2")</strong><span>Tax</span><strong>@item.TaxTotal.ToString("N2")</strong><span>Total</span><strong>@item.Total.ToString("N2") @item.Currency</strong></div>
+            <footer class="document-signatures"><div><span>Prepared by</span><i aria-hidden="true"></i><small>Name / position / date</small></div><div><span>Accepted by</span><i aria-hidden="true"></i><small>Name / position / date</small></div></footer>
         </article>
-        <section class="panel no-print"><h2>Create invoice</h2><label>Invoice number <input @bind="invoiceNumber" /></label><label>Issue date <input type="date" @bind="invoiceDate" /></label><label>Due date <input type="date" @bind="dueDate" /></label><button type="button" disabled="@isCreating" @onclick="CreateInvoice">Create invoice</button>@if (error is not null) { <p role="alert">@error</p> }</section>
+        <section class="invoice-conversion no-print"><div class="invoice-conversion-copy"><h2>Create invoice from quotation</h2><p>The customer, line items, prices, and tax will be copied exactly. Choose the invoice reference and payment dates.</p></div><div class="invoice-conversion-fields"><label>Invoice number <input @bind="invoiceNumber" /></label><label>Issue date <input type="date" @bind="invoiceDate" /></label><label>Payment due <input type="date" @bind="dueDate" /></label></div><div class="invoice-conversion-action"><button class="primary-button" type="button" disabled="@isCreating" @onclick="CreateInvoice">@(isCreating ? "Creating invoice..." : "Create invoice")</button><small>One invoice can be created from this quotation.</small></div>@if (error is not null) { <p class="error-banner" role="alert">@error</p> }</section>
     }
 </main>

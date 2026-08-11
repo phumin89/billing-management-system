@@ -42,7 +42,7 @@ public sealed class InvoicesController(ISender sender) : ControllerBase
 
     private static InvoiceResponse ToResponse(InvoiceRecord item)
     {
-        return new InvoiceResponse(item.Id, item.Number, item.QuotationId, item.CustomerId, item.CustomerName, item.CustomerAddress, item.CustomerTaxId, item.IssueDate, item.DueDate, item.Currency, item.Items.Select(ToResponse).ToList(), item.Subtotal, item.TaxTotal, item.Total);
+        return new InvoiceResponse(item.Id, item.Number, item.SellerCompanyName, item.SellerAddress, item.SellerTaxId, item.SellerPhone, item.SellerEmail, item.SellerWebsite, item.SellerRegistrationNumber, item.QuotationId, item.CustomerId, item.CustomerName, item.CustomerAddress, item.CustomerTaxId, item.IssueDate, item.DueDate, item.Currency, item.Items.Select(ToResponse).ToList(), item.Subtotal, item.TaxTotal, item.Total);
     }
 
     private static BillingDocumentItemResponse ToResponse(BillingDocumentItemRecord item)

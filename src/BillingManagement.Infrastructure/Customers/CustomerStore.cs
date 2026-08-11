@@ -11,8 +11,9 @@ public sealed class CustomerStore(BillingManagementDbContext dbContext) : ICusto
         Guid id,
         CancellationToken cancellationToken = default)
     {
-        return await Project(dbContext.Customers.AsNoTracking())
-            .FirstOrDefaultAsync(customer => customer.Id == id, cancellationToken);
+        var customer = dbContext.Customers.AsNoTracking()
+            .Where(customer => customer.Id == id);
+        return await Project(customer).FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<CustomerPage> Search(

@@ -27,10 +27,8 @@ public partial class CompanyProfile
     private bool isDeleting;
     private bool isUploadingIcon;
     private bool isResettingIcon;
-    private bool showResetIconConfirmation;
     private bool isUploadingCover;
     private bool isResettingCover;
-    private bool showResetCoverConfirmation;
     private string? statusMessage;
     private string? iconMessage;
     private bool iconMessageIsError;
@@ -255,7 +253,6 @@ public partial class CompanyProfile
     {
         var file = eventArgs.File;
         this.iconMessage = null;
-        this.showResetIconConfirmation = false;
 
         if (!IsSupportedIcon(file) || file.Size > MaximumIconLength)
         {
@@ -325,10 +322,7 @@ public partial class CompanyProfile
         }
 
         this.iconMessage = null;
-        this.showResetIconConfirmation = true;
     }
-
-    private void CancelResetIcon() => this.showResetIconConfirmation = false;
 
     private async Task ResetIcon()
     {
@@ -352,7 +346,6 @@ public partial class CompanyProfile
             this.ServerIconImageUrl = FallbackIconImageUrl;
             this.iconMessage = "Icon image reset.";
             this.iconMessageIsError = false;
-            this.showResetIconConfirmation = false;
         }
         finally
         {
@@ -389,7 +382,6 @@ public partial class CompanyProfile
     {
         var file = eventArgs.File;
         this.coverMessage = null;
-        this.showResetCoverConfirmation = false;
 
         if (!IsSupportedCover(file) || file.Size > MaximumCoverLength)
         {
@@ -459,10 +451,7 @@ public partial class CompanyProfile
         }
 
         this.coverMessage = null;
-        this.showResetCoverConfirmation = true;
     }
-
-    private void CancelResetCover() => this.showResetCoverConfirmation = false;
 
     private async Task ResetCover()
     {
@@ -486,7 +475,6 @@ public partial class CompanyProfile
             this.ServerCoverImageUrl = FallbackCoverImageUrl;
             this.coverMessage = "Cover image reset.";
             this.coverMessageIsError = false;
-            this.showResetCoverConfirmation = false;
         }
         finally
         {
