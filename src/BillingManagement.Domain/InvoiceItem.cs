@@ -6,9 +6,10 @@ public sealed class InvoiceItem
     {
     }
 
-    internal InvoiceItem(Guid id, string description, decimal quantity, decimal unitPrice, decimal taxRate)
+    internal InvoiceItem(Guid id, int position, string description, decimal quantity, decimal unitPrice, decimal taxRate)
     {
         this.Id = id;
+        this.Position = position;
         this.Description = description;
         this.Quantity = quantity;
         this.UnitPrice = unitPrice;
@@ -16,6 +17,7 @@ public sealed class InvoiceItem
     }
 
     public Guid Id { get; private set; }
+    public int Position { get; private set; }
     public string Description { get; private set; } = string.Empty;
     public decimal Quantity { get; private set; }
     public decimal UnitPrice { get; private set; }

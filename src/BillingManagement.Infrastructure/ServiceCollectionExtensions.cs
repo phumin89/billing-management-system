@@ -1,6 +1,8 @@
+using BillingManagement.Application.Abstractions.BillingDocuments;
 using BillingManagement.Application.Abstractions.CompanyMedia;
 using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
+using BillingManagement.Infrastructure.BillingDocuments;
 using BillingManagement.Infrastructure.CompanyMedia;
 using BillingManagement.Infrastructure.Customers;
 using BillingManagement.Infrastructure.OwnerCompanyProfiles;
@@ -20,6 +22,7 @@ public static class ServiceCollectionExtensions
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IOwnerCompanyProfileStore, OwnerCompanyProfileStore>();
+        services.AddScoped<IBillingDocumentStore, BillingDocumentStore>();
         services.AddScoped<CustomerStore>();
         services.AddScoped<ICustomerStore>(provider => provider.GetRequiredService<CustomerStore>());
         services.AddScoped<ICustomerQueries>(provider => provider.GetRequiredService<CustomerStore>());
