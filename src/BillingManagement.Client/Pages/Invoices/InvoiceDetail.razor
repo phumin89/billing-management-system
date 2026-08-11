@@ -1,0 +1,15 @@
+@page "/invoices/{Id:guid}"
+
+<PageTitle>Invoice</PageTitle>
+<main class="document-page">
+    @if (item is null) { <p>@(error ?? "Loading invoice...")</p> }
+    else {
+        <div class="document-actions no-print"><a href="/invoices">Back</a><button type="button" @onclick="Print">Print / Save PDF</button></div>
+        <article class="billing-document">
+            <header><div><span class="document-kicker">Invoice</span><h1>@item.Number</h1></div><div><strong>Issue</strong> @item.IssueDate.ToString("dd MMM yyyy")<br /><strong>Due</strong> @item.DueDate.ToString("dd MMM yyyy")</div></header>
+            <section class="document-customer"><h2>Bill to</h2><strong>@item.CustomerName</strong><p>@item.CustomerAddress</p>@if (item.CustomerTaxId is not null) { <p>Tax ID: @item.CustomerTaxId</p> }</section>
+            <table><thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Tax</th><th>Total</th></tr></thead><tbody>@foreach (var line in item.Items) { <tr><td>@line.Description</td><td>@line.Quantity</td><td>@line.UnitPrice.ToString("N2")</td><td>@line.TaxAmount.ToString("N2")</td><td>@line.LineTotal.ToString("N2")</td></tr> }</tbody></table>
+            <div class="document-totals"><span>Subtotal</span><strong>@item.Subtotal.ToString("N2")</strong><span>Tax</span><strong>@item.TaxTotal.ToString("N2")</strong><span>Total due</span><strong>@item.Total.ToString("N2") @item.Currency</strong></div>
+        </article>
+    }
+</main>

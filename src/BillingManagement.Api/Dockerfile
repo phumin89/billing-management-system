@@ -4,6 +4,7 @@ WORKDIR /src
 COPY BillingManagement.slnx ./
 COPY src/BillingManagement.Api/BillingManagement.Api.csproj src/BillingManagement.Api/
 COPY src/BillingManagement.Application/BillingManagement.Application.csproj src/BillingManagement.Application/
+COPY src/BillingManagement.Application.Handlers/BillingManagement.Application.Handlers.csproj src/BillingManagement.Application.Handlers/
 COPY src/BillingManagement.Application.Abstractions/BillingManagement.Application.Abstractions.csproj src/BillingManagement.Application.Abstractions/
 COPY src/BillingManagement.Contracts/BillingManagement.Contracts.csproj src/BillingManagement.Contracts/
 COPY src/BillingManagement.Domain/BillingManagement.Domain.csproj src/BillingManagement.Domain/

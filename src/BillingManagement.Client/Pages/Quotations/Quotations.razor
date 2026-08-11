@@ -1,0 +1,10 @@
+@page "/quotations"
+
+<PageTitle>Quotations</PageTitle>
+<main class="document-page">
+    <header class="document-page-header"><div><h1>Quotations</h1><p>Prepare and review customer quotations.</p></div><a class="primary-link" href="/quotations/create">New quotation</a></header>
+    @if (isLoading) { <p>Loading quotations...</p> }
+    else if (error is not null) { <p role="alert">@error</p> }
+    else if (items.Count == 0) { <section class="panel"><h2>No quotations yet</h2><p>Create your first quotation to begin billing.</p></section> }
+    else { <div class="document-list">@foreach (var item in items) { <a class="document-list-item" href="@($"/quotations/{item.Id}")"><strong>@item.Number</strong><span>@item.CustomerName</span><span>@item.IssueDate.ToString("dd MMM yyyy")</span><span>@item.Total.ToString("N2") @item.Currency</span></a> }</div> }
+</main>
