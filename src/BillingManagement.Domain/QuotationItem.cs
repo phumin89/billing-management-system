@@ -6,7 +6,7 @@ public sealed class QuotationItem
     {
     }
 
-    internal QuotationItem(Guid id, string description, decimal quantity, decimal unitPrice, decimal taxRate)
+    internal QuotationItem(Guid id, int position, string description, decimal quantity, decimal unitPrice, decimal taxRate)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
         if (quantity <= 0)
@@ -20,6 +20,7 @@ public sealed class QuotationItem
         }
 
         this.Id = id;
+        this.Position = position;
         this.Description = description.Trim();
         this.Quantity = quantity;
         this.UnitPrice = unitPrice;
@@ -27,6 +28,7 @@ public sealed class QuotationItem
     }
 
     public Guid Id { get; private set; }
+    public int Position { get; private set; }
     public string Description { get; private set; } = string.Empty;
     public decimal Quantity { get; private set; }
     public decimal UnitPrice { get; private set; }

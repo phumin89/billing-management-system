@@ -64,8 +64,8 @@ public sealed class Quotation
             ValidUntil = validUntil,
             Currency = currency.Trim().ToUpperInvariant()
         };
-        quotation.items.AddRange(items.Select(item =>
-            new QuotationItem(Guid.NewGuid(), item.Description, item.Quantity, item.UnitPrice, item.TaxRate)));
+        quotation.items.AddRange(items.Select((item, position) =>
+            new QuotationItem(Guid.NewGuid(), position, item.Description, item.Quantity, item.UnitPrice, item.TaxRate)));
         return quotation;
     }
 

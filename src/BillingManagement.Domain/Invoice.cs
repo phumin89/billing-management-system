@@ -54,8 +54,8 @@ public sealed class Invoice
             DueDate = dueDate,
             Currency = quotation.Currency
         };
-        invoice.items.AddRange(quotation.Items.Select(item => new InvoiceItem(
-            Guid.NewGuid(), item.Description, item.Quantity, item.UnitPrice, item.TaxRate)));
+        invoice.items.AddRange(quotation.Items.OrderBy(item => item.Position).Select((item, position) => new InvoiceItem(
+            Guid.NewGuid(), position, item.Description, item.Quantity, item.UnitPrice, item.TaxRate)));
         return invoice;
     }
 }

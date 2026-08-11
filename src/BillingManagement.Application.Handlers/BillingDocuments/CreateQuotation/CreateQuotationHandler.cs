@@ -11,6 +11,11 @@ public sealed class CreateQuotationHandler(ICustomerQueries customers, IBillingD
 {
     public async ValueTask<CommandResult> Handle(CreateQuotationCommand command, CancellationToken cancellationToken = default)
     {
+        if (await store.QuotationNumberExists(command.Number.Trim(), cancellationToken))
+        {
+            return CommandResult.Failure(CommandErrorType.Conflict, "Quotation number already exists.");
+        }
+
         var customer = await customers.GetById(command.CustomerId, cancellationToken);
         if (customer is null)
         {
