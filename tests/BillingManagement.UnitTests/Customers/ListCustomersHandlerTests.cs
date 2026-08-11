@@ -1,4 +1,5 @@
 using BillingManagement.Application.Abstractions.Customers;
+using BillingManagement.Application.Abstractions.Queries;
 using BillingManagement.Application.Customers.ListCustomers;
 
 namespace BillingManagement.UnitTests.Customers;
@@ -19,27 +20,29 @@ public sealed class ListCustomersHandlerTests
 
         var result = await handler.Handle(new ListCustomersQuery());
 
-        Assert.Same(customers, result);
-        Assert.True(store.ListCalled);
+        Assert.Same(customers, result.Customers);
+        Assert.Equal(1, result.PageNumber);
+        Assert.Equal(100, result.PageSize);
+        Assert.Equal(1, result.TotalCount);
+        Assert.True(store.SearchCalled);
     }
 
-    private sealed class RecordingCustomerStore(IReadOnlyList<CustomerRecord> customers) : ICustomerStore
+    private sealed class RecordingCustomerStore(IReadOnlyList<CustomerRecord> customers) : ICustomerQueries
     {
-        public bool ListCalled { get; private set; }
+        public bool SearchCalled { get; private set; }
 
-        public Task<IReadOnlyList<CustomerRecord>> List(CancellationToken cancellationToken = default)
+        public Task<CustomerRecord?> GetById(Guid id, CancellationToken cancellationToken = default)
         {
-            this.ListCalled = true;
-            return Task.FromResult(customers);
+            return Task.FromResult(customers.FirstOrDefault(customer => customer.Id == id));
         }
 
-        public Task Add(CustomerRecord customer, CancellationToken cancellationToken = default) =>
-            Task.CompletedTask;
-
-        public Task<bool> Update(CustomerRecord customer, CancellationToken cancellationToken = default) =>
-            Task.FromResult(false);
-
-        public Task<bool> Delete(Guid id, CancellationToken cancellationToken = default) =>
-            Task.FromResult(false);
+        public Task<CustomerPage> Search(
+            CustomerSearchCriteria criteria,
+            PageRequest page,
+            CancellationToken cancellationToken = default)
+        {
+            this.SearchCalled = true;
+            return Task.FromResult(new CustomerPage(customers, page.PageNumber, page.PageSize, customers.Count));
+        }
     }
 }

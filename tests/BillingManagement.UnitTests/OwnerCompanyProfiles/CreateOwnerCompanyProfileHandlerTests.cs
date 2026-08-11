@@ -14,12 +14,11 @@ public class CreateOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(ValidCommand());
 
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value);
-        Assert.Equal("Acme Co", result.Value.CompanyName);
-        Assert.Equal("Bangkok", result.Value.City);
-        Assert.NotEqual(Guid.Empty, result.Value.Id);
+        Assert.True(result.Success);
         Assert.NotNull(store.Profile);
+        Assert.Equal("Acme Co", store.Profile.CompanyName);
+        Assert.Equal("Bangkok", store.Profile.City);
+        Assert.NotEqual(Guid.Empty, store.Profile.Id);
     }
 
     [Fact]
@@ -31,11 +30,10 @@ public class CreateOwnerCompanyProfileHandlerTests
 
         var result = await handler.Handle(ValidCommand());
 
-        Assert.False(result.IsSuccess);
-        Assert.NotNull(result.Error);
-        Assert.Equal(ApplicationErrorKind.Conflict, result.Error.Kind);
-        Assert.Equal("owner_company_profile.already_exists", result.Error.Code);
-        Assert.Equal("Owner company profile already exists.", result.Error.Message);
+        Assert.False(result.Success);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal(CommandErrorType.Conflict, error.Key);
+        Assert.Equal(["Owner company profile already exists."], error.Value);
     }
 
     private static CreateOwnerCompanyProfileCommand ValidCommand() =>

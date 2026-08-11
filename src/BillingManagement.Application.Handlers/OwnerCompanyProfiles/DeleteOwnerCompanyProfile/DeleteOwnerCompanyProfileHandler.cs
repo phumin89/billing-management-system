@@ -10,9 +10,9 @@ public sealed class DeleteOwnerCompanyProfileHandler(
     IOwnerCompanyProfileStore store,
     ICompanyMediaStore mediaStore,
     ILogger<DeleteOwnerCompanyProfileHandler> logger)
-    : ICommandHandler<DeleteOwnerCompanyProfileCommand, bool>
+    : ICommandHandler<DeleteOwnerCompanyProfileCommand>
 {
-    public async Task<ApplicationResult<bool>> Handle(
+    public async ValueTask<CommandResult> Handle(
         DeleteOwnerCompanyProfileCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -28,18 +28,18 @@ public sealed class DeleteOwnerCompanyProfileHandler(
         };
     }
 
-    private async Task<ApplicationResult<bool>> DeleteMediaAsync(
+    private async Task<CommandResult> DeleteMediaAsync(
         OwnerCompanyProfileRecord? profile,
         CancellationToken cancellationToken)
     {
         if (profile is null)
         {
-            return ApplicationResult<bool>.Success(true);
+            return CommandResult.Succeeded();
         }
 
         await this.DeleteMediaFileAsync(profile.CoverStorageKey, "cover", cancellationToken);
         await this.DeleteMediaFileAsync(profile.IconStorageKey, "icon", cancellationToken);
-        return ApplicationResult<bool>.Success(true);
+        return CommandResult.Succeeded();
     }
 
     private async Task DeleteMediaFileAsync(
@@ -66,13 +66,17 @@ public sealed class DeleteOwnerCompanyProfileHandler(
         }
     }
 
-    private static ApplicationResult<bool> MissingProfile() =>
-        ApplicationResult<bool>.Failure(ApplicationError.NotFound(
-            "owner_company_profile.not_found",
-            "Owner company profile was not found."));
+    private static CommandResult MissingProfile()
+    {
+        return CommandResult.Failure(
+            CommandErrorType.NotFound,
+            "Owner company profile was not found.");
+    }
 
-    private static ApplicationResult<bool> ProfileInUse() =>
-        ApplicationResult<bool>.Failure(ApplicationError.Conflict(
-            "owner_company_profile.in_use",
-            "Company profile is used by quotations or invoices and cannot be deleted."));
+    private static CommandResult ProfileInUse()
+    {
+        return CommandResult.Failure(
+            CommandErrorType.Conflict,
+            "Company profile is used by quotations or invoices and cannot be deleted.");
+    }
 }

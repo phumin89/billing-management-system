@@ -1,3 +1,4 @@
+using BillingManagement.Api;
 using BillingManagement.Application;
 using BillingManagement.Infrastructure;
 
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddProblemDetails();
 builder.Services.AddBillingManagementApplication();
+builder.Services.AddBillingManagementMediator();
 builder.Services.AddBillingManagementInfrastructure(builder.Configuration);
 builder.Services.AddCors(options =>
 {

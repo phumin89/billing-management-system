@@ -12,7 +12,7 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
     {
         var profile = await dbContext.OwnerCompanyProfiles
             .AsNoTracking()
-            .SingleOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
         return profile is null ? null : ToRecord(profile);
     }
@@ -54,7 +54,7 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
     public async Task<bool> Update(OwnerCompanyProfileRecord profile, CancellationToken cancellationToken = default)
     {
         var existingProfile = await dbContext.OwnerCompanyProfiles
-            .SingleOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
         if (existingProfile is null)
         {
@@ -84,7 +84,7 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
     public async Task<OwnerCompanyProfileDeleteResult> Delete(
         CancellationToken cancellationToken = default)
     {
-        var profile = await dbContext.OwnerCompanyProfiles.SingleOrDefaultAsync(cancellationToken);
+        var profile = await dbContext.OwnerCompanyProfiles.FirstOrDefaultAsync(cancellationToken);
         if (profile is null)
         {
             return OwnerCompanyProfileDeleteResult.NotFound;

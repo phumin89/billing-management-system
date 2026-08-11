@@ -3,67 +3,57 @@ using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.CompanyMedia;
 using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
-using BillingManagement.Application.Commands;
-using BillingManagement.Application.Customers.DeleteCustomer;
-using BillingManagement.Application.Customers.ListCustomers;
+using BillingManagement.Application.Abstractions.Queries;
 using BillingManagement.Application.Customers.UpdateCustomer;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
-using BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
 using BillingManagement.Application.Validation;
+using BillingManagement.Domain;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace BillingManagement.UnitTests;
 
 public sealed class ApplicationServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddBillingManagementApplication_registers_dispatcher_handlers_and_open_generic_annotation_validator()
+    public void AddBillingManagementApplication_registers_open_generic_annotation_validator()
     {
         var services = new ServiceCollection();
         services.AddSingleton<IOwnerCompanyProfileStore, StubStore>();
-        services.AddSingleton<ICustomerStore, StubCustomerStore>();
+        services.AddSingleton<StubCustomerStore>();
+        services.AddSingleton<ICustomerStore>(provider => provider.GetRequiredService<StubCustomerStore>());
+        services.AddSingleton<ICustomerQueries>(provider => provider.GetRequiredService<StubCustomerStore>());
         services.AddSingleton<ICompanyMediaStore, StubMediaStore>();
-        services.AddSingleton<ILogger<DeleteOwnerCompanyProfileHandler>>(
-            NullLogger<DeleteOwnerCompanyProfileHandler>.Instance);
         services.AddBillingManagementApplication();
         using var provider = services.BuildServiceProvider();
 
-        Assert.IsType<CommandDispatcher>(provider.GetRequiredService<ICommandDispatcher>());
-        Assert.IsType<CreateOwnerCompanyProfileHandler>(
-            provider.GetRequiredService<ICommandHandler<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>>());
-        Assert.IsType<DeleteOwnerCompanyProfileHandler>(
-            provider.GetRequiredService<ICommandHandler<DeleteOwnerCompanyProfileCommand, bool>>());
-        Assert.IsType<UpdateOwnerCompanyProfileHandler>(
-            provider.GetRequiredService<ICommandHandler<UpdateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>>());
-        Assert.IsType<UpdateCustomerHandler>(
-            provider.GetRequiredService<ICommandHandler<UpdateCustomerCommand, CustomerRecord>>());
-        Assert.IsType<DeleteCustomerHandler>(
-            provider.GetRequiredService<ICommandHandler<DeleteCustomerCommand, bool>>());
-        Assert.IsType<ListCustomersHandler>(provider.GetRequiredService<ListCustomersHandler>());
         Assert.IsType<AnnotationCommandValidator<CreateOwnerCompanyProfileCommand>>(
             Assert.Single(provider.GetServices<ICommandValidator<CreateOwnerCompanyProfileCommand>>()));
         Assert.IsType<AnnotationCommandValidator<UpdateOwnerCompanyProfileCommand>>(
             Assert.Single(provider.GetServices<ICommandValidator<UpdateOwnerCompanyProfileCommand>>()));
         Assert.IsType<AnnotationCommandValidator<UpdateCustomerCommand>>(
             Assert.Single(provider.GetServices<ICommandValidator<UpdateCustomerCommand>>()));
-        Assert.IsType<AnnotationCommandValidator<TestCommand>>(
-            provider.GetRequiredService<ICommandValidator<TestCommand>>());
     }
 
-    private sealed record TestCommand;
-
-    private sealed class StubCustomerStore : ICustomerStore
+    private sealed class StubCustomerStore : ICustomerStore, ICustomerQueries
     {
-        public Task<IReadOnlyList<CustomerRecord>> List(CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<CustomerRecord>>([]);
+        public Task<CustomerRecord?> GetById(Guid id, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult<CustomerRecord?>(null);
+        }
 
-        public Task Add(CustomerRecord customer, CancellationToken cancellationToken = default) =>
+        public Task<CustomerPage> Search(
+            CustomerSearchCriteria criteria,
+            PageRequest page,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(new CustomerPage([], page.PageNumber, page.PageSize, 0));
+        }
+
+        public Task Add(Customer customer, CancellationToken cancellationToken = default) =>
             Task.CompletedTask;
 
-        public Task<bool> Update(CustomerRecord customer, CancellationToken cancellationToken = default) =>
+        public Task<bool> Update(Customer customer, CancellationToken cancellationToken = default) =>
             Task.FromResult(false);
 
         public Task<bool> Delete(Guid id, CancellationToken cancellationToken = default) =>

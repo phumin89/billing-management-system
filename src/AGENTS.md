@@ -6,9 +6,14 @@ Applies to all projects under `src/`. Read a project-specific `AGENTS.md` when p
 
 - `Contracts`: stable transport DTOs only. No handlers, domain behavior, EF attributes,
   or infrastructure dependencies.
-- `Application.Abstractions`: small CQRS and boundary interfaces. Never reference Infrastructure.
-- `Application`: commands, queries, handlers, validators, and use-case results organized
-  by feature. Never reference Api, Client, or EF implementation details.
+- `Application.Abstractions`: small CQRS and boundary interfaces. It may reference Domain
+  aggregates used by application ports, but never Infrastructure.
+- `Application`: commands, queries, validators, application services, and use-case results
+  organized by feature. Never reference Application.Handlers, Api, Client, or EF
+  implementation details.
+- `Application.Handlers`: command/query handlers and handler pipeline behaviors. It mirrors
+  Application feature folders and never owns message contracts,
+  domain rules, persistence implementations, HTTP concerns, or UI concerns.
 - `Domain`: entities, value objects, domain services, errors, and invariants. It must not
   reference other solution projects or framework-specific HTTP/SQL/UI concerns.
 - `Infrastructure`: EF Core, SQL Server, repositories, migrations, and external adapters.
@@ -18,7 +23,13 @@ Applies to all projects under `src/`. Read a project-specific `AGENTS.md` when p
 ## CQRS
 
 - Commands mutate; queries read without side effects.
+- Commands implement `ICommand`; handlers implement `ICommandHandler<TCommand>`; every command
+  returns `CommandResult`. A failure has one error category and may contain multiple messages.
+- Command validation messages are intentionally flattened into the Validation category. Do not
+  reintroduce field dictionaries through internal properties or result subtypes.
 - Messages never execute themselves. Dispatchers route to in-process handlers.
+- Keep each message/result in Application and its implementation in the matching mirrored
+  folder in Application.Handlers. Do not create one project per handler.
 - Controllers translate HTTP to commands/queries; handlers orchestrate use cases.
 - Validation belongs near its command/query. Domain invariants remain in Domain.
 - Application defines required boundaries; Infrastructure implements them.

@@ -62,6 +62,29 @@ public sealed class Customer
         new(Guid.NewGuid(), customerName, taxId, email, phone, billingAddressLine1,
             billingAddressLine2, cityProvinceState, postalCode, country, contactName, notes);
 
+    public static Customer Create(
+        Guid id,
+        string customerName,
+        string? taxId,
+        string? email,
+        string? phone,
+        string? billingAddressLine1,
+        string? billingAddressLine2,
+        string? cityProvinceState,
+        string? postalCode,
+        string? country,
+        string? contactName,
+        string? notes)
+    {
+        if (id == Guid.Empty)
+        {
+            throw new ArgumentException("ID cannot be empty.", nameof(id));
+        }
+
+        return new Customer(id, customerName, taxId, email, phone, billingAddressLine1,
+            billingAddressLine2, cityProvinceState, postalCode, country, contactName, notes);
+    }
+
     public static Customer Rehydrate(
         Guid id,
         string customerName,

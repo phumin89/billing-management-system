@@ -2,10 +2,13 @@
 
 Applies to the Blazor WebAssembly SPA.
 
-- Reference Contracts only. Never reference Application, Domain, Infrastructure, or EF Core.
+- Reference Contracts only. Never reference Application, Application.Handlers, Domain,
+  Infrastructure, or EF Core.
 - Treat browser state and client validation as untrusted. Keep secrets and privileged
   business rules on the server.
 - Call the API through typed HTTP clients or focused client services.
+- Treat command validation as general messages unless an endpoint contract explicitly provides
+  field keys. Forms must display general validation failures without assuming property names.
 - Razor files are markup. Put non-trivial state, handlers, mapping, and API calls in a
   `.razor.cs` partial class.
 - Use feature folders under `Pages/<Feature>` or `Components/<Feature>` when a feature

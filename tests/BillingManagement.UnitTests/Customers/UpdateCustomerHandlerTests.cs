@@ -1,6 +1,7 @@
 using BillingManagement.Application.Abstractions.Customers;
 using BillingManagement.Application.Abstractions.Results;
 using BillingManagement.Application.Customers.UpdateCustomer;
+using BillingManagement.Domain;
 
 namespace BillingManagement.UnitTests.Customers;
 
@@ -13,10 +14,10 @@ public sealed class UpdateCustomerHandlerTests
 
         var result = await handler.Handle(ValidCommand(Guid.NewGuid()));
 
-        Assert.False(result.IsSuccess);
-        Assert.Equal(ApplicationErrorKind.NotFound, result.Error!.Kind);
-        Assert.Equal("customer.not_found", result.Error.Code);
-        Assert.Equal("Customer was not found.", result.Error.Message);
+        Assert.False(result.Success);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal(CommandErrorType.NotFound, error.Key);
+        Assert.Equal(["Customer was not found."], error.Value);
     }
 
     [Fact]
@@ -34,13 +35,12 @@ public sealed class UpdateCustomerHandlerTests
             Phone = "\t"
         });
 
-        Assert.True(result.IsSuccess);
-        Assert.Same(store.Updated, result.Value);
-        Assert.Equal(id, result.Value!.Id);
-        Assert.Equal("Acme Updated", result.Value.CustomerName);
-        Assert.Null(result.Value.TaxId);
-        Assert.Equal("billing@example.com", result.Value.Email);
-        Assert.Null(result.Value.Phone);
+        Assert.True(result.Success);
+        Assert.Equal(id, store.Updated!.Id);
+        Assert.Equal("Acme Updated", store.Updated.CustomerName);
+        Assert.Null(store.Updated.TaxId);
+        Assert.Equal("billing@example.com", store.Updated.Email);
+        Assert.Null(store.Updated.Phone);
     }
 
     private static UpdateCustomerCommand ValidCommand(Guid id) =>
@@ -48,16 +48,13 @@ public sealed class UpdateCustomerHandlerTests
 
     private sealed class RecordingCustomerStore : ICustomerStore
     {
-        public Task<IReadOnlyList<CustomerRecord>> List(CancellationToken cancellationToken = default) =>
-            Task.FromResult<IReadOnlyList<CustomerRecord>>([]);
-
         public bool UpdateResult { get; init; }
-        public CustomerRecord? Updated { get; private set; }
+        public Customer? Updated { get; private set; }
 
-        public Task Add(CustomerRecord customer, CancellationToken cancellationToken = default) =>
+        public Task Add(Customer customer, CancellationToken cancellationToken = default) =>
             Task.CompletedTask;
 
-        public Task<bool> Update(CustomerRecord customer, CancellationToken cancellationToken = default)
+        public Task<bool> Update(Customer customer, CancellationToken cancellationToken = default)
         {
             this.Updated = customer;
             return Task.FromResult(this.UpdateResult);

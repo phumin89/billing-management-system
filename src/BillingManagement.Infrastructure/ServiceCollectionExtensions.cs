@@ -20,7 +20,9 @@ public static class ServiceCollectionExtensions
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IOwnerCompanyProfileStore, OwnerCompanyProfileStore>();
-        services.AddScoped<ICustomerStore, CustomerStore>();
+        services.AddScoped<CustomerStore>();
+        services.AddScoped<ICustomerStore>(provider => provider.GetRequiredService<CustomerStore>());
+        services.AddScoped<ICustomerQueries>(provider => provider.GetRequiredService<CustomerStore>());
         services.AddSingleton<ICompanyMediaStore>(_ =>
             new FileSystemCompanyMediaStore(new CompanyMediaStorageOptions
             {

@@ -1,4 +1,3 @@
-using BillingManagement.Application.Abstractions.Commands;
 using BillingManagement.Application.Abstractions.CompanyMedia;
 using BillingManagement.Application.Abstractions.OwnerCompanyProfiles;
 using BillingManagement.Application.OwnerCompanyProfiles.CreateOwnerCompanyProfile;
@@ -6,6 +5,7 @@ using BillingManagement.Application.OwnerCompanyProfiles.DeleteOwnerCompanyProfi
 using BillingManagement.Application.OwnerCompanyProfiles.GetOwnerCompanyProfile;
 using BillingManagement.Application.OwnerCompanyProfiles.UpdateOwnerCompanyProfile;
 using BillingManagement.Contracts.OwnerCompanyProfiles;
+using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BillingManagement.Api.Controllers;
@@ -13,16 +13,15 @@ namespace BillingManagement.Api.Controllers;
 [ApiController]
 [Route("api/owner-company-profile")]
 public sealed class OwnerCompanyProfileController(
-    ICommandDispatcher commandDispatcher,
-    GetOwnerCompanyProfileHandler getHandler)
+    ISender sender)
     : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<OwnerCompanyProfileResponse>> Get(CancellationToken cancellationToken)
     {
-        var profile = await getHandler.Handle(new GetOwnerCompanyProfileQuery(), cancellationToken);
+        var result = await sender.Send(new GetOwnerCompanyProfileQuery(), cancellationToken);
 
-        return profile is null ? this.NotFound() : this.Ok(ToResponse(profile));
+        return result.Profile is null ? this.NotFound() : this.Ok(ToResponse(result.Profile));
     }
 
     [HttpPost]
@@ -30,7 +29,7 @@ public sealed class OwnerCompanyProfileController(
         CreateOwnerCompanyProfileRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await commandDispatcher.Send<CreateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>(
+        var result = await sender.Send(
             new CreateOwnerCompanyProfileCommand(
             request.CompanyName ?? string.Empty,
             request.AddressLine1 ?? string.Empty,
@@ -45,12 +44,13 @@ public sealed class OwnerCompanyProfileController(
             request.LogoReference,
             request.RegistrationNumber), cancellationToken);
 
-        if (!result.IsSuccess)
+        if (!result.Success)
         {
-            return this.ToProblemDetails(result.Error!);
+            return this.ToProblemDetails(result);
         }
 
-        return this.CreatedAtAction(nameof(Get), ToResponse(result.Value!));
+        var queryResult = await sender.Send(new GetOwnerCompanyProfileQuery(), cancellationToken);
+        return this.CreatedAtAction(nameof(Get), ToResponse(queryResult.Profile!));
     }
 
     [HttpPut]
@@ -58,7 +58,7 @@ public sealed class OwnerCompanyProfileController(
         UpdateOwnerCompanyProfileRequest request,
         CancellationToken cancellationToken)
     {
-        var result = await commandDispatcher.Send<UpdateOwnerCompanyProfileCommand, OwnerCompanyProfileRecord>(
+        var result = await sender.Send(
             new UpdateOwnerCompanyProfileCommand(
             request.CompanyName ?? string.Empty,
             request.AddressLine1 ?? string.Empty,
@@ -73,23 +73,24 @@ public sealed class OwnerCompanyProfileController(
             request.LogoReference,
             request.RegistrationNumber), cancellationToken);
 
-        if (!result.IsSuccess)
+        if (!result.Success)
         {
-            return this.ToProblemDetails(result.Error!);
+            return this.ToProblemDetails(result);
         }
 
-        return this.Ok(ToResponse(result.Value!));
+        var queryResult = await sender.Send(new GetOwnerCompanyProfileQuery(), cancellationToken);
+        return this.Ok(ToResponse(queryResult.Profile!));
     }
 
     [HttpDelete]
     public async Task<ActionResult> Delete(CancellationToken cancellationToken)
     {
-        var result = await commandDispatcher.Send<DeleteOwnerCompanyProfileCommand, bool>(
+        var result = await sender.Send(
             new DeleteOwnerCompanyProfileCommand(), cancellationToken);
 
-        if (!result.IsSuccess)
+        if (!result.Success)
         {
-            return this.ToProblemDetails(result.Error!);
+            return this.ToProblemDetails(result);
         }
 
         return this.NoContent();
