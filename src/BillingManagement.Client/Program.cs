@@ -1,4 +1,5 @@
 using BillingManagement.Client;
+using BillingManagement.Client.BillingDocuments;
 using BillingManagement.Client.Customers;
 using BillingManagement.Client.OwnerCompanyProfiles;
 using Microsoft.AspNetCore.Components.Web;
@@ -15,6 +16,7 @@ var apiBaseAddress = clientBaseAddress.Port == 5080
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = apiBaseAddress });
 builder.Services.AddScoped<CustomerClient>();
+builder.Services.AddScoped<BillingDocumentClient>();
 builder.Services.AddScoped<CustomerSessionState>();
 builder.Services.AddScoped<OwnerCompanyProfileClient>();
 

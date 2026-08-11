@@ -27,7 +27,7 @@
                 </span>
                 <span class="sidebar-text">Customers</span>
             </a>
-            <a class="@NavClass(NavQuotations)" href="#quotations" title="Quotations" aria-current="@AriaCurrent(NavQuotations)" @onclick="() => SetActive(NavQuotations)">
+            <a class="@NavClass(NavQuotations)" href="/quotations" title="Quotations" aria-current="@AriaCurrent(NavQuotations)" @onclick="() => SetActive(NavQuotations)">
                 <span class="nav-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24">
                         <path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.8V8h4.2L14 3.8ZM8 11a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2H8Zm0 4a1 1 0 1 0 0 2h5a1 1 0 1 0 0-2H8Z" />
@@ -35,7 +35,7 @@
                 </span>
                 <span class="sidebar-text">Quotations</span>
             </a>
-            <a class="@NavClass(NavInvoices)" href="#invoices" title="Invoices" aria-current="@AriaCurrent(NavInvoices)" @onclick="() => SetActive(NavInvoices)">
+            <a class="@NavClass(NavInvoices)" href="/invoices" title="Invoices" aria-current="@AriaCurrent(NavInvoices)" @onclick="() => SetActive(NavInvoices)">
                 <span class="nav-icon" aria-hidden="true">
                     <svg viewBox="0 0 24 24">
                         <path d="M7 2h10a2 2 0 0 1 2 2v18l-3-2-2 2-2-2-2 2-2-2-3 2V4a2 2 0 0 1 2-2Zm2 6a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2H9Zm0 4a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2H9Zm0 4a1 1 0 1 0 0 2h3a1 1 0 1 0 0-2H9Z" />
@@ -95,20 +95,20 @@
     private string GetActiveNav(string uri)
     {
         var relative = Navigation.ToBaseRelativePath(uri);
-        var hashIndex = relative.IndexOf('#');
-        var path = (hashIndex >= 0 ? relative[..hashIndex] : relative).TrimEnd('/');
-        var hash = hashIndex >= 0 ? relative[(hashIndex + 1)..] : string.Empty;
+        var path = relative.Split('?', '#')[0].TrimEnd('/');
 
         if (path.Equals("company-profile", StringComparison.OrdinalIgnoreCase))
         {
             return NavCompany;
         }
 
-        return hash switch
+        if (path.StartsWith("quotations", StringComparison.OrdinalIgnoreCase))
         {
-            NavQuotations => NavQuotations,
-            NavInvoices => NavInvoices,
-            _ => NavCustomers
-        };
+            return NavQuotations;
+        }
+
+        return path.StartsWith("invoices", StringComparison.OrdinalIgnoreCase)
+            ? NavInvoices
+            : NavCustomers;
     }
 }

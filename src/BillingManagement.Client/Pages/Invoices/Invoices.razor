@@ -1,0 +1,10 @@
+@page "/invoices"
+
+<PageTitle>Invoices</PageTitle>
+<main class="document-page">
+    <header class="document-page-header"><div><h1>Invoices</h1><p>Invoices created from accepted quotations.</p></div></header>
+    @if (isLoading) { <p>Loading invoices...</p> }
+    else if (error is not null) { <p role="alert">@error</p> }
+    else if (items.Count == 0) { <section class="panel"><h2>No invoices yet</h2><p>Open a quotation to create its invoice.</p></section> }
+    else { <div class="document-list">@foreach (var item in items) { <a class="document-list-item" href="@($"/invoices/{item.Id}")"><strong>@item.Number</strong><span>@item.CustomerName</span><span>@item.IssueDate.ToString("dd MMM yyyy")</span><span>@item.Total.ToString("N2") @item.Currency</span></a> }</div> }
+</main>
