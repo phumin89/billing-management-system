@@ -10,9 +10,17 @@ public sealed class OwnerCompanyProfileStore(BillingManagementDbContext dbContex
 {
     public async Task<OwnerCompanyProfileRecord?> GetAsync(CancellationToken cancellationToken = default)
     {
-        var profile = await dbContext.OwnerCompanyProfiles
+        var profiles = await dbContext.OwnerCompanyProfiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(cancellationToken);
+            .Take(2)
+            .ToListAsync(cancellationToken);
+
+        if (profiles.Count > 1)
+        {
+            throw new InvalidOperationException("Multiple owner company profiles were found.");
+        }
+
+        var profile = profiles.FirstOrDefault();
 
         return profile is null ? null : ToRecord(profile);
     }

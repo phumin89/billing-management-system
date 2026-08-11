@@ -24,9 +24,10 @@ public sealed class CustomerStore(BillingManagementDbContext dbContext) : ICusto
         var pageSize = Math.Clamp(page.PageSize, 1, 100);
         var matchingCustomers = ApplySearch(dbContext.Customers.AsNoTracking(), criteria);
         var totalCount = await matchingCustomers.CountAsync(cancellationToken);
-        var items = await Project(matchingCustomers)
+        var orderedCustomers = matchingCustomers
             .OrderBy(customer => customer.CustomerName)
-            .ThenBy(customer => customer.Id)
+            .ThenBy(customer => customer.Id);
+        var items = await Project(orderedCustomers)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
