@@ -104,8 +104,8 @@ public sealed class CustomersPageMarkupTests
         var styles = ReadClientFile("wwwroot", "css", "_base.scss");
         var normalizedStyles = styles.ReplaceLineEndings("\n");
 
-        Assert.Contains(".customer-form-field, .company-field", normalizedStyles);
-        Assert.Contains(".customer-form-grid, .company-form-grid", normalizedStyles);
+        Assert.Contains(".customer-form-field,\n.company-field", normalizedStyles);
+        Assert.Contains(".customer-form-grid,\n.company-form-grid", normalizedStyles);
         Assert.Contains("grid-template-columns: repeat(2, minmax(0, 1fr));", normalizedStyles);
     }
 
@@ -114,7 +114,7 @@ public sealed class CustomersPageMarkupTests
     {
         var styles = ReadClientFile("wwwroot", "css", "_base.scss").ReplaceLineEndings("\n");
 
-        Assert.Contains(".primary-link, .customers-create-button { width: 100%; }", styles);
+        Assert.Contains(".primary-link,\n  .customers-create-button {\n    width: 100%;\n  }", styles);
     }
 
     [Fact]
@@ -136,9 +136,9 @@ public sealed class CustomersPageMarkupTests
         var styles = ReadClientFile("wwwroot", "css", "_base.scss")
             .ReplaceLineEndings("\n");
 
-        Assert.Contains(".customer-delete-snackbar, .company-snackbar", styles);
+        Assert.Contains(".customer-delete-snackbar,\n.company-snackbar", styles);
         Assert.Contains("@media (prefers-reduced-motion: reduce)", styles);
-        Assert.Contains("transition-duration: .01ms !important;", styles);
+        Assert.Contains("transition-duration: 0.01ms !important;", styles);
     }
 
     [Fact]
