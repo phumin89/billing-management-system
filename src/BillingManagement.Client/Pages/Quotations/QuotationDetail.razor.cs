@@ -1,7 +1,6 @@
 using BillingManagement.Client.BillingDocuments;
 using BillingManagement.Contracts.BillingDocuments;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 
 namespace BillingManagement.Client.Pages.Quotations;
 
@@ -10,7 +9,6 @@ public partial class QuotationDetail
     [Parameter] public Guid Id { get; set; }
     [Inject] private BillingDocumentClient Client { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
-    [Inject] private IJSRuntime JavaScript { get; set; } = default!;
     private QuotationResponse? item;
     private string invoiceNumber = $"INV-{DateTime.Today:yyyyMMdd}";
     private DateOnly invoiceDate = DateOnly.FromDateTime(DateTime.Today);
@@ -35,11 +33,6 @@ public partial class QuotationDetail
         catch (BillingDocumentClientException exception) { this.error = exception.Message; }
         catch (HttpRequestException) { this.error = "Could not create invoice. Check the API connection and try again."; }
         finally { this.isCreating = false; }
-    }
-
-    private async Task Print()
-    {
-        await this.JavaScript.InvokeVoidAsync("print");
     }
 
     private string SellerContacts()
