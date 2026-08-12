@@ -24,6 +24,7 @@ public sealed class BillingDocumentPdfRenderer
         return this.RenderDocument(new DocumentContent(
             "QUOTATION", quotation.Number, quotation.SellerCompanyName, quotation.SellerAddress,
             quotation.SellerTaxId, quotation.SellerPhone, quotation.SellerEmail, quotation.SellerWebsite,
+            quotation.SellerRegistrationNumber,
             "PREPARED FOR", quotation.CustomerName, quotation.CustomerAddress, quotation.CustomerTaxId,
             "ISSUE DATE", quotation.IssueDate, "VALID UNTIL", quotation.ValidUntil, quotation.Currency,
             quotation.Items, quotation.Subtotal, quotation.TaxTotal, quotation.Total, "Total",
@@ -35,6 +36,7 @@ public sealed class BillingDocumentPdfRenderer
         return this.RenderDocument(new DocumentContent(
             "INVOICE", invoice.Number, invoice.SellerCompanyName, invoice.SellerAddress,
             invoice.SellerTaxId, invoice.SellerPhone, invoice.SellerEmail, invoice.SellerWebsite,
+            invoice.SellerRegistrationNumber,
             "BILL TO", invoice.CustomerName, invoice.CustomerAddress, invoice.CustomerTaxId,
             "ISSUE DATE", invoice.IssueDate, "PAYMENT DUE", invoice.DueDate, invoice.Currency,
             invoice.Items, invoice.Subtotal, invoice.TaxTotal, invoice.Total, "Total due",
@@ -46,6 +48,7 @@ public sealed class BillingDocumentPdfRenderer
         var document = this.CreateDocument(content);
         var renderer = new PdfDocumentRenderer { Document = document };
         renderer.RenderDocument();
+        renderer.PdfDocument.Info.Creator = "Billing Management";
         using var stream = new MemoryStream();
         renderer.PdfDocument.Save(stream, false);
         return stream.ToArray();
@@ -54,6 +57,7 @@ public sealed class BillingDocumentPdfRenderer
     private Document CreateDocument(DocumentContent content)
     {
         var document = new Document();
+        ConfigureDocumentInfo(document, content);
         this.ConfigureStyles(document);
         var section = document.AddSection();
         section.PageSetup.PageFormat = PageFormat.A4;
@@ -61,6 +65,7 @@ public sealed class BillingDocumentPdfRenderer
         section.PageSetup.BottomMargin = Unit.FromMillimeter(18);
         section.PageSetup.LeftMargin = Unit.FromMillimeter(18);
         section.PageSetup.RightMargin = Unit.FromMillimeter(18);
+        AddPageFooter(section);
         this.AddHeader(section, content);
         this.AddCustomer(section, content);
         this.AddItems(section, content);
@@ -101,6 +106,10 @@ public sealed class BillingDocumentPdfRenderer
         seller.AddParagraph(JoinContact(content.SellerPhone, content.SellerEmail));
         if (!string.IsNullOrWhiteSpace(content.SellerWebsite)) seller.AddParagraph(content.SellerWebsite);
         if (!string.IsNullOrWhiteSpace(content.SellerTaxId)) seller.AddParagraph($"Tax ID: {content.SellerTaxId}");
+        if (!string.IsNullOrWhiteSpace(content.SellerRegistrationNumber))
+        {
+            seller.AddParagraph($"Registration: {content.SellerRegistrationNumber}");
+        }
         var rule = section.AddParagraph();
         rule.Format.SpaceBefore = Unit.FromPoint(22);
         rule.Format.SpaceAfter = Unit.FromPoint(16);
@@ -136,6 +145,7 @@ public sealed class BillingDocumentPdfRenderer
         table.AddColumn(Unit.FromCentimeter(2.4));
         table.AddColumn(Unit.FromCentimeter(2.8));
         var header = table.AddRow();
+        header.HeadingFormat = true;
         header.Borders.Bottom.Width = Unit.FromPoint(1.25);
         header.Borders.Bottom.Color = Ink;
         AddHeaderCell(header.Cells[0], "DESCRIPTION", ParagraphAlignment.Left);
@@ -167,6 +177,7 @@ public sealed class BillingDocumentPdfRenderer
         AddTotalRow(table, "Subtotal", content.Subtotal.ToString("N2"), false);
         AddTotalRow(table, "Tax", content.TaxTotal.ToString("N2"), false);
         AddTotalRow(table, content.TotalLabel, $"{content.Total:N2} {content.Currency}", true);
+        table.Rows[0].KeepWith = 2;
     }
 
     private void AddSignatures(Section section, IReadOnlyList<string> signatures)
@@ -242,6 +253,31 @@ public sealed class BillingDocumentPdfRenderer
         return string.Join(" | ", values.Where(value => !string.IsNullOrWhiteSpace(value)));
     }
 
+    private static void ConfigureDocumentInfo(Document document, DocumentContent content)
+    {
+        document.Info.Title = $"{ToTitleCase(content.Type)} {content.Number}";
+        document.Info.Subject = $"{ToTitleCase(content.Type)} issued to {content.CustomerName}";
+        document.Info.Author = content.SellerName;
+        document.Info.Keywords = $"{content.Type.ToLowerInvariant()}, billing, {content.Number}";
+    }
+
+    private static void AddPageFooter(Section section)
+    {
+        var footer = section.Footers.Primary.AddParagraph();
+        footer.Format.Alignment = ParagraphAlignment.Right;
+        footer.Format.Font.Size = Unit.FromPoint(7);
+        footer.Format.Font.Color = Colors.Gray;
+        footer.AddText("Page ");
+        footer.AddPageField();
+        footer.AddText(" of ");
+        footer.AddNumPagesField();
+    }
+
+    private static string ToTitleCase(string value)
+    {
+        return char.ToUpperInvariant(value[0]) + value[1..].ToLowerInvariant();
+    }
+
     private static string LoadCompanyIcon()
     {
         const string resourceName = "BillingManagement.Api.Images.company-icon.png";
@@ -254,7 +290,8 @@ public sealed class BillingDocumentPdfRenderer
 
     private sealed record DocumentContent(
         string Type, string Number, string SellerName, string SellerAddress, string? SellerTaxId,
-        string? SellerPhone, string? SellerEmail, string? SellerWebsite, string CustomerLabel,
+        string? SellerPhone, string? SellerEmail, string? SellerWebsite, string? SellerRegistrationNumber,
+        string CustomerLabel,
         string CustomerName, string? CustomerAddress, string? CustomerTaxId, string FirstDateLabel,
         DateOnly FirstDate, string SecondDateLabel, DateOnly SecondDate, string Currency,
         IReadOnlyList<BillingDocumentItemRecord> Items, decimal Subtotal, decimal TaxTotal,
