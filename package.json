@@ -1,0 +1,15 @@
+{
+  "name": "billing-management-system-tooling",
+  "private": true,
+  "scripts": {
+    "format": "npm run format:dotnet && npm run format:prettier",
+    "format:dotnet": "dotnet format BillingManagement.slnx && dotnet format whitespace BillingManagement.slnx",
+    "format:prettier": "prettier --write \"**/*.{css,scss,js,json,md,yml,yaml,html}\"",
+    "check:format": "npm run check:dotnet && npm run check:prettier",
+    "check:dotnet": "dotnet format BillingManagement.slnx --verify-no-changes --no-restore && dotnet format whitespace BillingManagement.slnx --verify-no-changes --no-restore",
+    "check:prettier": "prettier --check \"**/*.{css,scss,js,json,md,yml,yaml,html}\""
+  },
+  "devDependencies": {
+    "prettier": "3.9.6"
+  }
+}

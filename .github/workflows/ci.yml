@@ -33,11 +33,26 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install formatting tools
+        run: npm ci
+
       - name: Restore
         run: dotnet restore BillingManagement.slnx
 
-      - name: Format gate
+      - name: .NET format gate
         run: dotnet format BillingManagement.slnx --verify-no-changes --no-restore
+
+      - name: Razor and project whitespace gate
+        run: dotnet format whitespace BillingManagement.slnx --verify-no-changes --no-restore
+
+      - name: Frontend and documentation format gate
+        run: npm run check:prettier
 
       - name: Frontend build
         run: dotnet build src/BillingManagement.Client/BillingManagement.Client.csproj --configuration Release --no-restore

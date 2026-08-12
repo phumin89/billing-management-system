@@ -6,14 +6,14 @@ nearest `AGENTS.md` as well.
 
 ## Scoped Instructions
 
-| Scope | Additional instructions |
-| --- | --- |
-| `src/**` | `src/AGENTS.md` |
+| Scope                                           | Additional instructions                                |
+| ----------------------------------------------- | ------------------------------------------------------ |
+| `src/**`                                        | `src/AGENTS.md`                                        |
 | `src/BillingManagement.Application.Handlers/**` | `src/BillingManagement.Application.Handlers/AGENTS.md` |
-| `src/BillingManagement.Client/**` | `src/BillingManagement.Client/AGENTS.md` |
-| `src/BillingManagement.Api/**` | `src/BillingManagement.Api/AGENTS.md` |
-| `src/BillingManagement.Infrastructure/**` | `src/BillingManagement.Infrastructure/AGENTS.md` |
-| `tests/**` | `tests/AGENTS.md` |
+| `src/BillingManagement.Client/**`               | `src/BillingManagement.Client/AGENTS.md`               |
+| `src/BillingManagement.Api/**`                  | `src/BillingManagement.Api/AGENTS.md`                  |
+| `src/BillingManagement.Infrastructure/**`       | `src/BillingManagement.Infrastructure/AGENTS.md`       |
+| `tests/**`                                      | `tests/AGENTS.md`                                      |
 
 Do not create `AGENTS.override.md`; scoped rules should extend repository rules.
 
