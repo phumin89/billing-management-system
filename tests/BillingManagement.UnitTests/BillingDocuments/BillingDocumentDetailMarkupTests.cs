@@ -43,6 +43,28 @@ public sealed class BillingDocumentDetailMarkupTests
         Assert.Contains("Quantity.ToString(\"0.##\")", markup);
     }
 
+    [Theory]
+    [InlineData("Quotations", "QuotationDetail.razor")]
+    [InlineData("Invoices", "InvoiceDetail.razor")]
+    public void Document_downloads_a_generated_pdf_instead_of_opening_browser_print(string feature, string fileName)
+    {
+        var markup = ReadClientFile("Pages", feature, fileName);
+
+        Assert.Contains("Download PDF", markup);
+        Assert.Contains("download>Download PDF", markup);
+        Assert.DoesNotContain("Print / Save PDF", markup);
+    }
+
+    [Theory]
+    [InlineData("Quotations", "QuotationDetail.razor", "/api/quotations/")]
+    [InlineData("Invoices", "InvoiceDetail.razor", "/api/invoices/")]
+    public void Document_pdf_link_is_root_relative(string feature, string fileName, string route)
+    {
+        var markup = ReadClientFile("Pages", feature, fileName);
+
+        Assert.Contains($"$\"{route}{{Id}}/pdf\"", markup);
+    }
+
     private static string ReadClientFile(params string[] segments)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

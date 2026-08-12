@@ -1,3 +1,4 @@
+using BillingManagement.Api.BillingDocuments;
 using BillingManagement.Application.Abstractions.BillingDocuments;
 using BillingManagement.Application.BillingDocuments.CreateInvoice;
 using BillingManagement.Application.BillingDocuments.GetInvoice;
@@ -10,7 +11,7 @@ namespace BillingManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/invoices")]
-public sealed class InvoicesController(ISender sender) : ControllerBase
+public sealed class InvoicesController(ISender sender, BillingDocumentPdfRenderer pdfRenderer) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<InvoiceResponse>>> List(CancellationToken cancellationToken)
@@ -24,6 +25,19 @@ public sealed class InvoicesController(ISender sender) : ControllerBase
     {
         var result = await sender.Send(new GetInvoiceQuery(id), cancellationToken);
         return result.Invoice is null ? this.NotFound() : this.Ok(ToResponse(result.Invoice));
+    }
+
+    [HttpGet("{id:guid}/pdf")]
+    public async Task<IActionResult> DownloadPdf(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetInvoiceQuery(id), cancellationToken);
+        if (result.Invoice is null)
+        {
+            return this.NotFound();
+        }
+
+        var fileName = $"{result.Invoice.Number}.pdf";
+        return this.File(pdfRenderer.Render(result.Invoice), "application/pdf", fileName);
     }
 
     [HttpPost]

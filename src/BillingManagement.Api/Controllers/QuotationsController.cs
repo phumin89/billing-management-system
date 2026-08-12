@@ -1,3 +1,4 @@
+using BillingManagement.Api.BillingDocuments;
 using BillingManagement.Application.Abstractions.BillingDocuments;
 using BillingManagement.Application.BillingDocuments.CreateQuotation;
 using BillingManagement.Application.BillingDocuments.GetQuotation;
@@ -10,7 +11,7 @@ namespace BillingManagement.Api.Controllers;
 
 [ApiController]
 [Route("api/quotations")]
-public sealed class QuotationsController(ISender sender) : ControllerBase
+public sealed class QuotationsController(ISender sender, BillingDocumentPdfRenderer pdfRenderer) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<QuotationResponse>>> List(CancellationToken cancellationToken)
@@ -24,6 +25,19 @@ public sealed class QuotationsController(ISender sender) : ControllerBase
     {
         var result = await sender.Send(new GetQuotationQuery(id), cancellationToken);
         return result.Quotation is null ? this.NotFound() : this.Ok(ToResponse(result.Quotation));
+    }
+
+    [HttpGet("{id:guid}/pdf")]
+    public async Task<IActionResult> DownloadPdf(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new GetQuotationQuery(id), cancellationToken);
+        if (result.Quotation is null)
+        {
+            return this.NotFound();
+        }
+
+        var fileName = $"{result.Quotation.Number}.pdf";
+        return this.File(pdfRenderer.Render(result.Quotation), "application/pdf", fileName);
     }
 
     [HttpPost]

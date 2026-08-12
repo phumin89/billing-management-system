@@ -11,7 +11,7 @@
         </div>
     }
     else {
-        <div class="document-actions no-print"><a class="back-link" href="/quotations">Back to register</a><button class="primary-button" type="button" @onclick="Print">Print / Save PDF</button></div>
+        <div class="document-actions no-print"><a class="back-link" href="/quotations">Back to register</a><a class="primary-button" href="@($"/api/quotations/{Id}/pdf")" download>Download PDF</a></div>
         <article class="billing-document">
             <header><div class="document-title"><h1>Quotation</h1><span class="document-reference"># @item.Number</span></div><section class="document-issuer"><img src="/images/company-profile/company-icon.svg" alt="Company logo" width="48" height="48" /><div><strong>@item.SellerCompanyName</strong><p>@item.SellerAddress</p><p>@SellerContacts()</p>@if (item.SellerTaxId is not null) { <p>Tax ID: @item.SellerTaxId</p> }</div></section></header>
             <div class="document-parties"><section class="document-customer"><h2>Prepared for</h2><strong>@item.CustomerName</strong><p>@item.CustomerAddress</p>@if (item.CustomerTaxId is not null) { <p>Tax ID: @item.CustomerTaxId</p> }</section><dl class="document-meta"><div><dt>Issue date</dt><dd>@item.IssueDate.ToString("dd MMM yyyy")</dd></div><div><dt>Valid until</dt><dd>@item.ValidUntil.ToString("dd MMM yyyy")</dd></div></dl></div>

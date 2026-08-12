@@ -14,6 +14,13 @@
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
     <PackageReference Include="Microsoft.OpenApi" Version="2.10.0" />
+    <PackageReference Include="PDFsharp-MigraDoc" Version="6.2.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\BillingManagement.Client\wwwroot\fonts\dm-sans-regular.ttf" LogicalName="BillingManagement.Api.Fonts.dm-sans-regular.ttf" />
+    <EmbeddedResource Include="..\BillingManagement.Client\wwwroot\fonts\dm-sans-bold.ttf" LogicalName="BillingManagement.Api.Fonts.dm-sans-bold.ttf" />
+    <EmbeddedResource Include="BillingDocuments\company-icon.png" LogicalName="BillingManagement.Api.Images.company-icon.png" />
   </ItemGroup>
 
   <ItemGroup>

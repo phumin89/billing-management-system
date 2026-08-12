@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddSingleton<BillingManagement.Api.BillingDocuments.BillingDocumentPdfRenderer>();
 builder.Services.AddProblemDetails();
 builder.Services.AddBillingManagementApplication();
 builder.Services.AddBillingManagementMediator();
