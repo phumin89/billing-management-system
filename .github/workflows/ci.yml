@@ -1,4 +1,4 @@
-name: Frontend and Backend Validation
+name: CI
 
 on:
   pull_request:
@@ -6,10 +6,97 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build-test:
-    name: Build and test
+  formatting:
+    name: 1 · Formatting
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install formatting tools
+        run: npm ci
+
+      - name: Restore .NET tools and projects
+        run: dotnet restore BillingManagement.slnx
+
+      - name: Check .NET formatting
+        run: dotnet format BillingManagement.slnx --verify-no-changes --no-restore
+
+      - name: Check Razor and project whitespace
+        run: dotnet format whitespace BillingManagement.slnx --verify-no-changes --no-restore
+
+      - name: Check frontend and documentation formatting
+        run: npm run check:prettier
+
+  build:
+    name: 2 · Build
+    needs: formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Restore solution
+        run: dotnet restore BillingManagement.slnx
+
+      - name: Build solution
+        run: dotnet build BillingManagement.slnx --configuration Release --no-restore
+
+  unit-tests:
+    name: 3A · Unit tests
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.400
+
+      - name: Restore solution
+        run: dotnet restore BillingManagement.slnx
+
+      - name: Run unit tests
+        run: >-
+          dotnet test tests/BillingManagement.UnitTests/BillingManagement.UnitTests.csproj
+          --configuration Release
+          --no-restore
+          --verbosity normal
+
+  integration-tests:
+    name: 3B · Integration tests
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     services:
       sqlserver:
         image: mcr.microsoft.com/mssql/server:2022-latest
@@ -23,48 +110,21 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 12
-
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 10.0.400
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-
-      - name: Install formatting tools
-        run: npm ci
-
-      - name: Restore
+      - name: Restore solution
         run: dotnet restore BillingManagement.slnx
 
-      - name: .NET format gate
-        run: dotnet format BillingManagement.slnx --verify-no-changes --no-restore
-
-      - name: Razor and project whitespace gate
-        run: dotnet format whitespace BillingManagement.slnx --verify-no-changes --no-restore
-
-      - name: Frontend and documentation format gate
-        run: npm run check:prettier
-
-      - name: Frontend build
-        run: dotnet build src/BillingManagement.Client/BillingManagement.Client.csproj --configuration Release --no-restore
-
-      - name: Frontend tests (not configured)
-        run: echo "No frontend test project exists yet. Add one under tests/ when frontend test coverage is introduced."
-
-      - name: Backend/full solution build
-        run: dotnet build BillingManagement.slnx --configuration Release --no-restore
-
-      - name: Backend unit tests
-        run: dotnet test tests/BillingManagement.UnitTests/BillingManagement.UnitTests.csproj --configuration Release --no-build --verbosity normal
-
-      - name: Integration tests
-        run: dotnet test tests/BillingManagement.IntegrationTests/BillingManagement.IntegrationTests.csproj --configuration Release --no-build --verbosity normal
+      - name: Run integration tests
+        run: >-
+          dotnet test tests/BillingManagement.IntegrationTests/BillingManagement.IntegrationTests.csproj
+          --configuration Release
+          --no-restore
+          --verbosity normal
