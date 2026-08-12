@@ -125,8 +125,8 @@ public sealed class CustomersPageMarkupTests
         var markup = ReadClientFile("Pages", "Customers", "Customers.razor");
 
         Assert.Contains("@onclick=\"() => BeginDelete(customer)\"", markup);
-        Assert.Contains("Delete customer? You can create a new customer later.", markup);
-        Assert.Contains("Delete is blocked when quotations or invoices use this customer.", markup);
+        Assert.Contains("Delete customer?", markup);
+        Assert.Contains("Customers already used by a quotation or invoice cannot be deleted.", markup);
         Assert.Contains("@onclick=\"CloseDeleteSnackbar\"", markup);
         Assert.Contains("disabled=\"@isDeleting\"", markup);
         Assert.Contains("Deleting...", markup);

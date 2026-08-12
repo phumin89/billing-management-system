@@ -75,15 +75,15 @@ public sealed class InvoicesController(ISender sender, BillingDocumentPdfRendere
     [HttpPost]
     public async Task<ActionResult<InvoiceResponse>> Create(CreateInvoiceRequest request, CancellationToken cancellationToken)
     {
-        var id = Guid.NewGuid();
-        var result = await sender.Send(new CreateInvoiceCommand(id, request.Number!, request.QuotationId, request.IssueDate, request.DueDate), cancellationToken);
+        var command = CreateInvoiceCommand.New(request.Number!, request.QuotationId, request.IssueDate, request.DueDate);
+        var result = await sender.Send(command, cancellationToken);
         if (!result.Success)
         {
             return this.ToProblemDetails(result);
         }
 
-        var created = await sender.Send(new GetInvoiceQuery(id), cancellationToken);
-        return this.CreatedAtAction(nameof(this.Get), new { id }, ToResponse(created.Invoice!));
+        var created = await sender.Send(new GetInvoiceQuery(command.Id), cancellationToken);
+        return this.CreatedAtAction(nameof(this.Get), new { id = command.Id }, ToResponse(created.Invoice!));
     }
 
     [HttpPost("{id:guid}/mark-paid")]

@@ -9,4 +9,12 @@ public sealed record CreateInvoiceCommand(
     [property: TrimmedMaxLength(50)] string Number,
     Guid QuotationId,
     DateOnly IssueDate,
-    DateOnly DueDate) : ICommand;
+    DateOnly DueDate) : ICommand
+{
+    public static CreateInvoiceCommand New(
+        string number,
+        Guid quotationId,
+        DateOnly issueDate,
+        DateOnly dueDate) =>
+        new(Guid.NewGuid(), number, quotationId, issueDate, dueDate);
+}

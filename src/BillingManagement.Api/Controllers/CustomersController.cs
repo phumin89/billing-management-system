@@ -36,10 +36,7 @@ public sealed class CustomersController(
         CreateCustomerRequest request,
         CancellationToken cancellationToken)
     {
-        var customerId = Guid.NewGuid();
-        var result = await sender.Send(
-            new CreateCustomerCommand(
-                customerId,
+        var command = CreateCustomerCommand.New(
                 request.CustomerName ?? string.Empty,
                 request.TaxId,
                 request.Email,
@@ -50,15 +47,15 @@ public sealed class CustomersController(
                 request.PostalCode,
                 request.Country,
                 request.ContactName,
-                request.Notes),
-            cancellationToken);
+                request.Notes);
+        var result = await sender.Send(command, cancellationToken);
 
         if (!result.Success)
         {
             return this.ToProblemDetails(result);
         }
 
-        var customer = await sender.Send(new GetCustomerQuery(customerId), cancellationToken);
+        var customer = await sender.Send(new GetCustomerQuery(command.Id), cancellationToken);
         var response = ToResponse(customer.Customer!);
         return this.StatusCode(StatusCodes.Status201Created, response);
     }

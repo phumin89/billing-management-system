@@ -31,4 +31,20 @@ public sealed record CreateCustomerCommand(
     [property: TrimmedMaxLength(CustomerConstraints.ContactNameMaxLength)]
     string? ContactName,
     [property: TrimmedMaxLength(CustomerConstraints.NotesMaxLength)]
-    string? Notes) : ICommand;
+    string? Notes) : ICommand
+{
+    public static CreateCustomerCommand New(
+        string customerName,
+        string? taxId,
+        string? email,
+        string? phone,
+        string? billingAddressLine1,
+        string? billingAddressLine2,
+        string? cityProvinceState,
+        string? postalCode,
+        string? country,
+        string? contactName,
+        string? notes) =>
+        new(Guid.NewGuid(), customerName, taxId, email, phone, billingAddressLine1,
+            billingAddressLine2, cityProvinceState, postalCode, country, contactName, notes);
+}
