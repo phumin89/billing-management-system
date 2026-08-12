@@ -773,6 +773,10 @@ button:disabled {
   border-bottom: 1px solid var(--rule);
 }
 
+.customer-filter {
+  grid-template-columns: minmax(240px, 1fr) auto;
+}
+
 .document-filter label {
   display: grid;
   gap: 6px;

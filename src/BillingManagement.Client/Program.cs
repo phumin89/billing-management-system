@@ -9,10 +9,9 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-var clientBaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
-var apiBaseAddress = clientBaseAddress.Port == 5080
-    ? new Uri("http://localhost:5081/")
-    : new Uri("http://localhost:5170/");
+var apiBaseAddress = builder.HostEnvironment.IsDevelopment()
+    ? new Uri("http://localhost:5170/")
+    : new Uri(builder.HostEnvironment.BaseAddress);
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = apiBaseAddress });
 builder.Services.AddScoped<CustomerClient>();

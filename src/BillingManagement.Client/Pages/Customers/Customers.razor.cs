@@ -34,6 +34,11 @@ public partial class Customers
     private bool deleteMessageIsError;
     private bool showDeleteSnackbar;
     private bool snackbarClosing;
+    private string searchText = string.Empty;
+    private int pageNumber = 1;
+    private int totalCount;
+    private const int PageSize = 20;
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(this.totalCount / (double)PageSize));
 
     [Inject]
     private CustomerClient Client { get; set; } = default!;
@@ -49,6 +54,7 @@ public partial class Customers
     {
         if (this.CustomerState.IsLoaded)
         {
+            this.totalCount = this.CustomerState.Customers.Count;
             return;
         }
 
@@ -68,7 +74,7 @@ public partial class Customers
         this.loadError = null;
         try
         {
-            var result = await this.Client.List();
+            var result = await this.Client.List(this.searchText, this.pageNumber, PageSize);
             if (!result.Succeeded)
             {
                 this.loadError = result.Message;
@@ -76,11 +82,31 @@ public partial class Customers
             }
 
             this.CustomerState.ReplaceAll(result.Customers);
+            this.pageNumber = result.PageNumber;
+            this.totalCount = result.TotalCount;
         }
         finally
         {
             this.isLoading = false;
         }
+    }
+
+    private async Task ApplySearch()
+    {
+        this.pageNumber = 1;
+        await this.LoadCustomers();
+    }
+
+    private async Task PreviousPage()
+    {
+        this.pageNumber--;
+        await this.LoadCustomers();
+    }
+
+    private async Task NextPage()
+    {
+        this.pageNumber++;
+        await this.LoadCustomers();
     }
 
     private void BeginEdit(CustomerResponse customer)
@@ -139,6 +165,7 @@ public partial class Customers
             if (result.ShouldRemoveCustomer)
             {
                 this.CustomerState.Remove(customerId);
+                this.totalCount = Math.Max(0, this.totalCount - 1);
             }
 
             this.deleteMessage = result.Message;

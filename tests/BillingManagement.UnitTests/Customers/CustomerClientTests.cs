@@ -37,6 +37,31 @@ public sealed class CustomerClientTests
     }
 
     [Fact]
+    public async Task List_sends_search_and_page_and_reads_pagination_headers()
+    {
+        string? requestUri = null;
+        var response = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = JsonContent.Create(Array.Empty<CustomerResponse>())
+        };
+        response.Headers.Add("X-Page-Number", "2");
+        response.Headers.Add("X-Page-Size", "20");
+        response.Headers.Add("X-Total-Count", "41");
+        var client = CreateClient(request =>
+        {
+            requestUri = request.RequestUri?.ToString();
+            return Task.FromResult(response);
+        });
+
+        var result = await client.List("Acme & Co", 2, 20);
+
+        Assert.Equal("http://localhost/api/customers?searchText=Acme %26 Co&pageNumber=2&pageSize=20", requestUri);
+        Assert.Equal(2, result.PageNumber);
+        Assert.Equal(20, result.PageSize);
+        Assert.Equal(41, result.TotalCount);
+    }
+
+    [Fact]
     public async Task List_returns_retry_message_for_unexpected_or_network_failure()
     {
         var unexpected = await CreateClient(new HttpResponseMessage(HttpStatusCode.InternalServerError)).List();
