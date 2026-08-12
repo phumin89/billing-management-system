@@ -3,4 +3,8 @@ using BillingManagement.Application.Abstractions.Results;
 
 namespace BillingManagement.Application.BillingDocuments.ListInvoices;
 
-public sealed record ListInvoicesResult(IReadOnlyList<InvoiceRecord> Items) : IQueryResult;
+public sealed record ListInvoicesResult(
+    IReadOnlyList<InvoiceRecord> Items,
+    int PageNumber,
+    int PageSize,
+    int TotalCount) : IQueryResult;

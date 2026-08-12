@@ -22,7 +22,9 @@ public static class ServiceCollectionExtensions
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<IOwnerCompanyProfileStore, OwnerCompanyProfileStore>();
-        services.AddScoped<IBillingDocumentStore, BillingDocumentStore>();
+        services.AddScoped<BillingDocumentStore>();
+        services.AddScoped<IBillingDocumentStore>(provider => provider.GetRequiredService<BillingDocumentStore>());
+        services.AddScoped<IBillingDocumentQueries>(provider => provider.GetRequiredService<BillingDocumentStore>());
         services.AddScoped<CustomerStore>();
         services.AddScoped<ICustomerStore>(provider => provider.GetRequiredService<CustomerStore>());
         services.AddScoped<ICustomerQueries>(provider => provider.GetRequiredService<CustomerStore>());

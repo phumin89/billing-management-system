@@ -4,10 +4,14 @@ using BillingManagement.Application.BillingDocuments.ListInvoices;
 
 namespace BillingManagement.Application.BillingDocuments.ListInvoices;
 
-public sealed class ListInvoicesHandler(IBillingDocumentStore store) : IQueryHandler<ListInvoicesQuery, ListInvoicesResult>
+public sealed class ListInvoicesHandler(IBillingDocumentQueries queries) : IQueryHandler<ListInvoicesQuery, ListInvoicesResult>
 {
     public async ValueTask<ListInvoicesResult> Handle(ListInvoicesQuery query, CancellationToken cancellationToken = default)
     {
-        return new ListInvoicesResult(await store.ListInvoices(cancellationToken));
+        var page = await queries.SearchInvoices(
+            new InvoiceSearchCriteria(query.SearchText, query.Status, query.Today),
+            new PageRequest(query.PageNumber, query.PageSize),
+            cancellationToken);
+        return new ListInvoicesResult(page.Items, page.PageNumber, page.PageSize, page.TotalCount);
     }
 }

@@ -11,19 +11,20 @@
             </div>
             @if (!isLoading && error is null)
             {
-                <span class="document-register-count">@items.Count @(items.Count == 1 ? "invoice" : "invoices")</span>
+                <span class="document-register-count">@TotalCount @(TotalCount == 1 ? "invoice" : "invoices")</span>
             }
         </header>
-        @if (!isLoading && error is null && items.Count > 0)
+        @if (!isLoading && error is null)
         {
-            <div class="invoice-toolbar" aria-label="Invoice filters">
+            <form class="document-filter" aria-label="Invoice filters" @onsubmit="ApplyFilters" @onsubmit:preventDefault>
                 <label><span>Search invoices</span><input type="search" @bind="searchText" @bind:event="oninput" placeholder="Reference or customer" /></label>
                 <label><span>Status</span><select @bind="statusFilter"><option>All</option><option>Issued</option><option>Overdue</option><option>Paid</option><option>Cancelled</option></select></label>
-            </div>
+                <button type="submit">Apply filters</button>
+            </form>
         }
         @if (isLoading) { <div class="document-state" role="status"><strong>Opening the archive</strong><span>Loading invoice records...</span></div> }
         else if (error is not null) { <div class="document-state is-error" role="alert"><strong>The archive could not be opened</strong><span>@error</span></div> }
-        else if (items.Count == 0) { <div class="document-state"><strong>No invoices filed yet</strong><span>Open a quotation when it is ready to become an invoice.</span><a class="text-link" href="/quotations">Open quotation register</a></div> }
+        else if (items.Count == 0) { <div class="document-state"><strong>@(FiltersApplied ? "No matching invoices" : "No invoices filed yet")</strong><span>@(FiltersApplied ? "Try a different reference, customer, or status." : "Open a quotation when it is ready to become an invoice.")</span>@if (!FiltersApplied) { <a class="text-link" href="/quotations">Open quotation register</a> }</div> }
         else
         {
             <div class="document-table-wrap" tabindex="0" aria-label="Invoice list">
@@ -38,7 +39,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in FilteredItems)
+                        @foreach (var item in items)
                         {
                             <tr>
                                 <td><a href="@($"/invoices/{item.Id}")">@item.Number</a></td>
@@ -51,6 +52,11 @@
                     </tbody>
                 </table>
             </div>
+            <nav class="document-pagination" aria-label="Invoice pages">
+                <button type="button" @onclick="PreviousPage" disabled="@(pageNumber == 1)">Previous</button>
+                <span>Page @pageNumber of @TotalPages</span>
+                <button type="button" @onclick="NextPage" disabled="@(pageNumber >= TotalPages)">Next</button>
+            </nav>
         }
     </section>
 </main>

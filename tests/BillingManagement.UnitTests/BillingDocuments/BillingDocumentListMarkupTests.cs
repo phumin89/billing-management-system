@@ -18,6 +18,9 @@ public sealed class BillingDocumentListMarkupTests
         Assert.Contains("<th scope=\"col\">Customer</th>", markup);
         Assert.Contains("<th scope=\"col\">Issued</th>", markup);
         Assert.Contains("<th scope=\"col\">Value</th>", markup);
+        Assert.Contains("class=\"document-filter\"", markup);
+        Assert.Contains("class=\"document-pagination\"", markup);
+        Assert.Contains("Page @pageNumber of @TotalPages", markup);
         Assert.DoesNotContain("document-list-item", markup);
     }
 
