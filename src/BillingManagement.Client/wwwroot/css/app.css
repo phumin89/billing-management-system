@@ -1649,19 +1649,46 @@ tbody tr:hover {
   right: 28px;
   bottom: 28px;
   z-index: 50;
-  width: min(460px, 100vw - 56px);
-  padding: 18px;
-  color: var(--sheet);
-  background: var(--ink);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.2);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px;
+  width: min(560px, 100vw - 56px);
+  padding: 20px;
+  color: var(--ink);
+  background: var(--sheet);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(24, 29, 38, 0.16);
+  animation: snackbar-slide-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.customer-delete-snackbar p,
-.company-snackbar p {
-  color: inherit;
+.customer-delete-snackbar.is-closing,
+.company-snackbar.is-closing {
+  animation: snackbar-slide-out 180ms cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
 }
 
-.customer-delete-snackbar-actions {
+.snackbar-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.snackbar-copy strong {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.snackbar-copy p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.customer-delete-snackbar-actions,
+.company-snackbar-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -1669,17 +1696,72 @@ tbody tr:hover {
 
 .customer-delete-snackbar button,
 .company-snackbar button {
-  min-height: 36px;
-  padding: 7px 11px;
+  min-height: 44px;
+  padding: 10px 16px;
+  color: var(--ink);
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  font-weight: 500;
 }
 
 .customer-delete-snackbar .danger,
 .company-snackbar .danger {
-  color: white;
-  background: var(--danger);
-  border: 1px solid var(--danger);
+  color: var(--sheet);
+  background: var(--ink);
+  border-color: var(--ink);
 }
 
+@keyframes snackbar-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes snackbar-slide-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+@media (max-width: 640px) {
+  .customer-delete-snackbar,
+  .company-snackbar {
+    right: 16px;
+    bottom: 16px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    width: calc(100vw - 32px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .customer-delete-snackbar,
+  .company-snackbar {
+    animation-name: snackbar-fade-in;
+  }
+  .customer-delete-snackbar.is-closing,
+  .company-snackbar.is-closing {
+    animation-name: snackbar-fade-out;
+  }
+}
+@keyframes snackbar-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes snackbar-fade-out {
+  to {
+    opacity: 0;
+  }
+}
 .valid.modified:not([type=checkbox]) {
   outline: 1px solid var(--success);
 }

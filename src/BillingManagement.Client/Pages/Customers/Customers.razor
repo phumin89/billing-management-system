@@ -131,8 +131,11 @@
 
     @if (showDeleteSnackbar)
     {
-        <div class="@DeleteSnackbarClass" role="status" aria-label="Delete customer confirmation">
-            <p>Delete customer? You can create a new customer later. Delete is blocked when quotations or invoices use this customer.</p>
+        <div class="@DeleteSnackbarClass" role="dialog" aria-labelledby="customer-delete-title" aria-describedby="customer-delete-description">
+            <div class="snackbar-copy">
+                <strong id="customer-delete-title">Delete customer?</strong>
+                <p id="customer-delete-description">You can create a new customer later. Customers already used by a quotation or invoice cannot be deleted.</p>
+            </div>
             <div class="customer-delete-snackbar-actions">
                 <button type="button" @onclick="CloseDeleteSnackbar">Cancel</button>
                 <button type="button" class="danger" disabled="@isDeleting" @onclick="ConfirmDelete">
