@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 var connectionString =
     Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") ??
-    "Server=localhost,14333;Database=BillingManagement;User Id=sa;Password=Billing_dev_2026!;TrustServerCertificate=True;MultipleActiveResultSets=True";
+    throw new InvalidOperationException("ConnectionStrings__DefaultConnection is required.");
 
 var options = new DbContextOptionsBuilder<BillingManagementDbContext>()
     .UseSqlServer(connectionString)

@@ -18,8 +18,14 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException("DefaultConnection is required.");
+        }
+
         services.AddDbContext<BillingManagementDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(connectionString));
 
         services.AddScoped<IOwnerCompanyProfileStore, OwnerCompanyProfileStore>();
         services.AddScoped<BillingDocumentStore>();

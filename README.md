@@ -8,7 +8,8 @@ Billing Management System is a small Blazor WebAssembly and ASP.NET Core app for
 - Customer records for quotation/invoice selection.
 - Quotations with line items and totals.
 - Invoices created from quotations.
-- HTML/print-style PDF download for quotations and invoices.
+- Server-rendered PDF downloads for quotations and invoices.
+- Invoice status, payment recording, cancellation, search, filters, and dashboard summaries.
 
 ## Billing Workflow
 
@@ -16,14 +17,15 @@ Billing Management System is a small Blazor WebAssembly and ASP.NET Core app for
 2. Create a customer.
 3. Create a quotation with one or more line items, prices, and tax rates.
 4. Open the quotation and create its invoice.
-5. Open either document and select **Print / Save PDF**.
+5. Download either document as PDF.
+6. Track the invoice until it is paid or cancelled.
 
 Quotations snapshot seller details, customer details, currency, line items, prices, and tax
 at creation time. Invoices copy that snapshot from their quotation, so later profile or
 customer edits do not rewrite historical documents. One invoice can be created from each
 quotation, and document numbers must be unique within their document type.
 
-Out of scope for the current MVP: payments, dashboard, multi-role permissions, multi-company tenancy, receipt/credit/debit notes, advanced tax/currency workflows, and generic audit/versioning.
+Out of scope for the current MVP: partial payments, multi-role permissions, multi-company tenancy, receipt/credit/debit notes, advanced tax/currency workflows, and generic audit/versioning.
 
 ## Architecture
 
@@ -63,20 +65,32 @@ Prerequisites: Docker Desktop.
 docker compose up --build
 ```
 
-Run migrations when needed:
-
-```powershell
-docker compose --profile tools run --rm migrator
-```
+The Compose stack waits for SQL Server, applies migrations, starts the API after migration succeeds,
+and starts the client after the API reports ready.
 
 Local URLs:
 
 - Client: http://localhost:5080
 - API: http://localhost:5081
+- API liveness: http://localhost:5081/health/live
+- API readiness: http://localhost:5081/health/ready
 - SQL Server: localhost,14333
 - OpenAPI JSON in development: http://localhost:5081/openapi/v1.json
 
 Default local SQL password comes from `BMS_DB_PASSWORD`; Docker Compose has a dev fallback. Do not use the fallback for production.
+
+## Production Docker Setup
+
+Copy `.env.example` to `.env`, replace the SQL Server password, then run:
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.production.yml up -d --build
+```
+
+The production override removes host exposure for the API and SQL Server; the client proxies
+`/api` requests to the internal API. Back up both named volumes before upgrades. Authentication
+and multi-user authorization are intentionally outside this single-workspace MVP, so deploy it
+only behind an authenticated private network or access gateway.
 
 ## Development Workflow
 
