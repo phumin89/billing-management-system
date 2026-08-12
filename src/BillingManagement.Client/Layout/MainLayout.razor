@@ -78,7 +78,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     private const string NavCompany = "company";
 
     private bool collapsed;
-    private string activeNav = NavCustomers;
+    private string activeNav = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -119,8 +119,16 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
             return NavQuotations;
         }
 
-        return path.StartsWith("invoices", StringComparison.OrdinalIgnoreCase)
-            ? NavInvoices
-            : NavCustomers;
+        if (path.StartsWith("customers", StringComparison.OrdinalIgnoreCase))
+        {
+            return NavCustomers;
+        }
+
+        if (path.StartsWith("invoices", StringComparison.OrdinalIgnoreCase))
+        {
+            return NavInvoices;
+        }
+
+        return string.Empty;
     }
 }

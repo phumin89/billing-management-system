@@ -13,4 +13,8 @@ public interface IBillingDocumentQueries
         InvoiceSearchCriteria criteria,
         PageRequest page,
         CancellationToken cancellationToken = default);
+
+    Task<InvoiceDashboardRecord> GetInvoiceDashboard(
+        DateOnly today,
+        CancellationToken cancellationToken = default);
 }
