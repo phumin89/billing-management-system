@@ -30,11 +30,13 @@
 ### Task 1: Baseline Documentation
 
 **Files:**
+
 - Create: `docs/superpowers/specs/2026-06-28-project-structure-design.md`
 - Create: `docs/superpowers/plans/2026-06-28-project-structure.md`
 - Modify: `AGENTS.md`
 
 **Interfaces:**
+
 - Produces the project architecture baseline.
 
 - [ ] **Step 1: Verify docs exist**
@@ -57,6 +59,7 @@ Expected: commit succeeds.
 ### Task 2: Scaffold Solution And Projects
 
 **Files:**
+
 - Create: `BillingManagement.slnx`
 - Create: `src/BillingManagement.Client/BillingManagement.Client.csproj`
 - Create: `src/BillingManagement.Api/BillingManagement.Api.csproj`
@@ -70,6 +73,7 @@ Expected: commit succeeds.
 - Create: `tests/BillingManagement.IntegrationTests/BillingManagement.IntegrationTests.csproj`
 
 **Interfaces:**
+
 - Produces the solution and project shell.
 
 - [ ] **Step 1: Generate projects**
@@ -93,12 +97,14 @@ Expected: build succeeds.
 ### Task 3: Add Minimal CQRS Abstractions
 
 **Files:**
+
 - Create: `src/BillingManagement.Application.Abstractions/Commands/ICommandHandler.cs`
 - Create: `src/BillingManagement.Application.Abstractions/Commands/ICommandDispatcher.cs`
 - Create: `src/BillingManagement.Application.Abstractions/Queries/IQueryHandler.cs`
 - Create: `src/BillingManagement.Application.Abstractions/Queries/IQueryDispatcher.cs`
 
 **Interfaces:**
+
 - Produces CQRS interfaces referenced by future application handlers.
 
 - [ ] **Step 1: Add interface files**
@@ -114,6 +120,7 @@ Expected: build succeeds.
 ### Task 4: Add Docker Development Shell
 
 **Files:**
+
 - Create: `docker-compose.yml`
 - Create: `src/BillingManagement.Client/Dockerfile`
 - Create: `src/BillingManagement.Api/Dockerfile`
@@ -121,6 +128,7 @@ Expected: build succeeds.
 - Create: `.dockerignore`
 
 **Interfaces:**
+
 - Produces local Docker service definitions for client, backend, database, and migrator.
 
 - [ ] **Step 1: Add Docker files**
@@ -136,9 +144,11 @@ Expected: config renders without errors.
 ### Task 5: Final Verification
 
 **Files:**
+
 - Modify as needed only to fix build or configuration errors.
 
 **Interfaces:**
+
 - Produces a verified scaffold.
 
 - [ ] **Step 1: Build solution**

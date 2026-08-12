@@ -1,0 +1,10 @@
+bin/
+obj/
+node_modules/
+.git/
+.impeccable/
+.vs/
+.vscode/
+TestResults/
+coverage/
+src/BillingManagement.Client/wwwroot/css/app.css

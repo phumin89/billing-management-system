@@ -43,4 +43,3 @@ The repository contains working customer, company-profile, quotation, invoice, p
 - Preserve historical truth through immutable document snapshots.
 - Prefer calm, explicit operations over dashboard noise or speculative features.
 - Keep the interface usable on desktop and mobile with visible keyboard focus.
-
