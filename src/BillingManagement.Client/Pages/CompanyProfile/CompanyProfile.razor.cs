@@ -515,7 +515,7 @@ public partial class CompanyProfile
         }
 
         this.snackbarClosing = true;
-        await Task.Delay(220);
+        await Task.Delay(180);
         afterClose();
         this.snackbarClosing = false;
     }

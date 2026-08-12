@@ -196,8 +196,11 @@
 
     @if (showDeleteSnackbar)
     {
-        <div class="@SnackbarClass" role="status" data-profile-view="delete">
-            <p>Delete company profile? You can create a new one later. Delete is blocked when quotations or invoices use this profile.</p>
+        <div class="@SnackbarClass" role="dialog" aria-labelledby="company-delete-title" aria-describedby="company-delete-description" data-profile-view="delete">
+            <div class="snackbar-copy">
+                <strong id="company-delete-title">Delete company profile?</strong>
+                <p id="company-delete-description">You can create a new profile later. Profiles already used by a quotation or invoice cannot be deleted.</p>
+            </div>
             <div class="company-snackbar-actions">
                 <button type="button" @onclick="CloseDeleteSnackbar">Cancel</button>
                 <button type="button" class="danger" disabled="@isDeleting" @onclick="ConfirmDelete">

@@ -186,7 +186,7 @@ public partial class Customers
         }
 
         this.snackbarClosing = true;
-        await Task.Delay(220);
+        await Task.Delay(180);
         this.showDeleteSnackbar = false;
         this.deletingCustomer = null;
         this.snackbarClosing = false;
