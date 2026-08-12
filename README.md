@@ -112,7 +112,8 @@ GitHub Actions runs on PRs and pushes to `master`:
 - unit tests
 - integration tests
 
-Frontend unit tests are not configured yet.
+Blazor component and markup behavior tests run in the .NET unit-test suite. The repository does
+not require a separate JavaScript test runner because it contains no application JavaScript.
 
 The repository uses `.gitattributes` and `.editorconfig` together so .NET files are checked out
 with CRLF consistently on Windows and Linux runners. Shell scripts and workflow YAML remain LF.
