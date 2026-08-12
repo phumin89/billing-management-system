@@ -57,17 +57,16 @@ public sealed class QuotationsController(ISender sender, BillingDocumentPdfRende
     [HttpPost]
     public async Task<ActionResult<QuotationResponse>> Create(CreateQuotationRequest request, CancellationToken cancellationToken)
     {
-        var id = Guid.NewGuid();
         var items = request.Items.Select(item => new BillingDocumentItemRecord(item.Description!, item.Quantity, item.UnitPrice, item.TaxRate)).ToList();
-        var command = new CreateQuotationCommand(id, request.Number!, request.CustomerId, request.IssueDate, request.ValidUntil, request.Currency!, items);
+        var command = CreateQuotationCommand.New(request.Number!, request.CustomerId, request.IssueDate, request.ValidUntil, request.Currency!, items);
         var result = await sender.Send(command, cancellationToken);
         if (!result.Success)
         {
             return this.ToProblemDetails(result);
         }
 
-        var created = await sender.Send(new GetQuotationQuery(id), cancellationToken);
-        return this.CreatedAtAction(nameof(this.Get), new { id }, ToResponse(created.Quotation!));
+        var created = await sender.Send(new GetQuotationQuery(command.Id), cancellationToken);
+        return this.CreatedAtAction(nameof(this.Get), new { id = command.Id }, ToResponse(created.Quotation!));
     }
 
     private static QuotationResponse ToResponse(QuotationRecord item)
