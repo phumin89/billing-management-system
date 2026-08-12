@@ -20,7 +20,7 @@ The product is a focused billing-document workspace: quotations snapshot seller,
 
 ## Operating Context
 
-Users maintain one owner company profile, manage customer records, draft quotations with line items and tax rates, create one invoice from each quotation, and print or save documents as PDF from the browser.
+Users maintain one owner company profile, manage customer records, draft quotations with line items and tax rates, create one invoice from each quotation, download either document as PDF, and track an invoice until it is paid or cancelled.
 
 ## Capabilities and Constraints
 
@@ -29,7 +29,7 @@ Users maintain one owner company profile, manage customer records, draft quotati
 - Customer records supply buyer details for new quotations.
 - Quotations contain one or more line items, prices, tax rates, totals, currency, and unique document numbers.
 - An invoice is created from a quotation and preserves that quotation's snapshot.
-- Payments, receipts, credit and debit notes, multi-company tenancy, roles, advanced tax or currency workflows, and generic audit history are outside the current MVP.
+- Full invoice payment recording is supported. Partial payments, receipts, credit and debit notes, multi-company tenancy, roles, advanced tax or currency workflows, and generic audit history are outside the current MVP.
 - Existing routes and document behavior must remain stable during visual redesign.
 
 ## Evidence on Hand
