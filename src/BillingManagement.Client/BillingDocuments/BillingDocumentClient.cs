@@ -43,6 +43,14 @@ public sealed class BillingDocumentClient(HttpClient httpClient)
         return httpClient.GetFromJsonAsync<InvoiceResponse>($"api/invoices/{id}", cancellationToken);
     }
 
+    public async Task<InvoiceDashboardResponse> GetInvoiceDashboard(
+        CancellationToken cancellationToken = default)
+    {
+        return await httpClient.GetFromJsonAsync<InvoiceDashboardResponse>(
+            "api/invoices/dashboard", cancellationToken)
+            ?? new InvoiceDashboardResponse([], [], [], []);
+    }
+
     public async Task<InvoiceResponse> CreateInvoice(CreateInvoiceRequest request, CancellationToken cancellationToken = default)
     {
         var response = await httpClient.PostAsJsonAsync("api/invoices", request, cancellationToken);

@@ -113,6 +113,40 @@ public sealed class BillingDocumentStore(BillingManagementDbContext dbContext) :
             invoices.Select(ToRecord).ToList(), pageNumber, pageSize, totalCount);
     }
 
+    public async Task<InvoiceDashboardRecord> GetInvoiceDashboard(
+        DateOnly today,
+        CancellationToken cancellationToken = default)
+    {
+        var invoices = await dbContext.Invoices
+            .AsNoTracking()
+            .Include("items")
+            .OrderByDescending(item => item.IssueDate)
+            .ThenBy(item => item.Number)
+            .ToListAsync(cancellationToken);
+        var monthStart = new DateOnly(today.Year, today.Month, 1);
+        var nextMonth = monthStart.AddMonths(1);
+
+        return new InvoiceDashboardRecord(
+            GroupTotals(invoices.Where(item => item.Status == InvoiceStatus.Issued)),
+            GroupTotals(invoices.Where(item =>
+                item.Status == InvoiceStatus.Paid &&
+                item.PaidDate >= monthStart && item.PaidDate < nextMonth)),
+            GroupTotals(invoices.Where(item =>
+                item.Status == InvoiceStatus.Issued && item.DueDate < today)),
+            invoices.Take(5).Select(ToRecord).ToList());
+    }
+
+    private static IReadOnlyList<InvoiceCurrencyTotalRecord> GroupTotals(
+        IEnumerable<Invoice> invoices)
+    {
+        return invoices
+            .GroupBy(item => item.Currency)
+            .OrderBy(group => group.Key)
+            .Select(group => new InvoiceCurrencyTotalRecord(
+                group.Key, group.Count(), group.Sum(item => item.Total)))
+            .ToList();
+    }
+
     private static IQueryable<Quotation> ApplyQuotationSearch(
         IQueryable<Quotation> quotations,
         QuotationSearchCriteria criteria)

@@ -4,6 +4,7 @@ using BillingManagement.Application.Abstractions.BillingDocuments;
 using BillingManagement.Application.BillingDocuments.CancelInvoice;
 using BillingManagement.Application.BillingDocuments.CreateInvoice;
 using BillingManagement.Application.BillingDocuments.GetInvoice;
+using BillingManagement.Application.BillingDocuments.GetInvoiceDashboard;
 using BillingManagement.Application.BillingDocuments.ListInvoices;
 using BillingManagement.Application.BillingDocuments.MarkInvoicePaid;
 using BillingManagement.Contracts.BillingDocuments;
@@ -29,6 +30,19 @@ public sealed class InvoicesController(ISender sender, BillingDocumentPdfRendere
             new ListInvoicesQuery(searchText, status, pageNumber, pageSize), cancellationToken);
         this.AddPaginationHeaders(result.PageNumber, result.PageSize, result.TotalCount);
         return this.Ok(result.Items.Select(ToResponse));
+    }
+
+    [HttpGet("dashboard")]
+    public async Task<ActionResult<InvoiceDashboardResponse>> Dashboard(
+        CancellationToken cancellationToken)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var result = await sender.Send(new GetInvoiceDashboardQuery(today), cancellationToken);
+        return this.Ok(new InvoiceDashboardResponse(
+            result.Dashboard.Outstanding.Select(ToResponse).ToList(),
+            result.Dashboard.PaidThisMonth.Select(ToResponse).ToList(),
+            result.Dashboard.Overdue.Select(ToResponse).ToList(),
+            result.Dashboard.RecentInvoices.Select(ToResponse).ToList()));
     }
 
     private void AddPaginationHeaders(int pageNumber, int pageSize, int totalCount)
@@ -89,6 +103,11 @@ public sealed class InvoicesController(ISender sender, BillingDocumentPdfRendere
     private static InvoiceResponse ToResponse(InvoiceRecord item)
     {
         return new InvoiceResponse(item.Id, item.Number, item.SellerCompanyName, item.SellerAddress, item.SellerTaxId, item.SellerPhone, item.SellerEmail, item.SellerWebsite, item.SellerRegistrationNumber, item.QuotationId, item.CustomerId, item.CustomerName, item.CustomerAddress, item.CustomerTaxId, item.IssueDate, item.DueDate, item.Currency, item.Items.Select(ToResponse).ToList(), item.Subtotal, item.TaxTotal, item.Total, item.DisplayStatus(DateOnly.FromDateTime(DateTime.UtcNow)).ToString(), item.PaidDate, item.AmountPaid);
+    }
+
+    private static InvoiceCurrencyTotalResponse ToResponse(InvoiceCurrencyTotalRecord item)
+    {
+        return new InvoiceCurrencyTotalResponse(item.Currency, item.Count, item.Value);
     }
 
     private static BillingDocumentItemResponse ToResponse(BillingDocumentItemRecord item)

@@ -9,6 +9,46 @@ namespace BillingManagement.IntegrationTests;
 public sealed class BillingDocumentPersistenceTests
 {
     [Fact]
+    public async Task Dashboard_groups_financial_totals_by_currency()
+    {
+        var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();
+
+        try
+        {
+            await using var context = SqlServerIntegrationTestDatabase.CreateContext(databaseName);
+            await context.Database.MigrateAsync();
+            var store = new BillingDocumentStore(context);
+            var thbQuotation = CreateQuotation("Q-THB", "Acme", new DateOnly(2026, 8, 1));
+            var usdQuotation = CreateQuotation("Q-USD", "Beta", new DateOnly(2026, 8, 2), "USD");
+            await store.AddQuotation(thbQuotation);
+            await store.AddQuotation(usdQuotation);
+            var overdue = Invoice.CreateFromQuotation(
+                Guid.NewGuid(), "INV-THB", thbQuotation,
+                new DateOnly(2026, 8, 1), new DateOnly(2026, 8, 10));
+            var paid = Invoice.CreateFromQuotation(
+                Guid.NewGuid(), "INV-USD", usdQuotation,
+                new DateOnly(2026, 8, 2), new DateOnly(2026, 9, 2));
+            paid.MarkPaid(new DateOnly(2026, 8, 5), paid.Total);
+            await store.AddInvoice(overdue);
+            await store.AddInvoice(paid);
+            context.ChangeTracker.Clear();
+
+            var dashboard = await store.GetInvoiceDashboard(new DateOnly(2026, 8, 12));
+
+            var outstanding = Assert.Single(dashboard.Outstanding);
+            Assert.Equal("THB", outstanding.Currency);
+            Assert.Equal(107m, outstanding.Value);
+            Assert.Equal("USD", Assert.Single(dashboard.PaidThisMonth).Currency);
+            Assert.Equal("INV-USD", dashboard.RecentInvoices[0].Number);
+            Assert.Equal("THB", Assert.Single(dashboard.Overdue).Currency);
+        }
+        finally
+        {
+            await SqlServerIntegrationTestDatabase.Delete(databaseName);
+        }
+    }
+
+    [Fact]
     public async Task Search_pages_and_filters_billing_documents()
     {
         var databaseName = SqlServerIntegrationTestDatabase.CreateDatabaseName();
@@ -92,13 +132,17 @@ public sealed class BillingDocumentPersistenceTests
         }
     }
 
-    private static Quotation CreateQuotation(string number, string customerName, DateOnly issueDate)
+    private static Quotation CreateQuotation(
+        string number,
+        string customerName,
+        DateOnly issueDate,
+        string currency = "THB")
     {
         return Quotation.Create(
             Guid.NewGuid(), number,
             new SellerSnapshot("Billing Co.", "Seller address", null, null, null, null, null),
             Guid.NewGuid(), customerName, "Bangkok", null,
-            issueDate, issueDate.AddDays(30), "THB",
+            issueDate, issueDate.AddDays(30), currency,
             [new QuotationItemInput("Service", 1, 100m, 7m)]);
     }
 }

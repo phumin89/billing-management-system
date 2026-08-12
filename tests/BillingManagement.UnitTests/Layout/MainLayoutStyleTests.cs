@@ -29,6 +29,15 @@ public sealed class MainLayoutStyleTests
         Assert.Contains("grid-template-columns: repeat(3, 1fr)", styles, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Dashboard_does_not_mark_a_feature_navigation_item_active()
+    {
+        var layout = ReadClientFile("Layout", "MainLayout.razor");
+
+        Assert.Contains("if (path.StartsWith(\"customers\"", layout, StringComparison.Ordinal);
+        Assert.Contains("return string.Empty;", layout, StringComparison.Ordinal);
+    }
+
     private static string ReadStyles()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -45,5 +54,23 @@ public sealed class MainLayoutStyleTests
         }
 
         throw new FileNotFoundException("Could not find generated client stylesheet.");
+    }
+
+    private static string ReadClientFile(params string[] segments)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            var path = Path.Combine([directory.FullName, "src", "BillingManagement.Client", .. segments]);
+            if (File.Exists(path))
+            {
+                return File.ReadAllText(path);
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new FileNotFoundException("Could not find client file.");
     }
 }
