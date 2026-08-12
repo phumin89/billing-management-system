@@ -35,6 +35,6 @@
     private int PaidCount => invoices.Count(item => item.Status == "Paid" && item.PaidDate?.Year == DateTime.Today.Year && item.PaidDate?.Month == DateTime.Today.Month);
     private decimal PaidThisMonth => invoices.Where(item => item.Status == "Paid" && item.PaidDate?.Year == DateTime.Today.Year && item.PaidDate?.Month == DateTime.Today.Month).Sum(item => item.AmountPaid ?? 0);
     private IReadOnlyList<InvoiceResponse> RecentInvoices => invoices.OrderByDescending(item => item.IssueDate).Take(5).ToList();
-    protected override async Task OnInitializedAsync() { try { invoices = await BillingDocuments.ListInvoices(); } catch (HttpRequestException) { error = "Could not load invoice activity."; } finally { isLoading = false; } }
+    protected override async Task OnInitializedAsync() { try { invoices = (await BillingDocuments.ListInvoices(pageSize: 100)).Items; } catch (HttpRequestException) { error = "Could not load invoice activity."; } finally { isLoading = false; } }
     private string Money(decimal value) => invoices.FirstOrDefault()?.Currency is { } currency ? $"{value:N2} {currency}" : $"{value:N2}";
 }

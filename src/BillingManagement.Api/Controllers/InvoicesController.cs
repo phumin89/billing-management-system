@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using BillingManagement.Api.BillingDocuments;
 using BillingManagement.Application.Abstractions.BillingDocuments;
 using BillingManagement.Application.BillingDocuments.CancelInvoice;
@@ -6,6 +7,7 @@ using BillingManagement.Application.BillingDocuments.GetInvoice;
 using BillingManagement.Application.BillingDocuments.ListInvoices;
 using BillingManagement.Application.BillingDocuments.MarkInvoicePaid;
 using BillingManagement.Contracts.BillingDocuments;
+using BillingManagement.Domain;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,10 +18,24 @@ namespace BillingManagement.Api.Controllers;
 public sealed class InvoicesController(ISender sender, BillingDocumentPdfRenderer pdfRenderer) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<InvoiceResponse>>> List(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<InvoiceResponse>>> List(
+        [FromQuery] string? searchText,
+        [FromQuery] InvoiceStatus? status,
+        [FromQuery, Range(1, int.MaxValue)] int pageNumber = 1,
+        [FromQuery, Range(1, 100)] int pageSize = 20,
+        CancellationToken cancellationToken = default)
     {
-        var result = await sender.Send(new ListInvoicesQuery(), cancellationToken);
+        var result = await sender.Send(
+            new ListInvoicesQuery(searchText, status, pageNumber, pageSize), cancellationToken);
+        this.AddPaginationHeaders(result.PageNumber, result.PageSize, result.TotalCount);
         return this.Ok(result.Items.Select(ToResponse));
+    }
+
+    private void AddPaginationHeaders(int pageNumber, int pageSize, int totalCount)
+    {
+        this.Response.Headers.Append("X-Page-Number", pageNumber.ToString());
+        this.Response.Headers.Append("X-Page-Size", pageSize.ToString());
+        this.Response.Headers.Append("X-Total-Count", totalCount.ToString());
     }
 
     [HttpGet("{id:guid}")]

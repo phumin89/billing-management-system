@@ -12,14 +12,48 @@ public partial class Invoices
     private string? error;
     private string searchText = string.Empty;
     private string statusFilter = "All";
-    private IEnumerable<InvoiceResponse> FilteredItems => this.items.Where(item =>
-        (this.statusFilter == "All" || item.Status == this.statusFilter) &&
-        (string.IsNullOrWhiteSpace(this.searchText) || item.Number.Contains(this.searchText, StringComparison.OrdinalIgnoreCase) || item.CustomerName.Contains(this.searchText, StringComparison.OrdinalIgnoreCase)));
+    private int pageNumber = 1;
+    private int TotalCount { get; set; }
+    private const int PageSize = 20;
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(this.TotalCount / (double)PageSize));
+    private bool FiltersApplied => !string.IsNullOrWhiteSpace(this.searchText) || this.statusFilter != "All";
 
     protected override async Task OnInitializedAsync()
     {
-        try { this.items = await this.Client.ListInvoices(); }
+        await this.LoadPage();
+    }
+
+    private async Task LoadPage()
+    {
+        this.isLoading = true;
+        this.error = null;
+        try
+        {
+            var result = await this.Client.ListInvoices(
+                this.searchText, this.statusFilter, this.pageNumber, PageSize);
+            this.items = result.Items;
+            this.pageNumber = result.PageNumber;
+            this.TotalCount = result.TotalCount;
+        }
         catch (HttpRequestException) { this.error = "Could not load invoices."; }
         finally { this.isLoading = false; }
+    }
+
+    private async Task ApplyFilters()
+    {
+        this.pageNumber = 1;
+        await this.LoadPage();
+    }
+
+    private async Task PreviousPage()
+    {
+        this.pageNumber--;
+        await this.LoadPage();
+    }
+
+    private async Task NextPage()
+    {
+        this.pageNumber++;
+        await this.LoadPage();
     }
 }

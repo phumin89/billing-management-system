@@ -1,10 +1,11 @@
 using BillingManagement.Application.Abstractions.BillingDocuments;
+using BillingManagement.Application.Abstractions.Queries;
 using BillingManagement.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace BillingManagement.Infrastructure.BillingDocuments;
 
-public sealed class BillingDocumentStore(BillingManagementDbContext dbContext) : IBillingDocumentStore
+public sealed class BillingDocumentStore(BillingManagementDbContext dbContext) : IBillingDocumentStore, IBillingDocumentQueries
 {
     public async Task AddQuotation(Quotation quotation, CancellationToken cancellationToken = default)
     {
@@ -32,6 +33,26 @@ public sealed class BillingDocumentStore(BillingManagementDbContext dbContext) :
     {
         var quotations = await dbContext.Quotations.AsNoTracking().Include("items").OrderByDescending(item => item.IssueDate).ThenBy(item => item.Number).ToListAsync(cancellationToken);
         return quotations.Select(ToRecord).ToList();
+    }
+
+    public async Task<BillingDocumentPage<QuotationRecord>> SearchQuotations(
+        QuotationSearchCriteria criteria,
+        PageRequest page,
+        CancellationToken cancellationToken = default)
+    {
+        var pageNumber = Math.Max(page.PageNumber, 1);
+        var pageSize = Math.Clamp(page.PageSize, 1, 100);
+        var matching = ApplyQuotationSearch(dbContext.Quotations.AsNoTracking(), criteria);
+        var totalCount = await matching.CountAsync(cancellationToken);
+        var quotations = await matching
+            .OrderByDescending(item => item.IssueDate)
+            .ThenBy(item => item.Number)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Include("items")
+            .ToListAsync(cancellationToken);
+        return new BillingDocumentPage<QuotationRecord>(
+            quotations.Select(ToRecord).ToList(), pageNumber, pageSize, totalCount);
     }
 
     public async Task AddInvoice(Invoice invoice, CancellationToken cancellationToken = default)
@@ -70,6 +91,67 @@ public sealed class BillingDocumentStore(BillingManagementDbContext dbContext) :
     {
         var invoices = await dbContext.Invoices.AsNoTracking().Include("items").OrderByDescending(item => item.IssueDate).ThenBy(item => item.Number).ToListAsync(cancellationToken);
         return invoices.Select(ToRecord).ToList();
+    }
+
+    public async Task<BillingDocumentPage<InvoiceRecord>> SearchInvoices(
+        InvoiceSearchCriteria criteria,
+        PageRequest page,
+        CancellationToken cancellationToken = default)
+    {
+        var pageNumber = Math.Max(page.PageNumber, 1);
+        var pageSize = Math.Clamp(page.PageSize, 1, 100);
+        var matching = ApplyInvoiceSearch(dbContext.Invoices.AsNoTracking(), criteria);
+        var totalCount = await matching.CountAsync(cancellationToken);
+        var invoices = await matching
+            .OrderByDescending(item => item.IssueDate)
+            .ThenBy(item => item.Number)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .Include("items")
+            .ToListAsync(cancellationToken);
+        return new BillingDocumentPage<InvoiceRecord>(
+            invoices.Select(ToRecord).ToList(), pageNumber, pageSize, totalCount);
+    }
+
+    private static IQueryable<Quotation> ApplyQuotationSearch(
+        IQueryable<Quotation> quotations,
+        QuotationSearchCriteria criteria)
+    {
+        if (string.IsNullOrWhiteSpace(criteria.SearchText))
+        {
+            return quotations;
+        }
+
+        var searchText = criteria.SearchText.Trim();
+        return quotations.Where(item =>
+            item.Number.Contains(searchText) || item.CustomerName.Contains(searchText));
+    }
+
+    private static IQueryable<Invoice> ApplyInvoiceSearch(
+        IQueryable<Invoice> invoices,
+        InvoiceSearchCriteria criteria)
+    {
+        if (!string.IsNullOrWhiteSpace(criteria.SearchText))
+        {
+            var searchText = criteria.SearchText.Trim();
+            invoices = invoices.Where(item =>
+                item.Number.Contains(searchText) || item.CustomerName.Contains(searchText));
+        }
+
+        if (criteria.Status is null)
+        {
+            return invoices;
+        }
+
+        var today = criteria.Today ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        return criteria.Status switch
+        {
+            InvoiceStatus.Overdue => invoices.Where(item =>
+                item.Status == InvoiceStatus.Issued && item.DueDate < today),
+            InvoiceStatus.Issued => invoices.Where(item =>
+                item.Status == InvoiceStatus.Issued && item.DueDate >= today),
+            _ => invoices.Where(item => item.Status == criteria.Status)
+        };
     }
 
     private static QuotationRecord ToRecord(Quotation quotation)
