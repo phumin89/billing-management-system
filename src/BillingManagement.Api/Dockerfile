@@ -16,6 +16,10 @@ RUN dotnet publish src/BillingManagement.Api/BillingManagement.Api.csproj -c Rel
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y curl \
+    && rm -rf /var/lib/apt/lists/*
+USER $APP_UID
 EXPOSE 8080
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "BillingManagement.Api.dll"]

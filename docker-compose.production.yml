@@ -1,0 +1,21 @@
+services:
+  client:
+    restart: unless-stopped
+
+  api:
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=BillingManagement;User Id=sa;Password=${BMS_DB_PASSWORD:?Set BMS_DB_PASSWORD in .env};TrustServerCertificate=True;MultipleActiveResultSets=True"
+    ports: !reset []
+
+  sqlserver:
+    restart: unless-stopped
+    environment:
+      MSSQL_SA_PASSWORD: "${BMS_DB_PASSWORD:?Set BMS_DB_PASSWORD in .env}"
+    ports: !reset []
+
+  migrator:
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=BillingManagement;User Id=sa;Password=${BMS_DB_PASSWORD:?Set BMS_DB_PASSWORD in .env};TrustServerCertificate=True;MultipleActiveResultSets=True"
