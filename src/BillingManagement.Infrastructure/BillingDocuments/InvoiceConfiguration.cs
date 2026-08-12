@@ -18,6 +18,8 @@ public sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         builder.Property(invoice => invoice.CustomerAddress).HasMaxLength(1000);
         builder.Property(invoice => invoice.CustomerTaxId).HasMaxLength(100);
         builder.Property(invoice => invoice.Currency).HasMaxLength(3).IsFixedLength().IsRequired();
+        builder.Property(invoice => invoice.Status).HasConversion<string>().HasMaxLength(20).IsRequired();
+        builder.Property(invoice => invoice.AmountPaid).HasPrecision(18, 2);
         builder.Ignore(invoice => invoice.Items);
         builder.Ignore(invoice => invoice.Subtotal);
         builder.Ignore(invoice => invoice.TaxTotal);

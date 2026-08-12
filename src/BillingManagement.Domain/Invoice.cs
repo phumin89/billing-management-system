@@ -25,6 +25,9 @@ public sealed class Invoice
     public DateOnly IssueDate { get; private set; }
     public DateOnly DueDate { get; private set; }
     public string Currency { get; private set; } = string.Empty;
+    public InvoiceStatus Status { get; private set; }
+    public DateOnly? PaidDate { get; private set; }
+    public decimal? AmountPaid { get; private set; }
     public IReadOnlyList<InvoiceItem> Items => this.items;
     public decimal Subtotal => this.items.Sum(item => item.LineSubtotal);
     public decimal TaxTotal => this.items.Sum(item => item.TaxAmount);
@@ -66,10 +69,38 @@ public sealed class Invoice
             CustomerTaxId = quotation.CustomerTaxId,
             IssueDate = issueDate,
             DueDate = dueDate,
-            Currency = quotation.Currency
+            Currency = quotation.Currency,
+            Status = InvoiceStatus.Issued
         };
         invoice.items.AddRange(quotation.Items.OrderBy(item => item.Position).Select((item, position) => new InvoiceItem(
             Guid.NewGuid(), position, item.Description, item.Quantity, item.UnitPrice, item.TaxRate)));
         return invoice;
+    }
+
+    public void MarkPaid(DateOnly paidDate, decimal amountPaid)
+    {
+        if (this.Status != InvoiceStatus.Issued)
+        {
+            throw new InvalidOperationException("Only an issued invoice can be marked as paid.");
+        }
+
+        if (amountPaid != this.Total)
+        {
+            throw new ArgumentException("Amount paid must equal the invoice total.", nameof(amountPaid));
+        }
+
+        this.Status = InvoiceStatus.Paid;
+        this.PaidDate = paidDate;
+        this.AmountPaid = amountPaid;
+    }
+
+    public void Cancel()
+    {
+        if (this.Status != InvoiceStatus.Issued)
+        {
+            throw new InvalidOperationException("Only an issued invoice can be cancelled.");
+        }
+
+        this.Status = InvoiceStatus.Cancelled;
     }
 }

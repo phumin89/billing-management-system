@@ -26,7 +26,8 @@ public sealed class BillingDocumentPdfRendererTests
             quotation.SellerTaxId, quotation.SellerPhone, quotation.SellerEmail, quotation.SellerWebsite,
             null, quotation.Id, quotation.CustomerId, quotation.CustomerName, quotation.CustomerAddress,
             quotation.CustomerTaxId, quotation.IssueDate, quotation.ValidUntil, quotation.Currency,
-            quotation.Items, quotation.Subtotal, quotation.TaxTotal, quotation.Total);
+            quotation.Items, quotation.Subtotal, quotation.TaxTotal, quotation.Total,
+            BillingManagement.Domain.InvoiceStatus.Issued, null, null);
         var renderer = new BillingDocumentPdfRenderer();
 
         var content = renderer.Render(invoice);

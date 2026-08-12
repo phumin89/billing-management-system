@@ -10,6 +10,11 @@ public partial class Invoices
     private IReadOnlyList<InvoiceResponse> items = [];
     private bool isLoading = true;
     private string? error;
+    private string searchText = string.Empty;
+    private string statusFilter = "All";
+    private IEnumerable<InvoiceResponse> FilteredItems => this.items.Where(item =>
+        (this.statusFilter == "All" || item.Status == this.statusFilter) &&
+        (string.IsNullOrWhiteSpace(this.searchText) || item.Number.Contains(this.searchText, StringComparison.OrdinalIgnoreCase) || item.CustomerName.Contains(this.searchText, StringComparison.OrdinalIgnoreCase)));
 
     protected override async Task OnInitializedAsync()
     {

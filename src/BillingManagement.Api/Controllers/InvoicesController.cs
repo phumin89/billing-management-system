@@ -1,8 +1,10 @@
 using BillingManagement.Api.BillingDocuments;
 using BillingManagement.Application.Abstractions.BillingDocuments;
+using BillingManagement.Application.BillingDocuments.CancelInvoice;
 using BillingManagement.Application.BillingDocuments.CreateInvoice;
 using BillingManagement.Application.BillingDocuments.GetInvoice;
 using BillingManagement.Application.BillingDocuments.ListInvoices;
+using BillingManagement.Application.BillingDocuments.MarkInvoicePaid;
 using BillingManagement.Contracts.BillingDocuments;
 using Mediator;
 using Microsoft.AspNetCore.Mvc;
@@ -54,9 +56,23 @@ public sealed class InvoicesController(ISender sender, BillingDocumentPdfRendere
         return this.CreatedAtAction(nameof(this.Get), new { id }, ToResponse(created.Invoice!));
     }
 
+    [HttpPost("{id:guid}/mark-paid")]
+    public async Task<IActionResult> MarkPaid(Guid id, MarkInvoicePaidRequest request, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new MarkInvoicePaidCommand(id, request.PaidDate, request.AmountPaid), cancellationToken);
+        return result.Success ? this.NoContent() : this.ToProblemDetails(result);
+    }
+
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(new CancelInvoiceCommand(id), cancellationToken);
+        return result.Success ? this.NoContent() : this.ToProblemDetails(result);
+    }
+
     private static InvoiceResponse ToResponse(InvoiceRecord item)
     {
-        return new InvoiceResponse(item.Id, item.Number, item.SellerCompanyName, item.SellerAddress, item.SellerTaxId, item.SellerPhone, item.SellerEmail, item.SellerWebsite, item.SellerRegistrationNumber, item.QuotationId, item.CustomerId, item.CustomerName, item.CustomerAddress, item.CustomerTaxId, item.IssueDate, item.DueDate, item.Currency, item.Items.Select(ToResponse).ToList(), item.Subtotal, item.TaxTotal, item.Total);
+        return new InvoiceResponse(item.Id, item.Number, item.SellerCompanyName, item.SellerAddress, item.SellerTaxId, item.SellerPhone, item.SellerEmail, item.SellerWebsite, item.SellerRegistrationNumber, item.QuotationId, item.CustomerId, item.CustomerName, item.CustomerAddress, item.CustomerTaxId, item.IssueDate, item.DueDate, item.Currency, item.Items.Select(ToResponse).ToList(), item.Subtotal, item.TaxTotal, item.Total, item.DisplayStatus(DateOnly.FromDateTime(DateTime.UtcNow)).ToString(), item.PaidDate, item.AmountPaid);
     }
 
     private static BillingDocumentItemResponse ToResponse(BillingDocumentItemRecord item)
