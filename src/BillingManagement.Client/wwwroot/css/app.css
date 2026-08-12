@@ -785,29 +785,92 @@ button:disabled {
   font-weight: 600;
 }
 
+.document-filter .search-field {
+  align-self: end;
+}
+
+.search-input-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.search-input-shell svg {
+  position: absolute;
+  left: 14px;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--ink-soft);
+  stroke-linecap: round;
+  stroke-width: 1.8;
+  pointer-events: none;
+}
+
 .document-filter input,
 .document-filter select {
   width: 100%;
   min-height: 42px;
   padding: 9px 12px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--rule-strong);
   border-radius: 6px;
   background: white;
   color: var(--ink);
   font: inherit;
 }
 
+.document-filter .search-input-shell input {
+  min-height: 44px;
+  padding-left: 42px;
+  border-color: var(--rule-strong);
+  border-radius: 10px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.document-filter .search-input-shell input::placeholder {
+  color: var(--ink-soft);
+  opacity: 1;
+}
+
+.document-filter .search-input-shell input:focus {
+  border-color: var(--focus);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 18%, transparent);
+}
+
+.document-filter .search-input-shell:focus-within svg {
+  stroke: var(--ink);
+}
+
 .document-filter button,
 .document-pagination button {
   min-height: 42px;
   padding: 9px 16px;
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--rule-strong);
   border-radius: 6px;
   background: var(--sheet);
   color: var(--ink);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+}
+
+.document-filter .search-submit {
+  min-height: 44px;
+  padding-inline: 20px;
+  color: var(--sheet);
+  background: var(--ink);
+  border-color: var(--ink);
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.document-filter .search-submit:hover {
+  color: var(--sheet);
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
 
 .document-filter button:hover,
@@ -884,6 +947,9 @@ button:disabled {
   .document-pagination {
     justify-content: space-between;
     padding: 14px 16px;
+  }
+  .document-filter .search-submit {
+    width: 100%;
   }
 }
 .customers-table-wrap {
