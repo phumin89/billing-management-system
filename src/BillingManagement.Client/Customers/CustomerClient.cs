@@ -6,12 +6,17 @@ namespace BillingManagement.Client.Customers;
 
 public sealed class CustomerClient(HttpClient httpClient)
 {
-    public async Task<ListCustomersResult> List(CancellationToken cancellationToken = default)
+    public async Task<ListCustomersResult> List(
+        string? searchText = null,
+        int pageNumber = 1,
+        int pageSize = 100,
+        CancellationToken cancellationToken = default)
     {
         HttpResponseMessage response;
         try
         {
-            response = await httpClient.GetAsync("api/customers", cancellationToken);
+            response = await httpClient.GetAsync(
+                BuildListUri(searchText, pageNumber, pageSize), cancellationToken);
         }
         catch (HttpRequestException)
         {
@@ -25,7 +30,34 @@ public sealed class CustomerClient(HttpClient httpClient)
         }
 
         var customers = await response.Content.ReadFromJsonAsync<List<CustomerResponse>>(cancellationToken) ?? [];
-        return ListCustomersResult.Success(customers);
+        return ListCustomersResult.Success(
+            customers,
+            ReadHeader(response, "X-Page-Number", pageNumber),
+            ReadHeader(response, "X-Page-Size", pageSize),
+            ReadHeader(response, "X-Total-Count", customers.Count));
+    }
+
+    private static string BuildListUri(string? searchText, int pageNumber, int pageSize)
+    {
+        if (string.IsNullOrWhiteSpace(searchText) && pageNumber == 1 && pageSize == 100)
+        {
+            return "api/customers";
+        }
+
+        var search = string.IsNullOrWhiteSpace(searchText)
+            ? string.Empty
+            : $"searchText={Uri.EscapeDataString(searchText.Trim())}&";
+        return $"api/customers?{search}pageNumber={pageNumber}&pageSize={pageSize}";
+    }
+
+    private static int ReadHeader(HttpResponseMessage response, string name, int fallback)
+    {
+        if (!response.Headers.TryGetValues(name, out var values))
+        {
+            return fallback;
+        }
+
+        return int.TryParse(values.FirstOrDefault(), out var value) ? value : fallback;
     }
 
     public async Task<CreateCustomerResult> Create(

@@ -30,6 +30,15 @@ public sealed class DeploymentConfigurationTests
         Assert.Contains("condition: service_healthy", compose, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Production_client_uses_same_origin_api_proxy()
+    {
+        var program = ReadRepositoryFile("src", "BillingManagement.Client", "Program.cs");
+
+        Assert.Contains("builder.HostEnvironment.IsDevelopment()", program, StringComparison.Ordinal);
+        Assert.Contains("builder.HostEnvironment.BaseAddress", program, StringComparison.Ordinal);
+    }
+
     private static string ReadRepositoryFile(params string[] segments)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

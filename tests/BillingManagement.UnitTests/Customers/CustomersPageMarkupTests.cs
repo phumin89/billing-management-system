@@ -18,6 +18,8 @@ public sealed class CustomersPageMarkupTests
         Assert.Contains("Customer name", markup);
         Assert.Contains("Email", markup);
         Assert.Contains("Phone", markup);
+        Assert.Contains("class=\"document-filter customer-filter\"", markup);
+        Assert.Contains("class=\"document-pagination\"", markup);
         Assert.Contains("No customers yet", markup);
         Assert.Equal(2, Count(markup, "href=\"/customers/create\""));
         Assert.True(markup.IndexOf("</table>", StringComparison.Ordinal) < markup.IndexOf("No customers yet", StringComparison.Ordinal));
