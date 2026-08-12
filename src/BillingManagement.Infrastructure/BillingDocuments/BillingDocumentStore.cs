@@ -56,6 +56,16 @@ public sealed class BillingDocumentStore(BillingManagementDbContext dbContext) :
         return invoice is null ? null : ToRecord(invoice);
     }
 
+    public Task<Invoice?> GetInvoiceEntity(Guid id, CancellationToken cancellationToken = default)
+    {
+        return dbContext.Invoices.Include("items").SingleOrDefaultAsync(item => item.Id == id, cancellationToken);
+    }
+
+    public async Task SaveInvoice(CancellationToken cancellationToken = default)
+    {
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<InvoiceRecord>> ListInvoices(CancellationToken cancellationToken = default)
     {
         var invoices = await dbContext.Invoices.AsNoTracking().Include("items").OrderByDescending(item => item.IssueDate).ThenBy(item => item.Number).ToListAsync(cancellationToken);
@@ -69,7 +79,7 @@ public sealed class BillingDocumentStore(BillingManagementDbContext dbContext) :
 
     private static InvoiceRecord ToRecord(Invoice invoice)
     {
-        return new InvoiceRecord(invoice.Id, invoice.Number, invoice.SellerCompanyName, invoice.SellerAddress, invoice.SellerTaxId, invoice.SellerPhone, invoice.SellerEmail, invoice.SellerWebsite, invoice.SellerRegistrationNumber, invoice.QuotationId, invoice.CustomerId, invoice.CustomerName, invoice.CustomerAddress, invoice.CustomerTaxId, invoice.IssueDate, invoice.DueDate, invoice.Currency, invoice.Items.OrderBy(item => item.Position).Select(ToRecord).ToList(), invoice.Subtotal, invoice.TaxTotal, invoice.Total);
+        return new InvoiceRecord(invoice.Id, invoice.Number, invoice.SellerCompanyName, invoice.SellerAddress, invoice.SellerTaxId, invoice.SellerPhone, invoice.SellerEmail, invoice.SellerWebsite, invoice.SellerRegistrationNumber, invoice.QuotationId, invoice.CustomerId, invoice.CustomerName, invoice.CustomerAddress, invoice.CustomerTaxId, invoice.IssueDate, invoice.DueDate, invoice.Currency, invoice.Items.OrderBy(item => item.Position).Select(ToRecord).ToList(), invoice.Subtotal, invoice.TaxTotal, invoice.Total, invoice.Status, invoice.PaidDate, invoice.AmountPaid);
     }
 
     private static BillingDocumentItemRecord ToRecord(QuotationItem item)

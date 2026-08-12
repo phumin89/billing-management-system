@@ -39,6 +39,18 @@ public sealed class BillingDocumentClient(HttpClient httpClient)
         return (await response.Content.ReadFromJsonAsync<InvoiceResponse>(cancellationToken))!;
     }
 
+    public async Task MarkInvoicePaid(Guid id, MarkInvoicePaidRequest request, CancellationToken cancellationToken = default)
+    {
+        var response = await httpClient.PostAsJsonAsync($"api/invoices/{id}/mark-paid", request, cancellationToken);
+        await EnsureSuccess(response, cancellationToken);
+    }
+
+    public async Task CancelInvoice(Guid id, CancellationToken cancellationToken = default)
+    {
+        var response = await httpClient.PostAsync($"api/invoices/{id}/cancel", null, cancellationToken);
+        await EnsureSuccess(response, cancellationToken);
+    }
+
     private static async Task EnsureSuccess(HttpResponseMessage response, CancellationToken cancellationToken)
     {
         if (response.IsSuccessStatusCode)

@@ -13,5 +13,7 @@ public interface IBillingDocumentStore
     Task<bool> InvoiceNumberExists(string number, CancellationToken cancellationToken = default);
     Task<bool> InvoiceExistsForQuotation(Guid quotationId, CancellationToken cancellationToken = default);
     Task<InvoiceRecord?> GetInvoice(Guid id, CancellationToken cancellationToken = default);
+    Task<Invoice?> GetInvoiceEntity(Guid id, CancellationToken cancellationToken = default);
+    Task SaveInvoice(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<InvoiceRecord>> ListInvoices(CancellationToken cancellationToken = default);
 }

@@ -28,7 +28,7 @@ public sealed class BillingDocumentPdfRenderer
             "PREPARED FOR", quotation.CustomerName, quotation.CustomerAddress, quotation.CustomerTaxId,
             "ISSUE DATE", quotation.IssueDate, "VALID UNTIL", quotation.ValidUntil, quotation.Currency,
             quotation.Items, quotation.Subtotal, quotation.TaxTotal, quotation.Total, "Total",
-            ["PREPARED BY", "ACCEPTED BY"]));
+            ["PREPARED BY", "ACCEPTED BY"], null));
     }
 
     public byte[] Render(InvoiceRecord invoice)
@@ -40,7 +40,7 @@ public sealed class BillingDocumentPdfRenderer
             "BILL TO", invoice.CustomerName, invoice.CustomerAddress, invoice.CustomerTaxId,
             "ISSUE DATE", invoice.IssueDate, "PAYMENT DUE", invoice.DueDate, invoice.Currency,
             invoice.Items, invoice.Subtotal, invoice.TaxTotal, invoice.Total, "Total due",
-            ["AUTHORIZED BY"]));
+            ["AUTHORIZED BY"], invoice.DisplayStatus(DateOnly.FromDateTime(DateTime.UtcNow)).ToString().ToUpperInvariant()));
     }
 
     private byte[] RenderDocument(DocumentContent content)
@@ -95,6 +95,14 @@ public sealed class BillingDocumentPdfRenderer
         var reference = row.Cells[0].AddParagraph($"# {content.Number}");
         reference.Format.Font.Size = Unit.FromPoint(8);
         reference.Format.Font.Bold = true;
+        if (content.Status is not null)
+        {
+            var status = row.Cells[0].AddParagraph(content.Status);
+            status.Format.SpaceBefore = Unit.FromPoint(9);
+            status.Format.Font.Size = Unit.FromPoint(7.5);
+            status.Format.Font.Bold = true;
+            status.Format.Font.Color = Colors.Gray;
+        }
         var seller = row.Cells[1];
         seller.Format.Alignment = ParagraphAlignment.Right;
         var logo = seller.AddParagraph();
@@ -295,5 +303,5 @@ public sealed class BillingDocumentPdfRenderer
         string CustomerName, string? CustomerAddress, string? CustomerTaxId, string FirstDateLabel,
         DateOnly FirstDate, string SecondDateLabel, DateOnly SecondDate, string Currency,
         IReadOnlyList<BillingDocumentItemRecord> Items, decimal Subtotal, decimal TaxTotal,
-        decimal Total, string TotalLabel, IReadOnlyList<string> Signatures);
+        decimal Total, string TotalLabel, IReadOnlyList<string> Signatures, string? Status);
 }
