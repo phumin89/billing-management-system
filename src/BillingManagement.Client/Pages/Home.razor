@@ -1,19 +1,40 @@
 @page "/"
+@using BillingManagement.Contracts.BillingDocuments
+@inject BillingManagement.Client.BillingDocuments.BillingDocumentClient BillingDocuments
 
 <PageTitle>Billing Management</PageTitle>
 
-<main class="home-page">
-    <section class="home-intro">
-        <div>
-            <h1>From first details<br />to final invoice.</h1>
-            <p>A focused registry for customer records, quotations, and invoices that preserves exactly what was issued.</p>
-            <a class="primary-link" href="/customers">Open customer register</a>
-        </div>
-        <div class="home-register" aria-label="Billing workflow">
-            <a href="/company-profile"><span>Owner record</span><strong>Set seller identity</strong><small>Profile</small></a>
-            <a href="/customers"><span>Customer register</span><strong>Keep billing details ready</strong><small>01</small></a>
-            <a href="/quotations"><span>Quotation ledger</span><strong>Prepare an offer</strong><small>02</small></a>
-            <a href="/invoices"><span>Invoice archive</span><strong>Review issued invoices</strong><small>03</small></a>
-        </div>
-    </section>
+<main class="home-page dashboard-page">
+    <header class="dashboard-header"><div><span class="dashboard-kicker">Business overview</span><h1>Good @(DateTime.Now.Hour < 12 ? "morning" : "afternoon").</h1><p>Financial activity from your issued invoices.</p></div><a class="primary-link" href="/quotations">Create quotation</a></header>
+    @if (isLoading) { <div class="document-state" role="status"><strong>Preparing your overview</strong><span>Loading invoice activity...</span></div> }
+    else if (error is not null) { <div class="document-state is-error" role="alert"><strong>Overview unavailable</strong><span>@error</span></div> }
+    else
+    {
+        <section class="dashboard-summary" aria-label="Invoice summary">
+            <article><span>Outstanding</span><strong>@Money(Outstanding)</strong><small>@OpenCount open @(OpenCount == 1 ? "invoice" : "invoices")</small></article>
+            <article><span>Paid this month</span><strong>@Money(PaidThisMonth)</strong><small>@PaidCount payments recorded</small></article>
+            <article class="@(OverdueCount > 0 ? "needs-attention" : string.Empty)"><span>Overdue</span><strong>@OverdueCount</strong><small>@Money(OverdueValue) past due</small></article>
+        </section>
+        <section class="dashboard-activity" aria-labelledby="recent-invoices-title">
+            <header><div><h2 id="recent-invoices-title">Recent invoices</h2><p>The latest billing activity requiring your attention.</p></div><a class="text-link" href="/invoices">View all invoices</a></header>
+            @if (RecentInvoices.Count == 0) { <div class="document-state"><strong>No invoices yet</strong><span>Create an invoice from an accepted quotation.</span></div> }
+            else { @foreach (var invoice in RecentInvoices) { <a class="dashboard-invoice" href="@($"/invoices/{invoice.Id}")"><span><strong>@invoice.CustomerName</strong><small>@invoice.Number · @invoice.DueDate.ToString("dd MMM yyyy")</small></span><span class="invoice-status is-@invoice.Status.ToLowerInvariant()">@invoice.Status</span><strong>@invoice.Total.ToString("N2") @invoice.Currency</strong></a> } }
+        </section>
+    }
 </main>
+
+@code {
+    private IReadOnlyList<InvoiceResponse> invoices = [];
+    private bool isLoading = true;
+    private string? error;
+    private IEnumerable<InvoiceResponse> OpenInvoices => invoices.Where(item => item.Status is "Issued" or "Overdue");
+    private decimal Outstanding => OpenInvoices.Sum(item => item.Total);
+    private int OpenCount => OpenInvoices.Count();
+    private int OverdueCount => invoices.Count(item => item.Status == "Overdue");
+    private decimal OverdueValue => invoices.Where(item => item.Status == "Overdue").Sum(item => item.Total);
+    private int PaidCount => invoices.Count(item => item.Status == "Paid" && item.PaidDate?.Year == DateTime.Today.Year && item.PaidDate?.Month == DateTime.Today.Month);
+    private decimal PaidThisMonth => invoices.Where(item => item.Status == "Paid" && item.PaidDate?.Year == DateTime.Today.Year && item.PaidDate?.Month == DateTime.Today.Month).Sum(item => item.AmountPaid ?? 0);
+    private IReadOnlyList<InvoiceResponse> RecentInvoices => invoices.OrderByDescending(item => item.IssueDate).Take(5).ToList();
+    protected override async Task OnInitializedAsync() { try { invoices = await BillingDocuments.ListInvoices(); } catch (HttpRequestException) { error = "Could not load invoice activity."; } finally { isLoading = false; } }
+    private string Money(decimal value) => invoices.FirstOrDefault()?.Currency is { } currency ? $"{value:N2} {currency}" : $"{value:N2}";
+}
