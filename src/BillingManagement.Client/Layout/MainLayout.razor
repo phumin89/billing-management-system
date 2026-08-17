@@ -12,7 +12,10 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 -->
 <div class="app-shell @(collapsed ? "is-collapsed" : string.Empty)">
     <aside class="@($"sidebar active-{activeNav}")" aria-label="Primary navigation">
-        <span class="sidebar-indicator" aria-hidden="true"></span>
+        @if (!string.IsNullOrEmpty(activeNav))
+        {
+            <span class="sidebar-indicator" aria-hidden="true"></span>
+        }
         <div class="sidebar-top">
             <a class="brand" href="/" aria-label="Billing Management">
                 <span class="brand-mark">BM</span>
