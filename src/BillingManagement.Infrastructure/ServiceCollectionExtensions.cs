@@ -34,12 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<CustomerStore>();
         services.AddScoped<ICustomerStore>(provider => provider.GetRequiredService<CustomerStore>());
         services.AddScoped<ICustomerQueries>(provider => provider.GetRequiredService<CustomerStore>());
-        services.AddSingleton<ICompanyMediaStore>(_ =>
-            new FileSystemCompanyMediaStore(new CompanyMediaStorageOptions
-            {
-                RootPath = configuration[$"{CompanyMediaStorageOptions.SectionName}:RootPath"]
-                    ?? throw new InvalidOperationException("Company media storage root path is required.")
-            }));
+        services.AddScoped<ICompanyMediaStore, DatabaseCompanyMediaStore>();
 
         return services;
     }

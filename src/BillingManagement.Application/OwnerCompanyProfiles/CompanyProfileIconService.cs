@@ -7,7 +7,7 @@ namespace BillingManagement.Application.OwnerCompanyProfiles;
 
 public sealed class CompanyProfileIconService : ICompanyProfileIconService
 {
-    private const long MaximumLength = 2 * 1024 * 1024;
+    private const long MaximumLength = 10 * 1024 * 1024;
     private const long MaximumPixels = 25_000_000;
     private readonly IOwnerCompanyProfileStore profileStore;
     private readonly ICompanyMediaStore mediaStore;
@@ -174,7 +174,7 @@ public sealed class CompanyProfileIconService : ICompanyProfileIconService
 
             if (buffer.Length + read > MaximumLength)
             {
-                throw new InvalidOperationException("Image files cannot exceed 2 MB.");
+                throw new InvalidOperationException("Image files cannot exceed 10 MB.");
             }
 
             await buffer.WriteAsync(chunk.AsMemory(0, read), cancellationToken);

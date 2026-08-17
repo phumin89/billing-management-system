@@ -13,6 +13,7 @@ accounting-suite features.
 
 - Owner company profile used as the seller identity on new billing documents.
 - Customer registry with searchable customer records.
+- Company cover and icon images stored with business data in SQL Server.
 - Quotation creation with line items, tax, currency, totals, and unique document
   numbers.
 - One invoice created from each quotation, preserving the original quotation
@@ -182,7 +183,12 @@ docker compose -f docker-compose.yml -f docker-compose.production.yml up -d --bu
 The production override removes direct host exposure for the API and SQL Server.
 The client proxies `/api` requests to the internal API service.
 
-Before upgrades, back up the named SQL Server and company-media volumes.
+Before upgrades, back up the named SQL Server volume. Company images are stored
+in the same database and are included in that backup.
+
+When upgrading from the earlier filesystem-backed release, the migrator imports
+referenced cover and icon files from the legacy company-media volume. New uploads
+are written only to SQL Server.
 Authentication and multi-user authorization are outside the current MVP, so
 production deployments should be placed behind an authenticated private network
 or access gateway.

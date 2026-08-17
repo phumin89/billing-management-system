@@ -51,6 +51,19 @@ public sealed class CompanyProfileIdentityTests
     }
 
     [Fact]
+    public async Task Profile_form_uses_a_logo_file_dropzone_instead_of_a_reference_field()
+    {
+        var markup = WebUtility.HtmlDecode(await RenderProfile("form"));
+
+        Assert.Contains("class=\"company-logo-dropzone", markup);
+        Assert.Contains("type=\"file\"", markup);
+        Assert.Contains("accept=\"image/png,image/jpeg,image/webp\"", markup);
+        Assert.Contains("Drop your logo here", markup);
+        Assert.DoesNotContain("Logo/reference placeholder", markup);
+        Assert.DoesNotContain("name=\"logo-reference\"", markup);
+    }
+
+    [Fact]
     public void Route_focused_heading_does_not_draw_control_outline()
     {
         var styles = ReadApplicationStyles().ReplaceLineEndings("\n");
@@ -62,8 +75,13 @@ public sealed class CompanyProfileIdentityTests
 
     private static async Task<string> RenderExistingProfile()
     {
+        return await RenderProfile("existing");
+    }
+
+    private static async Task<string> RenderProfile(string state)
+    {
         using var services = new ServiceCollection()
-            .AddSingleton<NavigationManager>(new TestNavigationManager())
+            .AddSingleton<NavigationManager>(new TestNavigationManager(state))
             .AddSingleton(new OwnerCompanyProfileClient(new HttpClient()))
             .AddSingleton<IJSRuntime, TestJsRuntime>()
             .BuildServiceProvider();
@@ -103,11 +121,11 @@ public sealed class CompanyProfileIdentityTests
 
     private sealed class TestNavigationManager : NavigationManager
     {
-        public TestNavigationManager()
+        public TestNavigationManager(string state)
         {
             this.Initialize(
                 "http://localhost/",
-                "http://localhost/company-profile?state=existing");
+                $"http://localhost/company-profile?state={state}");
         }
 
         protected override void NavigateToCore(string uri, bool forceLoad)

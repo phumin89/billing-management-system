@@ -1,3 +1,9 @@
+using BillingManagement.Application.Abstractions.CompanyMedia;
+using BillingManagement.Infrastructure;
+using BillingManagement.Infrastructure.CompanyMedia;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace BillingManagement.UnitTests.Deployment;
 
 public sealed class DeploymentConfigurationTests
@@ -37,6 +43,26 @@ public sealed class DeploymentConfigurationTests
 
         Assert.Contains("builder.HostEnvironment.IsDevelopment()", program, StringComparison.Ordinal);
         Assert.Contains("builder.HostEnvironment.BaseAddress", program, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Infrastructure_registers_database_company_media_as_scoped()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = "Server=localhost;Database=BillingManagement"
+            })
+            .Build();
+        var services = new ServiceCollection();
+
+        services.AddBillingManagementInfrastructure(configuration);
+
+        var registration = Assert.Single(
+            services,
+            service => service.ServiceType == typeof(ICompanyMediaStore));
+        Assert.Equal(typeof(DatabaseCompanyMediaStore), registration.ImplementationType);
+        Assert.Equal(ServiceLifetime.Scoped, registration.Lifetime);
     }
 
     private static string ReadRepositoryFile(params string[] segments)

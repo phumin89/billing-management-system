@@ -7,7 +7,7 @@ namespace BillingManagement.Client.Pages.CompanyProfile;
 
 public partial class CompanyProfile
 {
-    private const long MaximumIconLength = 2 * 1024 * 1024;
+    private const long MaximumIconLength = 10 * 1024 * 1024;
     private const long MaximumCoverLength = 5 * 1024 * 1024;
     private const string FallbackIconImageUrl = "images/company-profile/company-icon.svg";
     private const string FallbackCoverImageUrl = "images/company-profile/header.svg";
@@ -128,6 +128,8 @@ public partial class CompanyProfile
 
     private void ShowExisting()
     {
+        this.ClearIconSelection();
+        this.iconMessage = null;
         this.reviewState = ProfileReviewState.Existing;
         this.isEditMode = false;
         this.showDeleteSnackbar = false;
@@ -135,6 +137,8 @@ public partial class CompanyProfile
 
     private void ShowCreate()
     {
+        this.ClearIconSelection();
+        this.iconMessage = null;
         this.form = new CreateOwnerCompanyProfileRequest();
         this.validationErrors = new Dictionary<string, string[]>();
         this.statusMessage = null;
@@ -145,6 +149,8 @@ public partial class CompanyProfile
 
     private void ShowEdit()
     {
+        this.ClearIconSelection();
+        this.iconMessage = null;
         this.form = ToRequest(this.profile);
         this.validationErrors = new Dictionary<string, string[]>();
         this.statusMessage = null;
@@ -165,6 +171,14 @@ public partial class CompanyProfile
     private string SnackbarClass => this.snackbarClosing ? "company-snackbar is-closing" : "company-snackbar";
 
     private string IconImageUrl => this.iconPreviewUrl ?? this.ServerIconImageUrl;
+
+    private string LogoDropZoneClass => this.selectedIcon is null
+        ? "company-logo-dropzone"
+        : "company-logo-dropzone has-selection";
+
+    private string LogoDropZoneTitle => this.selectedIcon is null
+        ? "Drop your logo here or choose a file"
+        : this.selectedIcon.Name;
 
     private bool IsIconRequestInProgress => this.isUploadingIcon || this.isResettingIcon;
 
@@ -233,20 +247,31 @@ public partial class CompanyProfile
         this.validationErrors = new Dictionary<string, string[]>();
         this.statusMessage = null;
         this.isSubmitting = true;
-        var result = this.isEditMode
-            ? await this.Client.Update(ToUpdateRequest(this.form))
-            : await this.Client.Create(this.form);
-
-        this.isSubmitting = false;
-        if (!result.Succeeded)
+        try
         {
-            this.validationErrors = result.Errors;
-            this.statusMessage = result.Message;
-            return;
-        }
+            var result = this.isEditMode
+                ? await this.Client.Update(ToUpdateRequest(this.form))
+                : await this.Client.Create(this.form);
+            if (!result.Succeeded)
+            {
+                this.validationErrors = result.Errors;
+                this.statusMessage = result.Message;
+                return;
+            }
 
-        this.profile = result.Profile;
-        this.ShowExisting();
+            this.profile = result.Profile;
+            this.isEditMode = true;
+            if (this.selectedIcon is not null && !await this.UploadIcon())
+            {
+                return;
+            }
+
+            this.ShowExisting();
+        }
+        finally
+        {
+            this.isSubmitting = false;
+        }
     }
 
     private async Task SelectIcon(InputFileChangeEventArgs eventArgs)
@@ -257,7 +282,7 @@ public partial class CompanyProfile
         if (!IsSupportedIcon(file) || file.Size > MaximumIconLength)
         {
             this.ClearIconSelection();
-            this.iconMessage = "Choose a PNG, JPEG, or WebP image up to 2 MB.";
+            this.iconMessage = "Choose a PNG, JPEG, or WebP image up to 10 MB.";
             this.iconMessageIsError = true;
             return;
         }
@@ -278,11 +303,11 @@ public partial class CompanyProfile
         }
     }
 
-    private async Task UploadIcon()
+    private async Task<bool> UploadIcon()
     {
         if (this.selectedIcon is null || this.IsIconRequestInProgress)
         {
-            return;
+            return false;
         }
 
         this.iconMessage = null;
@@ -300,13 +325,14 @@ public partial class CompanyProfile
                 this.ClearIconSelection();
                 this.iconMessage = result.Message;
                 this.iconMessageIsError = true;
-                return;
+                return false;
             }
 
             this.ClearIconSelection();
             this.RefreshServerIcon();
             this.iconMessage = "Icon image saved.";
             this.iconMessageIsError = false;
+            return true;
         }
         finally
         {

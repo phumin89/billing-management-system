@@ -46,13 +46,13 @@ public sealed class CompanyProfileIconServiceTests
     }
 
     [Fact]
-    public async Task UploadAsync_rejects_files_larger_than_two_megabytes_without_changing_existing_icon()
+    public async Task UploadAsync_rejects_files_larger_than_ten_megabytes_without_changing_existing_icon()
     {
         var previousKey = CompanyMediaStorageKey.Create();
         var profileStore = new ProfileStore(Profile(previousKey.Value, "image/png"));
         var mediaStore = new MediaStore(previousKey, CreateImage(SKEncodedImageFormat.Png));
         var service = new CompanyProfileIconService(profileStore, mediaStore);
-        var oversizedContent = new byte[(2 * 1024 * 1024) + 1];
+        var oversizedContent = new byte[(10 * 1024 * 1024) + 1];
 
         var result = await service.UploadAsync(new MemoryStream(oversizedContent));
 
