@@ -16,11 +16,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=BillingManagement;User Id=sa;Password=${BMS_DB_PASSWORD:-Billing_dev_2026!};TrustServerCertificate=True;MultipleActiveResultSets=True"
-      CompanyMediaStorage__RootPath: /var/lib/billing-management/company-media
     ports:
       - "5081:8080"
-    volumes:
-      - billingmanagement-company-media:/var/lib/billing-management/company-media
     healthcheck:
       test:
         - CMD
@@ -61,6 +58,9 @@ services:
     environment:
       DOTNET_ENVIRONMENT: Development
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=BillingManagement;User Id=sa;Password=${BMS_DB_PASSWORD:-Billing_dev_2026!};TrustServerCertificate=True;MultipleActiveResultSets=True"
+      LegacyCompanyMedia__RootPath: /var/lib/billing-management/company-media
+    volumes:
+      - billingmanagement-company-media:/var/lib/billing-management/company-media:ro
     depends_on:
       sqlserver:
         condition: service_healthy

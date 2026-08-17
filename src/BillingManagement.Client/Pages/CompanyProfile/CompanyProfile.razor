@@ -100,10 +100,6 @@
                         <dd>@DisplayProfile.Website</dd>
                     </div>
                     <div class="full">
-                        <dt>Logo/reference</dt>
-                        <dd>@DisplayProfile.LogoReference</dd>
-                    </div>
-                    <div class="full">
                         <dt>Registration/business reference</dt>
                         <dd>@DisplayProfile.RegistrationNumber</dd>
                     </div>
@@ -174,9 +170,30 @@
                         <label for="website">Website</label>
                         <input id="website" name="website" @bind="form.Website" @bind:event="oninput" placeholder="https://example.com" />
                     </div>
-                    <div class="company-field full">
-                        <label for="logo-reference">Logo/reference placeholder</label>
-                        <input id="logo-reference" name="logo-reference" @bind="form.LogoReference" @bind:event="oninput" placeholder="Logo file name or asset reference" />
+                    <div class="company-field company-logo-field full">
+                        <label for="company-logo">Company logo</label>
+                        <div class="@LogoDropZoneClass">
+                            <div class="company-logo-preview" aria-hidden="true">
+                                <img src="@IconImageUrl"
+                                     alt=""
+                                     width="64"
+                                     height="64"
+                                     @onerror="UseFallbackIcon" />
+                            </div>
+                            <div class="company-logo-dropzone-copy">
+                                <strong>@LogoDropZoneTitle</strong>
+                                <span id="company-logo-help">PNG, JPEG or WebP · up to 10 MB</span>
+                            </div>
+                            <span class="company-logo-browse" aria-hidden="true">Browse</span>
+                            <InputFile id="company-logo"
+                                       OnChange="SelectIcon"
+                                       accept="image/png,image/jpeg,image/webp"
+                                       aria-describedby="company-logo-help" />
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(iconMessage))
+                        {
+                            <span class="@IconMessageClass" role="alert">@iconMessage</span>
+                        }
                     </div>
                     <div class="company-field full">
                         <label for="registration-reference">Registration/business reference</label>

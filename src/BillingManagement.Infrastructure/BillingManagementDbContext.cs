@@ -1,5 +1,6 @@
 using BillingManagement.Domain;
 using BillingManagement.Infrastructure.BillingDocuments;
+using BillingManagement.Infrastructure.CompanyMedia;
 using BillingManagement.Infrastructure.Customers;
 using BillingManagement.Infrastructure.OwnerCompanyProfiles;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,8 @@ namespace BillingManagement.Infrastructure;
 public sealed class BillingManagementDbContext(DbContextOptions<BillingManagementDbContext> options)
     : DbContext(options)
 {
+    internal DbSet<CompanyMediaFile> CompanyMedia => this.Set<CompanyMediaFile>();
+
     public DbSet<Invoice> Invoices => this.Set<Invoice>();
 
     public DbSet<Quotation> Quotations => this.Set<Quotation>();
@@ -19,6 +22,7 @@ public sealed class BillingManagementDbContext(DbContextOptions<BillingManagemen
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.ApplyConfiguration(new CompanyMediaFileConfiguration());
         modelBuilder.ApplyConfiguration(new CustomerConfiguration());
         modelBuilder.ApplyConfiguration(new InvoiceConfiguration());
         modelBuilder.ApplyConfiguration(new InvoiceItemConfiguration());

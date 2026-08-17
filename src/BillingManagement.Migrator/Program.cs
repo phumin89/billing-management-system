@@ -1,4 +1,5 @@
 using BillingManagement.Infrastructure;
+using BillingManagement.Infrastructure.CompanyMedia;
 using BillingManagement.Migrator;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -21,3 +22,6 @@ catch (SqlException exception) when (SqlServerMigrationErrors.IsDatabaseAlreadyE
 {
     await dbContext.Database.MigrateAsync();
 }
+
+await new LegacyCompanyMediaImporter(dbContext).ImportAsync(
+    Environment.GetEnvironmentVariable("LegacyCompanyMedia__RootPath"));
