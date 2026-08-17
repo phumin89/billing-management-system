@@ -34,6 +34,7 @@ public sealed class MainLayoutStyleTests
     {
         var layout = ReadClientFile("Layout", "MainLayout.razor");
 
+        Assert.Contains("@if (!string.IsNullOrEmpty(activeNav))", layout, StringComparison.Ordinal);
         Assert.Contains("if (path.StartsWith(\"customers\"", layout, StringComparison.Ordinal);
         Assert.Contains("return string.Empty;", layout, StringComparison.Ordinal);
     }
